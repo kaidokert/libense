@@ -9,18 +9,19 @@ ifdef RELEASE
 CCFLAGS += -Oz -emit-llvm
 LDFLAGS += -plugin /usr/lib/llvm/LLVMgold.so
 else
-CCFLAGS += -g
+CCFLAGS += -g -O1
 ASFLAGS += -g
 endif
 
 CCFLAGS += -Wall -Wextra -Werror -pedantic
-CCFLAGS += -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -ffreestanding -nostdlib -nostdinc
+CCFLAGS += -mcpu=cortex-m4 -mthumb -mfloat-abi=hard
+CCFLAGS += -ffreestanding -nostdlib --sysroot '^'
 CCFLAGS += -fno-exceptions -fno-rtti -fno-stack-protector
 #CCFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += $(CCFLAGS) -std=c99
 CXXFLAGS += $(CCFLAGS) -std=c++11
 
-LDFLAGS += -L/usr/lib/gcc/arm-elf/4.7.2/thumb/ -lgcc -T f4.ld
+LDFLAGS += -L/usr/lib/gcc/arm-elf/4.7.2/thumb/ -lgcc -T ldscripts/stm32f4/f4.ld
 
 # default values for internal variables
 AS := arm-elf-as
