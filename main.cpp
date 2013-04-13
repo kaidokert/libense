@@ -1,3 +1,5 @@
+#include <string.h>
+#include <stdint.h>
 
 #define REG(x) *((volatile unsigned int*) (x))
 
@@ -22,31 +24,32 @@ struct X {
 	}
 };
 
-X x __attribute__((section(".ccmdata")));
+X __attribute__((section(".ccmdata"))) x;
 
-char y[] = "iuztredcvbnmkwerj";
+char y[] = "\001\002\003\004\005\006\007\010\011\012\013\014\015\016";
 
 static void print()
 {
 //	const char foo[] = "brutzelbums";
 	for (unsigned char j = 0; ; j++) {
 		char c = y[j % sizeof(y)]; {
+//		char c = j % sizeof(y); {
 //		for (char c : foo) {
 			for (int i = 0; i < 8; i++) {
 				REG(GPIO_A_BASE + 0x14) = ((c & 1) << 12) | (1 << 13);
-				for (int i = 0; i < 10000; i++)
+				for (int i = 0; i < 400000; i++)
 					__asm__ __volatile__ ("nop");
 				REG(GPIO_A_BASE + 0x14) = 0;
-				for (int i = 0; i < 10000; i++)
+				for (int i = 0; i < 400000; i++)
 					__asm__ __volatile__ ("nop");
 				c >>= 1;
 			}
-//			REG(GPIO_A_BASE + 0x14) = 1 << 14;
-//			for (int i = 0; i < 100000; i++)
-//				__asm__ __volatile__ ("nop");
-//			REG(GPIO_A_BASE + 0x14) = 0;
-//			for (int i = 0; i < 300000; i++)
-//				__asm__ __volatile__ ("nop");
+			REG(GPIO_A_BASE + 0x14) = 1 << 14;
+			for (int i = 0; i < 400000; i++)
+				__asm__ __volatile__ ("nop");
+			REG(GPIO_A_BASE + 0x14) = 0;
+			for (int i = 0; i < 1200000; i++)
+				__asm__ __volatile__ ("nop");
 		}
 	}
 }
@@ -72,37 +75,5 @@ extern "C" {
 }
 
 
-
-extern "C" {
-	extern void (*_ctors_begin)();
-}
-
 // TODO: future-ify all the things
 
-void call_cxx_constructors()
-{
-	_ctors_begin();
-//	cxx_ctor_ptr* ctor = &_ctors_begin;
-//	if (*ctor) {
-//		(*ctor)();
-//	}
-//	for (cxx_ctor_ptr* ctor = &_ctors_begin; *ctor; ctor++) {
-//		(*ctor)();
-//	}
-}
-
-extern "C" {
-	void _pre_init()
-	{
-		call_cxx_constructors();
-	}
-	
-	void _post_init()
-	{
-		main();
-	}
-
-	void _post_fini()
-	{
-	}
-}

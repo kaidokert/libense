@@ -29,7 +29,7 @@ SECTIONS
 	} >FLASH
 
 	.rodata ALIGN(4) : AT(ALIGN(_text_end, 4)) {
-		_ctors_begin = .;
+		_ctors_array = .;
 		KEEP(*(SORT(.ctors)));
 		KEEP(*(SORT(.init_array)));
 		_ctors_end = .;
