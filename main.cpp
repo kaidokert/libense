@@ -1,6 +1,8 @@
 #include <string.h>
 #include <stdint.h>
 
+#include <hw/stm32f4/rcc.hpp>
+
 #define REG(x) *((volatile unsigned int*) (x))
 
 static const unsigned int RCC_BASE = 0x40023800;
@@ -10,7 +12,18 @@ struct X {
 	static void foo()
 	{
 		// enable gpioA clock
-		REG(RCC_BASE + 0x30) |= 0xf;
+		asm volatile ("nop");
+		asm volatile ("nop");
+		asm volatile ("nop");
+		//REG(RCC_BASE + 0x30) |= 0xf;
+		ense::ahb1peripheral_clock
+			.gpioA(true)
+			.gpioB(true)
+			.gpioC(true)
+			.gpioD(true);
+		asm volatile ("nop");
+		asm volatile ("nop");
+		asm volatile ("nop");
 
 		// set gpioA9 to output
 		REG(GPIO_A_BASE + 0x00) |= 0x55555555;
@@ -59,18 +72,25 @@ void main()
 	print();
 }
 
+void nmi() { for (;;) ; }
+void hard() { for (;;) ; }
+void usage() { for (;;) ; }
+void bus() { for (;;) ; }
+void mem() { for (;;) ; }
+
 extern "C" {
-	void* _stack;
+	extern void* _stack;
 	extern void _start();
 
 	__attribute__((section("..isr_vectors"), used))
 	void (*const isr_vectors[])() {
 		reinterpret_cast<void (*)()>(&_stack),
 		_start,
-		reinterpret_cast<void (*)()>(4),
-		reinterpret_cast<void (*)()>(8),
-		reinterpret_cast<void (*)()>(12),
-		reinterpret_cast<void (*)()>(16)
+		nmi,
+		hard,
+		mem,
+		bus,
+		usage
 	};
 }
 

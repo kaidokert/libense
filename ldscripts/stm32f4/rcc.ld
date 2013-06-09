@@ -1,0 +1,6 @@
+SECTIONS
+{
+	.rcc 0x40023800 : {
+		PROVIDE(.RCC_AHB1ENR = . + 0x30);
+	}
+}

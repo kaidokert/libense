@@ -13,7 +13,7 @@ CCFLAGS += -g -O1
 ASFLAGS += -g
 endif
 
-CCFLAGS += -Wall -Wextra -Werror -pedantic
+CCFLAGS += -Wall -Wextra -Werror -pedantic -mstrict-align
 CCFLAGS += -mcpu=cortex-m4 -mthumb -mfloat-abi=hard
 CCFLAGS += -ffreestanding -nostdlib --sysroot '^'
 CCFLAGS += -fno-exceptions -fno-rtti -fno-stack-protector
