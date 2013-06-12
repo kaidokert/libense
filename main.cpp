@@ -15,12 +15,12 @@ struct X {
 		asm volatile ("nop");
 		asm volatile ("nop");
 		asm volatile ("nop");
-		//REG(RCC_BASE + 0x30) |= 0xf;
-		ense::ahb1peripheral_clock
+		ense::ahb1peripheral_clock.begin()
 			.gpioA(true)
 			.gpioB(true)
 			.gpioC(true)
-			.gpioD(true);
+			.gpioD(true)
+			.commit();
 		asm volatile ("nop");
 		asm volatile ("nop");
 		asm volatile ("nop");
@@ -79,12 +79,10 @@ void bus() { for (;;) ; }
 void mem() { for (;;) ; }
 
 extern "C" {
-	extern void* _stack;
 	extern void _start();
 
 	__attribute__((section("..isr_vectors"), used))
 	void (*const isr_vectors[])() {
-		reinterpret_cast<void (*)()>(&_stack),
 		_start,
 		nmi,
 		hard,

@@ -14,6 +14,7 @@ MEMORY
 SECTIONS
 {
 	.text : AT(ORIGIN(FLASH)) {
+		LONG(ABSOLUTE(..stack));
 		KEEP(*(..isr_vectors))
 
 		KEEP(*(..init.head))
@@ -27,6 +28,8 @@ SECTIONS
 		*(.text .text.*)
 		PROVIDE(_text_end = .);
 	} >FLASH
+
+	..stack = ORIGIN(CCM) + LENGTH(CCM);
 
 	.rodata ALIGN(4) : AT(ALIGN(_text_end, 4)) {
 		_ctors_array = .;
@@ -44,8 +47,6 @@ SECTIONS
 		PROVIDE(_ccmdata_begin = .);
 		*(.ccmdata .ccmdata.*)
 		PROVIDE(_ccmdata_end = .);
-
-		_stack = ORIGIN(CCM) + LENGTH(CCM);
 	} >CCM
 	_ccmdata_content_begin = LOADADDR(.ccmdata);
 	_ccmdata_content_end = _ccmdata_content_begin + SIZEOF(.ccmdata);
