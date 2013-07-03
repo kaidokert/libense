@@ -5,13 +5,11 @@ PARTICLES := ense
 # default compiler/linker flags
 override CPPFLAGS += -I include
 
-ifdef RELEASE
-CCFLAGS += -Oz -emit-llvm
-LDFLAGS += -plugin /usr/lib/llvm/LLVMgold.so
-else
-CCFLAGS += -g -O1
-ASFLAGS += -g
-endif
+CCFLAGS_RELEASE := -Oz -emit-llvm
+LDFLAGS_RELEASE := -plugin /usr/lib/LLVMgold.so
+
+CCFLAGS_DEBUG := -g -O1
+ASFLAGS_DEBUG := -g
 
 CCFLAGS += -Wall -Wextra -Werror -pedantic -mstrict-align
 CCFLAGS += -mcpu=cortex-m4 -mthumb -mfloat-abi=hard
@@ -35,8 +33,8 @@ DOXYGEN := doxygen
 
 OBJCOPY := arm-elf-objcopy
 
-OBJDIR = obj
-BINDIR = bin
+OBJDIR := obj
+BINDIR := bin
 
 # extensions of files considered to be code
 # supported so far:
@@ -58,6 +56,13 @@ endef
 ###
 # here be internals
 ###
+
+OBJDIR_TARGET := $(OBJDIR)/$(if $(RELEASE),release,debug)
+TARGET_NAME := $(if $(RELEASE),release,debug)
+TARGET_NAME_FILE := $(OBJDIR)/.target
+
+CCFLAGS += $(if $(RELEASE),$(CCFLAGS_RELEASE),$(CCFLAGS_DEBUG))
+LDFLAGS += $(if $(RELEASE),$(LDFLAGS_RELEASE),$(LDFLAGS_DEBUG))
 
 ifdef V
 override V :=
@@ -91,7 +96,10 @@ define require_symbol_definition =
 endef
 
 ifndef MAKE_RESTARTS
-$(shell touch -r Makefile -d yesterday .depend-check)
+$(shell \
+	touch -r Makefile -d yesterday .depend-check; \
+	if [ ! -f $(TARGET_NAME_FILE) -o x`cat $(TARGET_NAME_FILE)` != x$(TARGET_NAME) ]; then echo $(TARGET_NAME) > $(TARGET_NAME_FILE); fi \
+)
 include .depend-check
 else
 $(shell $(RM) .depend-check)
@@ -104,29 +112,31 @@ SRC := $(foreach ext,$(CODE_EXTS),$(wildcard *.$(ext)))
 
 DEP_SRC := $(SRC)
 
-DIRS := $(BINDIR) $(OBJDIR) $(subst ./,,$(sort $(patsubst %,$(OBJDIR)/%,$(dir $(DEP_SRC)))))
+DIRS := $(BINDIR) $(OBJDIR_TARGET) $(subst ./,,$(sort $(patsubst %,$(OBJDIR_TARGET)/%,$(dir $(DEP_SRC)))))
 
 PARTICLE_MAKEFILES := $(patsubst %,%/dir.mk,$(PARTICLES))
 
 TARGET_EXECUTABLES := $(patsubst %,$(BINDIR)/%,$(TARGETS))
 
+.PHONY: all
 all: $(TARGET_EXECUTABLES) $(patsubst %,%.bin,$(TARGET_EXECUTABLES))
 
 .depend-check: Makefile
 	@$(LIBRARY_VERSION_CHECK)
 	@touch $@
 
+.PHONY: deps
 deps:
 
 ifdef DEPEND_CHECK_DONE
 -include $(PARTICLE_MAKEFILES)
--include $(foreach ext,$(CODE_EXTS),$(patsubst %.$(ext),$(OBJDIR)/%.o.d,$(filter %.$(ext),$(DEP_SRC))))
+-include $(foreach ext,$(CODE_EXTS),$(patsubst %.$(ext),$(OBJDIR_TARGET)/%.o.d,$(filter %.$(ext),$(DEP_SRC))))
 endif
 
 PARTICLE_LIBRARY_NAMES := $(foreach lib,$(PARTICLES),$(call sublib_name,$(lib)))
 PARTICLE_LIBRARIES := $(foreach lib,$(PARTICLES),-l$(call submk_name,$(lib)))
 
-override LDFLAGS += -L $(OBJDIR)
+override LDFLAGS += -L $(OBJDIR_TARGET)
 ifneq (,$(LIBRARIES))
 override CXXFLAGS += `pkg-config --cflags $(LIBRARIES)`
 override LDFLAGS += `pkg-config --libs $(LIBRARIES)`
@@ -138,35 +148,39 @@ $(BINDIR)/%.bin: $(BINDIR)/%
 	@echo -e "[OBJCPY]" $@
 	$V$(OBJCOPY) -O binary $< $@
 
-$(BINDIR)/%: $(OBJDIR)/%.o $(patsubst %,$(OBJDIR)/%,$(PARTICLE_LIBRARY_NAMES)) | $(BINDIR)
+$(BINDIR)/%: $(OBJDIR_TARGET)/%.o $(patsubst %,$(OBJDIR_TARGET)/%,$(PARTICLE_LIBRARY_NAMES)) $(TARGET_NAME_FILE) | $(BINDIR)
 	@echo -e "[LD]\t" $@
 	$V$(LD) -o $@ $< $(LDFLAGS)
 
-.SECONDARY: $(patsubst %,$(OBJDIR)/%.o,$(TARGETS))
+.SECONDARY: $(patsubst %,$(OBJDIR_TARGET)/%.o,$(TARGETS))
 
+.PHONY: clean
 clean:
 	-$(RM) -r $(OBJDIR) $(BINDIR) $(PARTICLE_MAKEFILES)
-   
+  
+.PHONY: depclean
 depclean:
 	-$(FIND) $(OBJDIR) -iname '*.d' -delete
 
+.PHONY: distclean
 distclean:
 	-$(RM) -r $(BINDIR)
 
-$(OBJDIR)/%.o: %.cpp Makefile | $(DIRS)
+$(OBJDIR_TARGET)/%.o: %.cpp Makefile | $(DIRS)
 	@echo -e "[CXX]\t" $<
 	$V$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 	$(call generate_depfile,$<,$@,$(CXXFLAGS))
 
-$(OBJDIR)/%.o: %.c Makefile | $(DIRS)
+$(OBJDIR_TARGET)/%.o: %.c Makefile | $(DIRS)
 	@echo -e "[CC]\t" $<
 	$V$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 	$(call generate_depfile,$<,$@,$(CFLAGS))
 
-$(OBJDIR)/%.o: %.S Makefile | $(DIRS)
+$(OBJDIR_TARGET)/%.o: %.S Makefile | $(DIRS)
 	@echo -e "[AS]\t" $<
 	$V$(AS) $(ASFLAGS) -o $@ $<
 
+.PHONY: $(DIRS)
 $(DIRS):
 	@mkdir -p $@
 
@@ -174,10 +188,9 @@ $(PARTICLE_MAKEFILES): Makefile
 	@echo -e "[GEN]\t" $@
 	$(call generate_subdir_makefile,$@)
 
+.PHONY: html-doc
 html-doc:
 	$V$(DOXYGEN) doc/doxy.cfg
-
-.PHONY: clean distclean depclean $(DIRS) deps all html-doc
 
 
 # result: shell command to create a dependency file
@@ -192,15 +205,15 @@ endef
 # result: shell commands to create a particle Makefile
 # argument 1: directory
 define generate_subdir_makefile =
-	@echo 'DIRS += $$(OBJDIR)/$(1:/dir.mk=)' > $1 
+	@echo 'DIRS += $$(OBJDIR_TARGET)/$(1:/dir.mk=)' > $1
 	@echo >> $1
 	@echo '$(call submk_name,$1)_SRC := $(foreach ext,$(CODE_EXTS),$$(wildcard $(dir $1)*.$(ext)))' >> $1
 	@echo >> $1
-	@echo '$(call submk_name,$1)_OBJ := $(foreach ext,$(CODE_EXTS),$$(patsubst %.$(ext),$$(OBJDIR)/%.o,$$(filter %.$(ext),$$($(call submk_name,$1)_SRC))))' >> $1
+	@echo '$(call submk_name,$1)_OBJ := $(foreach ext,$(CODE_EXTS),$$(patsubst %.$(ext),$$(OBJDIR_TARGET)/%.o,$$(filter %.$(ext),$$($(call submk_name,$1)_SRC))))' >> $1
 	@echo >> $1
 	@echo 'DEP_SRC += $$($(call submk_name,$1)_SRC)' >> $1
 	@echo >> $1
-	@echo '$$(OBJDIR)/$(call sublib_name,$1): $$($(call submk_name,$1)_OBJ)' >> $1
+	@echo '$$(OBJDIR_TARGET)/$(call sublib_name,$1): $$($(call submk_name,$1)_OBJ)' >> $1
 	@echo '	@echo -e "[AR]\t" $$@' >> $1
 	@echo '	$$V$$(AR) -rcs $$@ $$^' >> $1
 endef
