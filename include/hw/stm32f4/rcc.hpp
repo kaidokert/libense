@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include <hw/config_register.hpp>
+#include <hw/platform_register.hpp>
 
 namespace ense {
 
@@ -36,30 +37,36 @@ class AHB1PeripheralClockEnable : public ConfigurationRegister<AHB1Peripheral, C
 		typedef AHB1PeripheralClockEnable this_type;
 
 	public:
-		REGISTER_BIT(usb_otg_hs_ulpi)
-		REGISTER_BIT(usb_otg_hs)
-		REGISTER_BIT(eth_mac_ptp)
-		REGISTER_BIT(eth_mac_rx)
-		REGISTER_BIT(eth_mac_tx)
-		REGISTER_BIT(eth_mac)
-		REGISTER_BIT(dma2)
-		REGISTER_BIT(dma1)
-		REGISTER_BIT(ccm_data_ram)
-		REGISTER_BIT(backup_sram)
-		REGISTER_BIT(crc)
-		REGISTER_BIT(gpioI)
-		REGISTER_BIT(gpioH)
-		REGISTER_BIT(gpioG)
-		REGISTER_BIT(gpioF)
-		REGISTER_BIT(gpioE)
-		REGISTER_BIT(gpioD)
-		REGISTER_BIT(gpioC)
-		REGISTER_BIT(gpioB)
-		REGISTER_BIT(gpioA)
+		REGISTER_BIT_RW(usb_otg_hs_ulpi)
+		REGISTER_BIT_RW(usb_otg_hs)
+		REGISTER_BIT_RW(eth_mac_ptp)
+		REGISTER_BIT_RW(eth_mac_rx)
+		REGISTER_BIT_RW(eth_mac_tx)
+		REGISTER_BIT_RW(eth_mac)
+		REGISTER_BIT_RW(dma2)
+		REGISTER_BIT_RW(dma1)
+		REGISTER_BIT_RW(ccm_data_ram)
+		REGISTER_BIT_RW(backup_sram)
+		REGISTER_BIT_RW(crc)
+		REGISTER_BIT_RW(gpioI)
+		REGISTER_BIT_RW(gpioH)
+		REGISTER_BIT_RW(gpioG)
+		REGISTER_BIT_RW(gpioF)
+		REGISTER_BIT_RW(gpioE)
+		REGISTER_BIT_RW(gpioD)
+		REGISTER_BIT_RW(gpioC)
+		REGISTER_BIT_RW(gpioB)
+		REGISTER_BIT_RW(gpioA)
 };
+
+static_assert(std::is_standard_layout<AHB1PeripheralClockEnable<>>::value, "");
+static_assert(sizeof(AHB1PeripheralClockEnable<>) == sizeof(uint32_t), "");
 
 extern AHB1PeripheralClockEnable<> ahb1peripheral_clock __attribute__((__weak__, __alias__(".RCC_AHB1ENR")));
 
 }
+
+#define __REGISTERS_UNDEF
+#include <hw/platform_register.hpp>
 
 #endif /* INCLUDE_HW_STM32F4_RCC__HPP_ */

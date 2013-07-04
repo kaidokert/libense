@@ -4,6 +4,7 @@ PARTICLES := ense
 
 # default compiler/linker flags
 override CPPFLAGS += -I include
+override CPPFLAGS += -I ../libcxx/include
 
 CCFLAGS_RELEASE := -Oz -emit-llvm
 LDFLAGS_RELEASE := -plugin /usr/lib/LLVMgold.so

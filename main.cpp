@@ -2,6 +2,8 @@
 #include <stdint.h>
 
 #include <hw/stm32f4/rcc.hpp>
+#include <hw/scs.hpp>
+#include <hw/cpuid.hpp>
 
 #define REG(x) *((volatile unsigned int*) (x))
 
@@ -45,10 +47,11 @@ static void print()
 {
 //	const char foo[] = "brutzelbums";
 	for (unsigned char j = 0; ; j++) {
-		char c = y[j % sizeof(y)]; {
+		uint32_t c = ense::cpuid.part_number(); {
+//		char c = y[j % sizeof(y)]; {
 //		char c = j % sizeof(y); {
 //		for (char c : foo) {
-			for (int i = 0; i < 8; i++) {
+			for (int i = 0; i < 12; i++) {
 				REG(GPIO_A_BASE + 0x14) = ((c & 1) << 12) | (1 << 13);
 				for (int i = 0; i < 400000; i++)
 					__asm__ __volatile__ ("nop");

@@ -1,0 +1,10 @@
+SECTIONS
+{
+	.scs 0xE000E000 : {
+		PROVIDE(.SCS_ICTR = . + 0x004);
+		PROVIDE(.SCS_ACTLR = . + 0x008);
+		PROVIDE(.SCS_STIR = . + 0xF00);
+
+		PROVIDE(.SCS_CPUID = . + 0xD00);
+	}
+}
