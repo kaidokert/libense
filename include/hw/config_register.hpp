@@ -9,7 +9,7 @@
 namespace ense {
 
 template<typename Bits, bool Config, template<bool> class RegisterName>
-class ConfigurationRegister : public PlatformRegister<Bits, RegisterName<true>, false> {
+class ConfigurationRegister : public WritablePlatformRegister<Bits, RegisterName<true>, false> {
 	friend class ConfigurationRegister<Bits, false, RegisterName>;
 
 	private:
@@ -22,7 +22,7 @@ class ConfigurationRegister : public PlatformRegister<Bits, RegisterName<true>, 
 };
 
 template<typename Bits, template<bool> class RegisterName>
-class ConfigurationRegister<Bits, false, RegisterName> : public PlatformRegister<Bits, RegisterName<false>, true> {
+class ConfigurationRegister<Bits, false, RegisterName> : public WritablePlatformRegister<Bits, RegisterName<false>, true> {
 	public:
 		RegisterName<true> begin() {
 			auto result = RegisterName<true>();

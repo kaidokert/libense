@@ -5,7 +5,7 @@
 
 namespace ense {
 
-class CPUID : public PlatformRegister<void, CPUID, true, true> {
+class CPUID : public PlatformRegister<void, CPUID, true> {
 	public:
 		REGISTER_INT_R(implementer, 31, 24)
 		REGISTER_INT_R(variant, 23, 20)

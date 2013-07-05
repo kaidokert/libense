@@ -6,8 +6,29 @@
 
 namespace ense {
 
-template<typename Bits, typename Inner, bool Volatile, bool ReadOnly = false>
-class PlatformRegister : public PlatformRegister<Bits, Inner, Volatile, true> {
+template<typename Bits, typename Inner, bool Volatile>
+class PlatformRegister : public PlatformRegister<void, Inner, Volatile> {
+	public:
+		typedef Bits bits_type;
+
+	public:
+		bool get(Bits bit) const { return this->_value & static_cast<uint32_t>(bit); }
+};
+
+template<bool Volatile, typename Inner>
+class PlatformRegister<void, Inner, Volatile> {
+	protected:
+		typename std::conditional<
+			Volatile,
+			volatile uint32_t,
+			uint32_t>::type _value;
+
+	public:
+		uint32_t value() const { return _value; }
+};
+
+template<typename Bits, typename Inner, bool Volatile>
+class WritablePlatformRegister : public PlatformRegister<Bits, Inner, Volatile> {
 	private:
 		static uint32_t set_bits(uint32_t value, Bits bit) {
 			return value | static_cast<uint32_t>(bit);
@@ -29,7 +50,7 @@ class PlatformRegister : public PlatformRegister<Bits, Inner, Volatile, true> {
 		template<typename... Flags>
 		Inner& set(Flags... flags)
 		{
-			static_assert(std::is_base_of<PlatformRegister, Inner>::value, "");
+			static_assert(std::is_base_of<WritablePlatformRegister, Inner>::value, "");
 			this->_value = set_bits(this->_value, flags...);
 			return static_cast<Inner&>(*this);
 		}
@@ -37,7 +58,7 @@ class PlatformRegister : public PlatformRegister<Bits, Inner, Volatile, true> {
 		template<typename... Flags>
 		Inner& clear(Flags... flags)
 		{
-			static_assert(std::is_base_of<PlatformRegister, Inner>::value, "");
+			static_assert(std::is_base_of<WritablePlatformRegister, Inner>::value, "");
 			this->_value = clear_bits(this->_value, flags...);
 			return static_cast<Inner&>(*this);
 		}
@@ -48,34 +69,13 @@ class PlatformRegister : public PlatformRegister<Bits, Inner, Volatile, true> {
 		}
 };
 
-template<typename Bits, typename Inner, bool Volatile>
-class PlatformRegister<Bits, Inner, Volatile, true> : public PlatformRegister<void, Inner, Volatile, true> {
-	public:
-		typedef Bits bits_type;
-
-	public:
-		bool get(Bits bit) const { return this->_value & static_cast<uint32_t>(bit); }
-};
-
 template<bool Volatile, typename Inner>
-class PlatformRegister<void, Inner, Volatile, false> : public PlatformRegister<void, Inner, Volatile, true> {
+class WritablePlatformRegister<void, Inner, Volatile> : public PlatformRegister<void, Inner, Volatile> {
 	public:
 		void value(uint32_t val)
 		{
 			this->_value = val;
 		}
-};
-
-template<bool Volatile, typename Inner>
-class PlatformRegister<void, Inner, Volatile, true> {
-	protected:
-		typename std::conditional<
-			Volatile,
-			volatile uint32_t,
-			uint32_t>::type _value;
-
-	public:
-		uint32_t value() const { return _value; }
 };
 
 }
