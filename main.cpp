@@ -2,8 +2,8 @@
 #include <stdint.h>
 
 #include <hw/stm32f4/rcc.hpp>
-#include <hw/scs.hpp>
 #include <hw/cpuid.hpp>
+#include <hw/interrupt.hpp>
 
 #define REG(x) *((volatile unsigned int*) (x))
 

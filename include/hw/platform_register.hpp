@@ -105,6 +105,7 @@ class WritablePlatformRegister<void, Inner, Volatile> : public PlatformRegister<
 		decltype(*this) \
 	{ \
 		this->set(this_type::bits_type::name); \
+		return *this; \
 	}
 #define REGISTER_BIT_RW(name) \
 	REGISTER_BIT_R(name) \
@@ -113,12 +114,12 @@ class WritablePlatformRegister<void, Inner, Volatile> : public PlatformRegister<
 #define MASK_RANGE(upper, lower) ((1 << ((upper) - (lower) + 1)) - 1)
 
 #define REGISTER_INT_R(name, upper, lower) \
-	uint32_t name() const { return (this->_value >> lower) & MASK_RANGE(upper, lower); }
+	uint32_t name() const { return (this->_value >> lower) & MASK_RANGE((upper), (lower)); }
 #define REGISTER_INT_W(name, upper, lower) \
 	auto name(uint32_t value) -> \
 		decltype(*this) \
 	{ \
-		this->_value = (this->_value & ~(MASK_RANGE(upper, lower) << (lower))) (value << (lower)); \
+		this->_value = (this->_value & ~(MASK_RANGE((upper), (lower)) << (lower))) | ((value && MASK_RANGE((upper), (lower))) << (lower)); \
 		return *this; \
 	}
 #define REGISTER_INT_RW(name, upper, lower) \

@@ -6,5 +6,6 @@ SECTIONS
 		PROVIDE(.SCS_STIR = . + 0xF00);
 
 		PROVIDE(.SCS_CPUID = . + 0xD00);
+		PROVIDE(.SCS_ICSR = . + 0xD04);
 	}
 }
