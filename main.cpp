@@ -17,6 +17,7 @@ struct X {
 		asm volatile ("nop");
 		asm volatile ("nop");
 		asm volatile ("nop");
+		ense::aircr.priority_group_split(7);
 		ense::ahb1peripheral_clock.begin()
 			.gpioA(true)
 			.gpioB(true)
@@ -47,16 +48,16 @@ static void print()
 {
 //	const char foo[] = "brutzelbums";
 	for (unsigned char j = 0; ; j++) {
-		uint32_t c = ense::cpuid.part_number(); {
+		uint32_t c = ense::aircr.priority_group_split(); {
 //		char c = y[j % sizeof(y)]; {
 //		char c = j % sizeof(y); {
 //		for (char c : foo) {
 			for (int i = 0; i < 12; i++) {
 				REG(GPIO_A_BASE + 0x14) = ((c & 1) << 12) | (1 << 13);
-				for (int i = 0; i < 400000; i++)
+				for (int i = 0; i < 1400000; i++)
 					__asm__ __volatile__ ("nop");
 				REG(GPIO_A_BASE + 0x14) = 0;
-				for (int i = 0; i < 400000; i++)
+				for (int i = 0; i < 1400000; i++)
 					__asm__ __volatile__ ("nop");
 				c >>= 1;
 			}

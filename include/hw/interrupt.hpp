@@ -72,6 +72,47 @@ static_assert(sizeof(ICSR) == sizeof(uint32_t), "");
 
 extern ICSR icsr __attribute__((__weak__, __alias__(".SCS_ICSR")));
 
+
+
+
+typedef void (*InterruptHandler)();
+
+extern volatile InterruptHandler vtor[] __attribute__((__weak__, __alias__(".SCS_VTOR")));
+
+
+
+
+enum class AIRCRFlags : uint32_t {
+	big_endian = 1 << 15,
+	request_system_reset = 1 << 2,
+	vector_clear_active = 1 << 1,
+	local_reset = 1 << 0
+};
+
+template<bool Config = false>
+class AIRCR : public ConfigurationRegister<AIRCRFlags, Config, AIRCR> {
+	private:
+		typedef AIRCR this_type;
+
+	public:
+		void value(uint32_t val)
+		{
+			this->_value = (val & 0xFFFF) | 0x05FA0000;
+		}
+
+		REGISTER_INT_R(vector_key, 31, 16)
+		REGISTER_BIT_R(big_endian)
+		REGISTER_INT_RW(priority_group_split, 10, 8)
+		REGISTER_BIT_RW(request_system_reset)
+		REGISTER_BIT_C(vector_clear_active)
+		REGISTER_BIT_C(local_reset)
+};
+
+static_assert(std::is_standard_layout<AIRCR<>>::value, "");
+static_assert(sizeof(AIRCR<>) == sizeof(uint32_t), "");
+
+extern AIRCR<> aircr __attribute__((__weak__, __alias__(".SCS_AIRCR")));
+
 }
 
 #define __REGISTERS_UNDEF

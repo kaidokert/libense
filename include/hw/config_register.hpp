@@ -13,7 +13,7 @@ class ConfigurationRegister : public WritablePlatformRegister<Bits, RegisterName
 	friend class ConfigurationRegister<Bits, false, RegisterName>;
 
 	private:
-		ConfigurationRegister<Bits, false, RegisterName>* _target;
+		RegisterName<false>* _target;
 
 	public:
 		void commit() {
@@ -27,7 +27,7 @@ class ConfigurationRegister<Bits, false, RegisterName> : public WritablePlatform
 		RegisterName<true> begin() {
 			auto result = RegisterName<true>();
 			result._value = this->_value;
-			result._target = this;
+			result._target = static_cast<RegisterName<false>*>(this);
 			return result;
 		}
 };

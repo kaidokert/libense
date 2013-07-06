@@ -51,7 +51,7 @@ class WritablePlatformRegister : public PlatformRegister<Bits, Inner, Volatile> 
 		Inner& set(Flags... flags)
 		{
 			static_assert(std::is_base_of<WritablePlatformRegister, Inner>::value, "");
-			this->_value = set_bits(this->_value, flags...);
+			static_cast<Inner*>(this)->value(set_bits(this->_value, flags...));
 			return static_cast<Inner&>(*this);
 		}
 
@@ -59,7 +59,7 @@ class WritablePlatformRegister : public PlatformRegister<Bits, Inner, Volatile> 
 		Inner& clear(Flags... flags)
 		{
 			static_assert(std::is_base_of<WritablePlatformRegister, Inner>::value, "");
-			this->_value = clear_bits(this->_value, flags...);
+			static_cast<Inner*>(this)->value(clear_bits(this->_value, flags...));
 			return static_cast<Inner&>(*this);
 		}
 
@@ -119,7 +119,7 @@ class WritablePlatformRegister<void, Inner, Volatile> : public PlatformRegister<
 	auto name(uint32_t value) -> \
 		decltype(*this) \
 	{ \
-		this->_value = (this->_value & ~(MASK_RANGE((upper), (lower)) << (lower))) | ((value && MASK_RANGE((upper), (lower))) << (lower)); \
+		this->value((this->_value & ~(MASK_RANGE((upper), (lower)) << (lower))) | ((value & MASK_RANGE((upper), (lower))) << (lower))); \
 		return *this; \
 	}
 #define REGISTER_INT_RW(name, upper, lower) \

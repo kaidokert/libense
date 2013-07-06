@@ -7,5 +7,7 @@ SECTIONS
 
 		PROVIDE(.SCS_CPUID = . + 0xD00);
 		PROVIDE(.SCS_ICSR = . + 0xD04);
+		PROVIDE(.SCS_VTOR = . + 0xD08);
+		PROVIDE(.SCS_AIRCR = . + 0xD0C);
 	}
 }
