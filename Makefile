@@ -60,7 +60,8 @@ endef
 
 OBJDIR_TARGET := $(OBJDIR)/$(if $(RELEASE),release,debug)
 TARGET_NAME := $(if $(RELEASE),release,debug)
-TARGET_NAME_FILE := $(OBJDIR)/.target
+TARGET_NAME_DIR := $(OBJDIR)
+TARGET_NAME_FILE := $(TARGET_NAME_DIR)/.target
 
 CCFLAGS += $(if $(RELEASE),$(CCFLAGS_RELEASE),$(CCFLAGS_DEBUG))
 LDFLAGS += $(if $(RELEASE),$(LDFLAGS_RELEASE),$(LDFLAGS_DEBUG))
@@ -96,15 +97,19 @@ define require_symbol_definition =
 ((echo '#include <$1>'; echo '#ifndef $2'; echo '#error'; echo '#endif') | $(CPP) - >/dev/null 2>&1)
 endef
 
+ifneq ($(MAKECMDGOALS),clean)
 ifndef MAKE_RESTARTS
 $(shell \
 	touch -r Makefile -d yesterday .depend-check; \
-	if [ ! -f $(TARGET_NAME_FILE) -o x`cat $(TARGET_NAME_FILE)` != x$(TARGET_NAME) ]; then echo $(TARGET_NAME) > $(TARGET_NAME_FILE); fi \
+	mkdir -p $(TARGET_NAME_DIR); \
+	if [ ! -f $(TARGET_NAME_FILE) ]; then echo $(TARGET_NAME) > $(TARGET_NAME_FILE); fi; \
+	if [ x`cat $(TARGET_NAME_FILE)` != x$(TARGET_NAME) ]; then echo $(TARGET_NAME) > $(TARGET_NAME_FILE); fi \
 )
 include .depend-check
 else
 $(shell $(RM) .depend-check)
 DEPEND_CHECK_DONE := 1
+endif
 endif
 
 
