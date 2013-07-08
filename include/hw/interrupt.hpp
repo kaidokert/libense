@@ -95,6 +95,8 @@ class AIRCR : public ConfigurationRegister<AIRCRFlags, Config, AIRCR> {
 		typedef AIRCR this_type;
 
 	public:
+		uint32_t value() const { return this->_value; }
+
 		void value(uint32_t val)
 		{
 			this->_value = (val & 0xFFFF) | 0x05FA0000;
@@ -112,6 +114,88 @@ static_assert(std::is_standard_layout<AIRCR<>>::value, "");
 static_assert(sizeof(AIRCR<>) == sizeof(uint32_t), "");
 
 extern AIRCR<> aircr __attribute__((__weak__, __alias__(".SCS_AIRCR")));
+
+
+
+
+enum class SystemHandlerName : uint32_t {
+	MemManage = 4,
+	BusFaul = 5,
+	UsageFault = 6,
+	SVcall = 11,
+	DebugMonitor = 12,
+	PendSV = 14,
+	SysTick = 15
+};
+
+class SystemHandlerPriorities {
+	private:
+		volatile uint8_t priorities[12];
+
+	public:
+		uint8_t operator[](SystemHandlerName name) const
+		{
+			return priorities[static_cast<uint32_t>(name) - 4];
+		}
+
+		SystemHandlerPriorities& set(SystemHandlerName name, uint8_t prio)
+		{
+			priorities[static_cast<uint32_t>(name) - 4] = prio;
+			return *this;
+		}
+};
+
+static_assert(std::is_standard_layout<SystemHandlerPriorities>::value, "");
+static_assert(sizeof(SystemHandlerPriorities) == 3 * sizeof(uint32_t), "");
+
+extern SystemHandlerPriorities system_handler_priorities __attribute__((__weak__, __alias__(".SCS_SHP")));
+
+
+
+
+enum class SHCSRFlags : uint32_t {
+	usage_fault_enabled = 1 << 18,
+	bus_fault_enabled = 1 << 17,
+	mem_fault_enabled = 1 << 16,
+	svcall_pending = 1 << 15,
+	bus_fault_pending = 1 << 14,
+	mem_fault_pending = 1 << 13,
+	usage_fault_pending = 1 << 12,
+	sys_tick_active = 1 << 11,
+	pendsv_active = 1 << 10,
+	monitor_active = 1 << 8,
+	svcall_active = 1 << 7,
+	usage_fault_active = 1 << 3,
+	bus_fault_active = 1 << 1,
+	mem_fault_active = 1 << 0
+};
+
+template<bool Config = false>
+class SHCSR : public ConfigurationRegister<SHCSRFlags, Config, SHCSR> {
+	private:
+		typedef SHCSR this_type;
+
+	public:
+		REGISTER_BIT_RW(usage_fault_enabled)
+		REGISTER_BIT_RW(bus_fault_enabled)
+		REGISTER_BIT_RW(mem_fault_enabled)
+		REGISTER_BIT_RW(svcall_pending)
+		REGISTER_BIT_RW(bus_fault_pending)
+		REGISTER_BIT_RW(mem_fault_pending)
+		REGISTER_BIT_RW(usage_fault_pending)
+		REGISTER_BIT_RW(sys_tick_active)
+		REGISTER_BIT_RW(pendsv_active)
+		REGISTER_BIT_RW(monitor_active)
+		REGISTER_BIT_RW(svcall_active)
+		REGISTER_BIT_RW(usage_fault_active)
+		REGISTER_BIT_RW(bus_fault_active)
+		REGISTER_BIT_RW(mem_fault_active)
+};
+
+static_assert(std::is_standard_layout<SHCSR<>>::value, "");
+static_assert(sizeof(SHCSR<>) == sizeof(uint32_t), "");
+
+extern AIRCR<> shcsr __attribute__((__weak__, __alias__(".SCS_SHCSR")));
 
 }
 

@@ -4,6 +4,7 @@
 #include <hw/stm32f4/rcc.hpp>
 #include <hw/cpuid.hpp>
 #include <hw/interrupt.hpp>
+#include <hw/scs.hpp>
 
 #define REG(x) *((volatile unsigned int*) (x))
 

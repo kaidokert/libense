@@ -9,5 +9,9 @@ SECTIONS
 		PROVIDE(.SCS_ICSR = . + 0xD04);
 		PROVIDE(.SCS_VTOR = . + 0xD08);
 		PROVIDE(.SCS_AIRCR = . + 0xD0C);
+		PROVIDE(.SCS_SCR = . + 0xD10);
+		PROVIDE(.SCS_CCR = . + 0xD14);
+		PROVIDE(.SCS_SHP = . + 0xD18);
+		PROVIDE(.SCS_SHCSR = . + 0xD24);
 	}
 }
