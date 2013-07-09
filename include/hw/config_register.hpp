@@ -15,7 +15,8 @@ class ConfigurationRegister : public WritablePlatformRegister<Bits, RegisterName
 		RegisterName<false>* _target;
 
 	public:
-		void commit() {
+		void commit()
+		{
 			_target->value(this->_value);
 		}
 };
@@ -23,7 +24,8 @@ class ConfigurationRegister : public WritablePlatformRegister<Bits, RegisterName
 template<typename Bits, template<bool> class RegisterName>
 class ConfigurationRegister<Bits, false, RegisterName> : public WritablePlatformRegister<Bits, RegisterName<false>, volatile uint32_t> {
 	public:
-		RegisterName<true> begin() {
+		RegisterName<true> begin()
+		{
 			auto result = RegisterName<true>();
 			result._value = this->_value;
 			result._target = static_cast<RegisterName<false>*>(this);

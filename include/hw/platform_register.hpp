@@ -39,19 +39,17 @@ class PlatformRegister<void, Inner, Value> {
 template<typename Bits, typename Inner, typename Value>
 class WritablePlatformRegister : public PlatformRegister<Bits, Inner, Value> {
 	private:
-		static Value set_bits(Value value, Bits bit) {
-			return value | static_cast<Value>(bit);
-		}
+		static Value set_bits(Value value, Bits bit) { return value | static_cast<Value>(bit); }
 		template<typename... Rest>
-		static Value set_bits(Value value, Bits bit, Rest... rest) {
+		static Value set_bits(Value value, Bits bit, Rest... rest)
+		{
 			return set_bits(set_bits(value, bit), rest...);
 		}
 
-		static Value clear_bits(Value value, Bits bit) {
-			return value & ~static_cast<Value>(bit);
-		}
+		static Value clear_bits(Value value, Bits bit) { return value & ~static_cast<Value>(bit); }
 		template<typename... Rest>
-		static Value clear_bits(Value value, Bits bit, Rest... rest) {
+		static Value clear_bits(Value value, Bits bit, Rest... rest)
+		{
 			return clear_bits(clear_bits(value, bit), rest...);
 		}
 
