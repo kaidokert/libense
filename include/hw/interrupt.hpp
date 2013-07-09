@@ -2,6 +2,7 @@
 #define INCLUDE_HW_INTERRUPT__HPP_
 
 #include <hw/platform_register.hpp>
+#include <hw/platform_register_macros.hpp>
 
 namespace ense {
 
@@ -184,7 +185,6 @@ extern linker_placed_register<SHCSR<>> shcsr __attribute__((__weak__, __alias__(
 
 }
 
-#define __REGISTERS_UNDEF
-#include <hw/platform_register.hpp>
+#include <hw/platform_register_macros_clear.hpp>
 
 #endif /* INCLUDE_HW_INTERRUPT__HPP_ */

@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#include <hw/platform_register.hpp>
 #include <hw/config_register.hpp>
+#include <hw/platform_register_macros.hpp>
 
 namespace ense {
 
@@ -63,7 +63,6 @@ extern linker_placed_register<AHB1PeripheralClockEnable<>> ahb1peripheral_clock 
 
 }
 
-#define __REGISTERS_UNDEF
-#include <hw/platform_register.hpp>
+#include <hw/platform_register_macros_clear.hpp>
 
 #endif /* INCLUDE_HW_STM32F4_RCC__HPP_ */

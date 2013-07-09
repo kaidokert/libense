@@ -2,6 +2,7 @@
 #define INCLUDE_HW_SCS__HPP_
 
 #include <hw/platform_register.hpp>
+#include <hw/platform_register_macros.hpp>
 
 namespace ense {
 
@@ -54,7 +55,6 @@ extern linker_placed_register<CCR<>> ccr __attribute__((__weak__, __alias__(".SC
 
 }
 
-#define __REGISTERS_UNDEF
-#include <hw/platform_register.hpp>
+#include <hw/platform_register_macros_clear.hpp>
 
 #endif /* INCLUDE_HW_SCS__HPP_ */

@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-#define __REGISTERS_NODEF
 #include <hw/platform_register.hpp>
 
 namespace ense {
