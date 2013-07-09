@@ -5,7 +5,7 @@
 
 namespace ense {
 
-class CPUID : public PlatformRegister<void, CPUID, true> {
+class CPUID : public PlatformRegister<void, CPUID, volatile uint32_t> {
 	public:
 		REGISTER_INT_R(implementer, 31, 24)
 		REGISTER_INT_R(variant, 23, 20)
@@ -14,10 +14,7 @@ class CPUID : public PlatformRegister<void, CPUID, true> {
 		REGISTER_INT_R(revision, 3, 0)
 };
 
-static_assert(std::is_standard_layout<CPUID>::value, "");
-static_assert(sizeof(CPUID) == sizeof(uint32_t), "");
-
-extern CPUID cpuid __attribute__((__weak__, __alias__(".SCS_CPUID")));
+extern linker_placed_register<CPUID> cpuid __attribute__((__weak__, __alias__(".SCS_CPUID")));
 
 }
 

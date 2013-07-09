@@ -5,22 +5,16 @@
 
 namespace ense {
 
-class InterruptControllerType {
-	private:
-		volatile uint32_t value;
-
+class ICTR : public PlatformRegister<void, ICTR, volatile uint32_t> {
 	public:
 		uint32_t lines() const
 		{
-			uint32_t line_code = value & 0xF;
+			uint32_t line_code = _value & 0xF;
 			return line_code == 0xf ? 496 : 32 * (line_code + 1);
 		}
 };
 
-static_assert(std::is_standard_layout<InterruptControllerType>::value, "");
-static_assert(sizeof(InterruptControllerType) == sizeof(uint32_t), "");
-
-extern InterruptControllerType ict __attribute__((__weak__, __alias__(".SCS_ICTR")));
+extern linker_placed_register<ICTR> ictr __attribute__((__weak__, __alias__(".SCS_ICTR")));
 
 
 
@@ -30,10 +24,10 @@ extern volatile uint32_t actlr __attribute__((__weak__, __alias__(".SCS_ACTLR"))
 
 
 
-inline void trigger_interrupt(uint8_t num)
+inline void trigger_interrupt(uint32_t num)
 {
 	extern volatile uint32_t stir __attribute__((__weak__, __alias__(".SCS_STIR")));
-	stir = num;
+	stir = num & 0x1FF;
 }
 
 
@@ -50,7 +44,7 @@ enum class ICSRFlags : uint32_t {
 	ret_to_base = 1U << 11
 };
 
-class ICSR : public WritablePlatformRegister<ICSRFlags, ICSR, true> {
+class ICSR : public WritablePlatformRegister<ICSRFlags, ICSR, volatile uint32_t> {
 	private:
 		typedef ICSR this_type;
 
@@ -67,10 +61,7 @@ class ICSR : public WritablePlatformRegister<ICSRFlags, ICSR, true> {
 		REGISTER_INT_R(vect_active, 8, 0)
 };
 
-static_assert(std::is_standard_layout<ICSR>::value, "");
-static_assert(sizeof(ICSR) == sizeof(uint32_t), "");
-
-extern ICSR icsr __attribute__((__weak__, __alias__(".SCS_ICSR")));
+extern linker_placed_register<ICSR> icsr __attribute__((__weak__, __alias__(".SCS_ICSR")));
 
 
 
@@ -110,10 +101,7 @@ class AIRCR : public ConfigurationRegister<AIRCRFlags, Config, AIRCR> {
 		REGISTER_BIT_C(local_reset)
 };
 
-static_assert(std::is_standard_layout<AIRCR<>>::value, "");
-static_assert(sizeof(AIRCR<>) == sizeof(uint32_t), "");
-
-extern AIRCR<> aircr __attribute__((__weak__, __alias__(".SCS_AIRCR")));
+extern linker_placed_register<AIRCR<>> aircr __attribute__((__weak__, __alias__(".SCS_AIRCR")));
 
 
 
@@ -129,8 +117,11 @@ enum class SystemHandlerName : uint32_t {
 };
 
 class SystemHandlerPriorities {
+	public:
+		typedef volatile uint8_t value_type[12];
+
 	private:
-		volatile uint8_t priorities[12];
+		value_type priorities;
 
 	public:
 		uint8_t operator[](SystemHandlerName name) const
@@ -145,10 +136,7 @@ class SystemHandlerPriorities {
 		}
 };
 
-static_assert(std::is_standard_layout<SystemHandlerPriorities>::value, "");
-static_assert(sizeof(SystemHandlerPriorities) == 3 * sizeof(uint32_t), "");
-
-extern SystemHandlerPriorities system_handler_priorities __attribute__((__weak__, __alias__(".SCS_SHP")));
+extern linker_placed_array<SystemHandlerPriorities> system_handler_priorities __attribute__((__weak__, __alias__(".SCS_SHP")));
 
 
 
@@ -192,10 +180,7 @@ class SHCSR : public ConfigurationRegister<SHCSRFlags, Config, SHCSR> {
 		REGISTER_BIT_RW(mem_fault_active)
 };
 
-static_assert(std::is_standard_layout<SHCSR<>>::value, "");
-static_assert(sizeof(SHCSR<>) == sizeof(uint32_t), "");
-
-extern AIRCR<> shcsr __attribute__((__weak__, __alias__(".SCS_SHCSR")));
+extern linker_placed_register<SHCSR<>> shcsr __attribute__((__weak__, __alias__(".SCS_SHCSR")));
 
 }
 

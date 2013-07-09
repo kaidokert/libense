@@ -22,10 +22,7 @@ class SCR : public ConfigurationRegister<SCRFlags, Config, SCR> {
 		REGISTER_BIT_RW(sleep_on_exit)
 };
 
-static_assert(std::is_standard_layout<SCR<>>::value, "");
-static_assert(sizeof(SCR<>) == sizeof(uint32_t), "");
-
-extern SCR<> scr __attribute__((__weak__, __alias__(".SCS_SCR")));
+extern linker_placed_register<SCR<>> scr __attribute__((__weak__, __alias__(".SCS_SCR")));
 
 
 
@@ -53,10 +50,7 @@ class CCR : public ConfigurationRegister<CCRFlags, Config, CCR> {
 		REGISTER_BIT_RW(non_base_thread_enable)
 };
 
-static_assert(std::is_standard_layout<CCR<>>::value, "");
-static_assert(sizeof(CCR<>) == sizeof(uint32_t), "");
-
-extern CCR<> ccr __attribute__((__weak__, __alias__(".SCS_CCR")));
+extern linker_placed_register<CCR<>> ccr __attribute__((__weak__, __alias__(".SCS_CCR")));
 
 }
 

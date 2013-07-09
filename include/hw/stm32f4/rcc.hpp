@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#include <hw/config_register.hpp>
 #include <hw/platform_register.hpp>
+#include <hw/config_register.hpp>
 
 namespace ense {
 
@@ -59,10 +59,7 @@ class AHB1PeripheralClockEnable : public ConfigurationRegister<AHB1Peripheral, C
 		REGISTER_BIT_RW(gpioA)
 };
 
-static_assert(std::is_standard_layout<AHB1PeripheralClockEnable<>>::value, "");
-static_assert(sizeof(AHB1PeripheralClockEnable<>) == sizeof(uint32_t), "");
-
-extern AHB1PeripheralClockEnable<> ahb1peripheral_clock __attribute__((__weak__, __alias__(".RCC_AHB1ENR")));
+extern linker_placed_register<AHB1PeripheralClockEnable<>> ahb1peripheral_clock __attribute__((__weak__, __alias__(".RCC_AHB1ENR")));
 
 }
 
