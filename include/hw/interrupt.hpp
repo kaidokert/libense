@@ -130,6 +130,11 @@ class SystemHandlerPriorities {
 			return priorities[static_cast<uint32_t>(name) - 4];
 		}
 
+		volatile uint8_t& operator[](SystemHandlerName name)
+		{
+			return priorities[static_cast<uint32_t>(name) - 4];
+		}
+
 		SystemHandlerPriorities& set(SystemHandlerName name, uint8_t prio)
 		{
 			priorities[static_cast<uint32_t>(name) - 4] = prio;

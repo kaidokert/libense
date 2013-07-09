@@ -70,6 +70,8 @@ class WritablePlatformRegister : public PlatformRegister<Bits, Inner, Value> {
 			return static_cast<Inner&>(*this);
 		}
 
+		Value value() const { return this->_value; }
+
 		void value(Value val)
 		{
 			this->_value = val;
@@ -79,6 +81,8 @@ class WritablePlatformRegister : public PlatformRegister<Bits, Inner, Value> {
 template<typename Inner, typename Value>
 class WritablePlatformRegister<void, Inner, Value> : public PlatformRegister<void, Inner, Value> {
 	public:
+		Value value() const { return this->_value; }
+
 		void value(Value val)
 		{
 			this->_value = val;
