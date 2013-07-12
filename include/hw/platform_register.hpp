@@ -102,6 +102,8 @@ constexpr bool is_platform_array_valid()
 
 	static_assert(sizeof(Register) == sizeof(typename Register::value_type), "Register array contains superfluous fields");
 
+	static_assert(alignof(Register) <= sizeof(typename Register::value_type), "Register array has weird alignment requirements");
+
 	return true;
 };
 
@@ -119,6 +121,8 @@ constexpr bool is_platform_register_valid()
 	static_assert(std::is_volatile<typename Register::value_type>::value, "Register value is not volatile");
 
 	static_assert(sizeof(Register) == sizeof(typename Register::value_type), "Register contains superfluous fields");
+
+	static_assert(alignof(Register) <= sizeof(typename Register::value_type), "Register has weird alignment requirements");
 
 	return true;
 };

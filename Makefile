@@ -9,7 +9,7 @@ override CPPFLAGS += -I ../libcxx/include
 CCFLAGS_RELEASE := -Oz -emit-llvm
 LDFLAGS_RELEASE := -plugin /usr/lib/LLVMgold.so
 
-CCFLAGS_DEBUG := -g -O1
+CCFLAGS_DEBUG := -g -O0
 ASFLAGS_DEBUG := -g
 
 CCFLAGS += -Wall -Wextra -Werror -pedantic -mstrict-align

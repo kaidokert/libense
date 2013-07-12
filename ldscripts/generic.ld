@@ -16,7 +16,7 @@ SECTIONS
 		PROVIDE(_text_end = .);
 	} >FLASH
 
-	.rodata ALIGN(4) : AT(ALIGN(_text_end, 4)) {
+	.rodata : AT(ALIGN(_text_end, 4)) {
 		_ctors_array = .;
 		KEEP(*(SORT(.ctors)));
 		KEEP(*(SORT(.init_array)));

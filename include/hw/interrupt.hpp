@@ -188,6 +188,186 @@ class SHCSR : public ConfigurationRegister<SHCSRFlags, Config, SHCSR> {
 
 extern linker_placed_register<SHCSR<>> shcsr __attribute__((__weak__, __alias__(".SCS_SHCSR")));
 
+
+
+
+enum class MMFSRFlags : uint8_t {
+	mmar_valid = 1 << 7,
+	mlsp_err = 1 << 5,
+	mstack_err = 1 << 4,
+	munstack_err = 1 << 3,
+	dacc_violation = 1 << 1,
+	iacc_violation = 1 << 0,
+
+	clear = 1
+};
+
+enum class BFSRFlags : uint8_t {
+	bfar_valid = 1 << 7,
+	lsp_err = 1 << 5,
+	stack_err = 1 << 4,
+	unstack_err = 1 << 3,
+	imprecise_err = 1 << 2,
+	precise_err = 1 << 1,
+	ibus_err = 1 << 0,
+
+	clear = 1
+};
+
+enum class UFSRFlags : uint16_t {
+	div_by_zero = 1 << 9,
+	unaligned = 1 << 8,
+	no_coprocessor = 1 << 3,
+	invalid_pc = 1 << 2,
+	invalid_state = 1 << 1,
+	undefined_instruction = 1 << 0,
+
+	clear = 1
+};
+
+enum class CFSRFlags : uint32_t {
+	div_by_zero = static_cast<uint32_t>(UFSRFlags::div_by_zero) << 16,
+	unaligned = static_cast<uint32_t>(UFSRFlags::unaligned) << 16,
+	no_coprocessor = static_cast<uint32_t>(UFSRFlags::no_coprocessor) << 16,
+	invalid_pc = static_cast<uint32_t>(UFSRFlags::invalid_pc) << 16,
+	invalid_state = static_cast<uint32_t>(UFSRFlags::invalid_state) << 16,
+	undefined_instruction = static_cast<uint32_t>(UFSRFlags::undefined_instruction) << 16,
+	clear_ufsr = static_cast<uint32_t>(UFSRFlags::undefined_instruction) << 16,
+
+	bfar_valid = static_cast<uint32_t>(BFSRFlags::bfar_valid) << 8,
+	lsp_err = static_cast<uint32_t>(BFSRFlags::lsp_err) << 8,
+	stack_err = static_cast<uint32_t>(BFSRFlags::stack_err) << 8,
+	unstack_err = static_cast<uint32_t>(BFSRFlags::unstack_err) << 8,
+	imprecise_err = static_cast<uint32_t>(BFSRFlags::imprecise_err) << 8,
+	precise_err = static_cast<uint32_t>(BFSRFlags::precise_err) << 8,
+	ibus_err = static_cast<uint32_t>(BFSRFlags::ibus_err) << 8,
+	clear_bfsr = static_cast<uint32_t>(BFSRFlags::ibus_err) << 8,
+
+	mmar_valid = static_cast<uint32_t>(MMFSRFlags::mmar_valid),
+	mlsp_err = static_cast<uint32_t>(MMFSRFlags::mlsp_err),
+	mstack_err = static_cast<uint32_t>(MMFSRFlags::mstack_err),
+	munstack_err = static_cast<uint32_t>(MMFSRFlags::munstack_err),
+	dacc_violation = static_cast<uint32_t>(MMFSRFlags::dacc_violation),
+	iacc_violation = static_cast<uint32_t>(MMFSRFlags::iacc_violation),
+	clear_mmfsr = static_cast<uint32_t>(MMFSRFlags::iacc_violation)
+};
+
+template<bool Config = false>
+class CFSR : public ConfigurationRegister<CFSRFlags, Config, CFSR> {
+	private:
+		typedef CFSR this_type;
+
+	public:
+		REGISTER_BIT_R(div_by_zero)
+		REGISTER_BIT_R(unaligned)
+		REGISTER_BIT_R(no_coprocessor)
+		REGISTER_BIT_R(invalid_pc)
+		REGISTER_BIT_R(invalid_state)
+		REGISTER_BIT_R(undefined_instruction)
+		REGISTER_BIT_C(clear_ufsr)
+
+		REGISTER_BIT_R(bfar_valid)
+		REGISTER_BIT_R(lsp_err)
+		REGISTER_BIT_R(stack_err)
+		REGISTER_BIT_R(unstack_err)
+		REGISTER_BIT_R(imprecise_err)
+		REGISTER_BIT_R(precise_err)
+		REGISTER_BIT_R(ibus_err)
+		REGISTER_BIT_C(clear_bfsr)
+
+		REGISTER_BIT_R(mmar_valid)
+		REGISTER_BIT_R(mlsp_err)
+		REGISTER_BIT_R(mstack_err)
+		REGISTER_BIT_R(munstack_err)
+		REGISTER_BIT_R(dacc_violation)
+		REGISTER_BIT_R(iacc_violation)
+		REGISTER_BIT_C(clear_mmfsr)
+};
+
+class MMFSR : public WritablePlatformRegister<MMFSRFlags, MMFSR, volatile uint8_t> {
+	private:
+		typedef MMFSR this_type;
+
+	public:
+		REGISTER_BIT_R(mmar_valid)
+		REGISTER_BIT_R(mlsp_err)
+		REGISTER_BIT_R(mstack_err)
+		REGISTER_BIT_R(munstack_err)
+		REGISTER_BIT_R(dacc_violation)
+		REGISTER_BIT_R(iacc_violation)
+		REGISTER_BIT_C(clear)
+};
+
+class BFSR : public WritablePlatformRegister<BFSRFlags, BFSR, volatile uint8_t> {
+	private:
+		typedef BFSR this_type;
+
+	public:
+		REGISTER_BIT_R(bfar_valid)
+		REGISTER_BIT_R(lsp_err)
+		REGISTER_BIT_R(stack_err)
+		REGISTER_BIT_R(unstack_err)
+		REGISTER_BIT_R(imprecise_err)
+		REGISTER_BIT_R(precise_err)
+		REGISTER_BIT_R(ibus_err)
+		REGISTER_BIT_C(clear)
+};
+
+class UFSR : public WritablePlatformRegister<UFSRFlags, UFSR, volatile uint16_t> {
+	private:
+		typedef UFSR this_type;
+
+	public:
+		REGISTER_BIT_R(div_by_zero)
+		REGISTER_BIT_R(unaligned)
+		REGISTER_BIT_R(no_coprocessor)
+		REGISTER_BIT_R(invalid_pc)
+		REGISTER_BIT_R(invalid_state)
+		REGISTER_BIT_R(undefined_instruction)
+		REGISTER_BIT_C(clear)
+};
+
+extern linker_placed_register<CFSR<>> cfsr __attribute__((__weak__, __alias__(".SCS_CFSR")));
+extern linker_placed_register<MMFSR> mmfsr __attribute__((__weak__, __alias__(".SCS_MMFSR")));
+extern linker_placed_register<BFSR> bfsr __attribute__((__weak__, __alias__(".SCS_BFSR")));
+extern linker_placed_register<UFSR> ufsr __attribute__((__weak__, __alias__(".SCS_UFSR")));
+
+
+
+
+enum class HFSRFlags : uint32_t {
+	debug_event = 1U << 31,
+	forced = 1 << 30,
+	vector_table_fault = 1 << 1,
+
+	clear = 1 << 1
+};
+
+class HFSR : public WritablePlatformRegister<HFSRFlags, HFSR, volatile uint32_t> {
+	private:
+		typedef HFSR this_type;
+
+	public:
+		REGISTER_BIT_R(debug_event)
+		REGISTER_BIT_R(forced)
+		REGISTER_BIT_R(vector_table_fault)
+		REGISTER_BIT_C(clear)
+};
+
+extern linker_placed_register<HFSR> hfsr __attribute__((__weak__, __alias__(".SCS_HFSR")));
+
+
+
+
+extern volatile void* const mmfar __attribute__((__weak__, __alias__(".SCS_MMFAR")));
+
+extern volatile void* const bfar __attribute__((__weak__, __alias__(".SCS_BFAR")));
+
+
+
+
+extern uint32_t afsr __attribute__((__weak__, __alias__(".SCS_AFSR")));
+
 }
 
 #include <hw/platform_register_macros_clear.hpp>
