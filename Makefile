@@ -7,7 +7,7 @@ override CPPFLAGS += -I include
 override CPPFLAGS += -I ../libcxx/include
 
 CCFLAGS_RELEASE := -Oz -emit-llvm
-LDFLAGS_RELEASE := -plugin /usr/lib/LLVMgold.so
+LDFLAGS_RELEASE := -plugin /usr/lib/LLVMgold.so -plugin-opt "mcpu=cortex-m4"
 
 CCFLAGS_DEBUG := -g -O0
 ASFLAGS_DEBUG := -g
