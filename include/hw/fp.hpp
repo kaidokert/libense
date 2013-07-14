@@ -66,23 +66,11 @@ class FPDSCR : public ConfigurationRegister<FPDSCRFlags, Config, FPDSCR> {
 	private:
 		typedef FPDSCR this_type;
 
-		static constexpr uint32_t rmode_offset = 22;
-
-		static constexpr uint32_t rm_value(RoundingMode rm) { return static_cast<uint32_t>(rm) << rmode_offset; }
-		static constexpr uint32_t rm_mask = rm_value(RoundingMode::to_zero);
-
 	public:
 		REGISTER_BIT_RW(alternate_half_precision)
 		REGISTER_BIT_RW(default_nan)
 		REGISTER_BIT_RW(flush_to_zero)
-
-		FPDSCR& rounding_mode(RoundingMode mode)
-		{
-			this->value((this->value() & ~rm_mask) | rm_value(mode));
-			return *this;
-		}
-
-		RoundingMode rounding_mode() const { return (this->value() & rm_mask) >> rmode_offset; }
+		REGISTER_FIELD_RW(RoundingMode, rounding_mode, 23, 22)
 };
 
 extern linker_placed_register<FPDSCR<>> fpdscr __attribute__((__weak__, __alias__(".SCS_FPDSCR")));
@@ -133,13 +121,7 @@ class FPSCR : public ConfigurationRegister<FPSCRFlags, Config, FPSCR> {
 		REGISTER_BIT_RW(default_nan)
 		REGISTER_BIT_RW(flush_to_zero)
 
-		FPSCR& rounding_mode(RoundingMode mode)
-		{
-			this->value((this->value() & ~FPDSCR<>::rm_mask) | FPDSCR<>::rm_value(mode));
-			return *this;
-		}
-
-		RoundingMode rounding_mode() const { return (this->value() & FPDSCR<>::rm_mask) >> FPDSCR<>::rmode_offset; }
+		REGISTER_FIELD_RW(RoundingMode, rounding_mode, 23, 22)
 
 		REGISTER_BIT_R(input_denormal_exc)
 		REGISTER_BIT_R(inexact_exc)

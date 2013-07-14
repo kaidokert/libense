@@ -23,15 +23,26 @@
 
 #define MASK_RANGE(upper, lower) ((1 << ((upper) - (lower) + 1)) - 1)
 
-#define REGISTER_INT_R(name, upper, lower) \
-	uint32_t name() const { return (this->_value >> lower) & MASK_RANGE((upper), (lower)); }
-#define REGISTER_INT_W(name, upper, lower) \
-	auto name(uint32_t value) -> \
+#define REGISTER_FIELD_R(type, name, upper, lower) \
+	type name() const \
+	{ \
+		static_assert(lower < upper, ""); \
+		return static_cast<type>((this->_value >> (lower)) & MASK_RANGE((upper), (lower))); \
+	}
+#define REGISTER_FIELD_W(type, name, upper, lower) \
+	auto name(type value) -> \
 		decltype(*this) \
 	{ \
-		this->value((this->_value & ~(MASK_RANGE((upper), (lower)) << (lower))) | ((value & MASK_RANGE((upper), (lower))) << (lower))); \
+		static_assert(lower < upper, ""); \
+		this->value((this->_value & ~(MASK_RANGE((upper), (lower)) << (lower))) | ((static_cast<uint32_t>(value) & MASK_RANGE((upper), (lower))) << (lower))); \
 		return *this; \
 	}
+#define REGISTER_FIELD_RW(type, name, upper, lower) \
+	REGISTER_FIELD_R(type, name, upper, lower) \
+	REGISTER_FIELD_W(type, name, upper, lower)
+
+#define REGISTER_INT_R(name, upper, lower) REGISTER_FIELD_R(uint32_t, name, upper, lower)
+#define REGISTER_INT_W(name, upper, lower) REGISTER_FIELD_W(uint32_t, name, upper, lower)
 #define REGISTER_INT_RW(name, upper, lower) \
 	REGISTER_INT_R(name, upper, lower) \
 	REGISTER_INT_W(name, upper, lower)

@@ -109,7 +109,7 @@ extern linker_placed_register<AIRCR<>> aircr __attribute__((__weak__, __alias__(
 
 enum class SystemHandlerName : uint32_t {
 	MemManage = 4,
-	BusFaul = 5,
+	BusFault = 5,
 	UsageFault = 6,
 	SVcall = 11,
 	DebugMonitor = 12,
@@ -360,6 +360,9 @@ extern linker_placed_register<HFSR> hfsr __attribute__((__weak__, __alias__(".SC
 
 
 extern volatile void* const mmfar __attribute__((__weak__, __alias__(".SCS_MMFAR")));
+
+
+
 
 extern volatile void* const bfar __attribute__((__weak__, __alias__(".SCS_BFAR")));
 
