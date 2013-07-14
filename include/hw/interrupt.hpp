@@ -368,6 +368,61 @@ extern volatile void* const bfar __attribute__((__weak__, __alias__(".SCS_BFAR")
 
 extern uint32_t afsr __attribute__((__weak__, __alias__(".SCS_AFSR")));
 
+
+
+
+inline uint32_t current_exception_number()
+{
+	uint32_t ipsr;
+	asm volatile ("mrs %0, IPSR" : "=r" (ipsr));
+	return ipsr & 0x1FF;
+}
+
+
+
+
+inline bool exception_mask()
+{
+	uint32_t result;
+	asm volatile ("mrs %0, PRIMASK" : "=r" (result));
+	return result;
+}
+
+inline void exception_mask(bool mask)
+{
+	asm volatile ("msr PRIMASK, %0" : : "r" (mask ? 1 : 0));
+}
+
+
+
+
+inline bool fault_mask()
+{
+	uint32_t result;
+	asm volatile ("mrs %0, FAULTMASK" : "=r" (result));
+	return result;
+}
+
+inline void fault_mask(bool mask)
+{
+	asm volatile ("msr FAULTMASK, %0" : : "r" (mask ? 1 : 0));
+}
+
+
+
+
+inline uint8_t base_priority()
+{
+	uint32_t result;
+	asm volatile ("mrs %0, BASEPRI" : "=r" (result));
+	return result;
+}
+
+inline void base_priority(uint8_t base)
+{
+	asm volatile ("msr BASEPRI, %0" : : "r" (base));
+}
+
 }
 
 #include <hw/platform_register_macros_clear.hpp>

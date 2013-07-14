@@ -29,7 +29,6 @@ struct X {
 		asm volatile ("nop");
 		asm volatile ("nop");
 		asm volatile ("nop");
-		ense::fpscr.rounding_mode(ense::RoundingMode::to_neg_infty);
 
 		// set gpioA9 to output
 		REG(GPIO_A_BASE + 0x00) |= 0x55555555;
@@ -39,13 +38,9 @@ struct X {
 
 	X()
 	{
+//		ense::cpacr[ense::Coprocessor::CP10] = ense::CoprocessorAccess::both;
 		foo();
-		volatile float d = 0.4;
-		if (4.30f * d > 0.1f) {
-			asm volatile ("nop");
-			ense::cpacr[ense::Coprocessor::CP10] = ense::CoprocessorAccess::both;
-			asm volatile ("nop");
-		}
+//		ense::fpscr.rounding_mode(ense::RoundingMode::to_neg_infty);
 	}
 };
 
@@ -58,11 +53,11 @@ static void print()
 	ense::shcsr.usage_fault_enabled(true);
 //	const char foo[] = "brutzelbums";
 	for (unsigned char j = 0; ; j++) {
-		uint32_t c = static_cast<uint32_t>(ense::cpacr[ense::Coprocessor::CP10]); {
+		uint32_t c = ense::current_exception_number(); {
 //		char c = y[j % sizeof(y)]; {
 //		char c = j % sizeof(y); {
 //		for (char c : foo) {
-			for (int i = 0; i < 32; i++) {
+			for (int i = 0; i < 16; i++) {
 				REG(GPIO_A_BASE + 0x14) = ((c & 1) << 12) | (1 << 13);
 				for (int i = 0; i < 400000; i++)
 					__asm__ __volatile__ ("nop");
