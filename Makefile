@@ -12,7 +12,8 @@ LDFLAGS_RELEASE := -plugin /usr/lib/LLVMgold.so -plugin-opt "mcpu=cortex-m4"
 CCFLAGS_DEBUG := -g -O0
 ASFLAGS_DEBUG := -g
 
-CCFLAGS += -Wall -Wextra -Werror -pedantic -mstrict-align
+#CCFLAGS += -Werror
+CCFLAGS += -Wall -Wextra -pedantic -mstrict-align
 CCFLAGS += -mcpu=cortex-m4 -mthumb -mfloat-abi=hard
 CCFLAGS += -ffreestanding -nostdlib --sysroot '^'
 CCFLAGS += -fno-exceptions -fno-rtti -fno-stack-protector

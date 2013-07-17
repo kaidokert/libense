@@ -6,11 +6,23 @@
 #include <hw/interrupt.hpp>
 #include <hw/scs.hpp>
 #include <hw/fp.hpp>
+#include <hw/systick.hpp>
+#include <hw/nvic.hpp>
 
 #define REG(x) *((volatile unsigned int*) (x))
 
 static const unsigned int RCC_BASE = 0x40023800;
 static const unsigned int GPIO_A_BASE = 0x40020c00;
+
+extern "C" {
+void __attribute__((__used__)) __aeabi_memset(void *dest, size_t n, int c)
+{
+	char* p = reinterpret_cast<char*>(dest);
+	while (n--) {
+		*p++ = c;
+	}
+}
+}
 
 struct X {
 	static void foo()
@@ -40,6 +52,20 @@ struct X {
 	{
 //		ense::cpacr[ense::Coprocessor::CP10] = ense::CoprocessorAccess::both;
 		foo();
+		asm volatile ("dbg $1");
+		asm volatile ("dbg $1");
+		asm volatile ("dbg $1");
+		asm volatile ("dbg $1");
+		asm volatile ("dbg $1");
+		asm volatile ("dbg $1");
+//		ense::nvic.enable<ense::ExternalInterrupt::a, ense::ExternalInterrupt::x>().clear<ense::ExternalInterrupt::x, ense::ExternalInterrupt::a>();
+		ense::nvic.enabled(ense::ExternalInterrupt::x, true);
+		asm volatile ("dbg $2");
+		asm volatile ("dbg $2");
+		asm volatile ("dbg $2");
+		asm volatile ("dbg $2");
+		asm volatile ("dbg $2");
+		asm volatile ("dbg $2");
 //		ense::fpscr.rounding_mode(ense::RoundingMode::to_neg_infty);
 	}
 };
