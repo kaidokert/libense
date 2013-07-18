@@ -23,13 +23,13 @@
 	type name() const \
 	{ \
 		typedef bit::expand<__VA_ARGS__> bp; \
-		return static_cast<type>((this->_value & bp::mask) >> bp::begin); \
+		return static_cast<type>((this->value() & bp::mask) >> bp::begin); \
 	}
 #define REGISTER_FIELD_W(type, name, ...) \
 	this_type& name(type value) \
 	{ \
 		typedef bit::expand<__VA_ARGS__> bp; \
-		this->value((this->_value & ~bp::mask) | ((static_cast<uint32_t>(value) << bp::begin) & bp::mask)); \
+		this->value((this->value() & ~bp::mask) | ((static_cast<uint32_t>(value) << bp::begin) & bp::mask)); \
 		return *this; \
 	}
 #define REGISTER_FIELD_RW(type, name, ...) \
@@ -44,7 +44,7 @@
 		static_assert(std::rank<array_type>::value == 1, "type must be one-dimensional"); \
 		static_assert(bp::range == std::extent<array_type>::value * bp::width, "type does not fit range"); \
 		uint32_t pos = bp::begin + idx * bp::width; \
-		return static_cast<value_type>((this->_value >> pos) & bp::anchored_mask); \
+		return static_cast<value_type>((this->value() >> pos) & bp::anchored_mask); \
 	}
 #define REGISTER_ARRAY_W(array_type, name, ...) \
 	this_type& name(size_t idx, std::remove_all_extents<array_type>::type value) \
@@ -55,7 +55,7 @@
 		static_assert(bp::range == std::extent<array_type>::value * bp::width, "type does not fit range"); \
 		uint32_t pos = bp::begin + idx * bp::width; \
 		uint32_t mask = bp::anchored_mask << pos; \
-		this->value((this->_value & ~mask) | ((static_cast<uint32_t>(value) & bp::anchored_mask) << pos)); \
+		this->value((this->value() & ~mask) | ((static_cast<uint32_t>(value) & bp::anchored_mask) << pos)); \
 		return *this; \
 	}
 #define REGISTER_ARRAY_RW(type, name, ...) \
