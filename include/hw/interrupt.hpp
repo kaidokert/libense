@@ -35,14 +35,14 @@ inline void trigger_interrupt(uint32_t num)
 
 
 enum class ICSRFlags : uint32_t {
-	nmi_pending = 1U << 31,
-	pendsv_pending = 1U << 28,
-	pendsv_clear = 1U << 27,
+	nmi_pending     = 1U << 31,
+	pendsv_pending  = 1U << 28,
+	pendsv_clear    = 1U << 27,
 	systick_pending = 1U << 26,
-	systick_clear = 1U << 25,
-	isr_preempt = 1U << 23,
-	isr_pending = 1U << 22,
-	ret_to_base = 1U << 11
+	systick_clear   = 1U << 25,
+	isr_preempt     = 1U << 23,
+	isr_pending     = 1U << 22,
+	ret_to_base     = 1U << 11
 };
 
 class ICSR : public WritablePlatformRegister<ICSRFlags, ICSR, volatile uint32_t> {
@@ -75,10 +75,10 @@ extern volatile InterruptHandler vtor[] __attribute__((__weak__, __alias__(".SCS
 
 
 enum class AIRCRFlags : uint32_t {
-	big_endian = 1 << 15,
-	request_system_reset = 1 << 2,
-	vector_clear_active = 1 << 1,
-	local_reset = 1 << 0
+	big_endian           = 1U << 15,
+	request_system_reset = 1U << 2,
+	vector_clear_active  = 1U << 1,
+	local_reset          = 1U << 0
 };
 
 template<bool Config = false>
@@ -108,13 +108,13 @@ extern linker_placed_register<AIRCR<>> aircr __attribute__((__weak__, __alias__(
 
 
 enum class SystemHandlerName : uint32_t {
-	MemManage = 4,
-	BusFault = 5,
-	UsageFault = 6,
-	SVcall = 11,
+	MemManage    = 4,
+	BusFault     = 5,
+	UsageFault   = 6,
+	SVcall       = 11,
 	DebugMonitor = 12,
-	PendSV = 14,
-	SysTick = 15
+	PendSV       = 14,
+	SysTick      = 15
 };
 
 class SystemHandlerPriorities {
@@ -148,20 +148,20 @@ extern linker_placed_array<SystemHandlerPriorities> system_handler_priorities __
 
 
 enum class SHCSRFlags : uint32_t {
-	usage_fault_enabled = 1 << 18,
-	bus_fault_enabled = 1 << 17,
-	mem_fault_enabled = 1 << 16,
-	svcall_pending = 1 << 15,
-	bus_fault_pending = 1 << 14,
-	mem_fault_pending = 1 << 13,
-	usage_fault_pending = 1 << 12,
-	sys_tick_active = 1 << 11,
-	pendsv_active = 1 << 10,
-	monitor_active = 1 << 8,
-	svcall_active = 1 << 7,
-	usage_fault_active = 1 << 3,
-	bus_fault_active = 1 << 1,
-	mem_fault_active = 1 << 0
+	usage_fault_enabled = 1U << 18,
+	bus_fault_enabled   = 1U << 17,
+	mem_fault_enabled   = 1U << 16,
+	svcall_pending      = 1U << 15,
+	bus_fault_pending   = 1U << 14,
+	mem_fault_pending   = 1U << 13,
+	usage_fault_pending = 1U << 12,
+	sys_tick_active     = 1U << 11,
+	pendsv_active       = 1U << 10,
+	monitor_active      = 1U << 8,
+	svcall_active       = 1U << 7,
+	usage_fault_active  = 1U << 3,
+	bus_fault_active    = 1U << 1,
+	mem_fault_active    = 1U << 0
 };
 
 template<bool Config = false>
@@ -192,35 +192,35 @@ extern linker_placed_register<SHCSR<>> shcsr __attribute__((__weak__, __alias__(
 
 
 enum class MMFSRFlags : uint8_t {
-	mmar_valid = 1 << 7,
-	mlsp_err = 1 << 5,
-	mstack_err = 1 << 4,
-	munstack_err = 1 << 3,
-	dacc_violation = 1 << 1,
-	iacc_violation = 1 << 0,
+	mmar_valid     = 1U << 7,
+	mlsp_err       = 1U << 5,
+	mstack_err     = 1U << 4,
+	munstack_err   = 1U << 3,
+	dacc_violation = 1U << 1,
+	iacc_violation = 1U << 0,
 
 	clear = 1
 };
 
 enum class BFSRFlags : uint8_t {
-	bfar_valid = 1 << 7,
-	lsp_err = 1 << 5,
-	stack_err = 1 << 4,
-	unstack_err = 1 << 3,
-	imprecise_err = 1 << 2,
-	precise_err = 1 << 1,
-	ibus_err = 1 << 0,
+	bfar_valid    = 1U << 7,
+	lsp_err       = 1U << 5,
+	stack_err     = 1U << 4,
+	unstack_err   = 1U << 3,
+	imprecise_err = 1U << 2,
+	precise_err   = 1U << 1,
+	ibus_err      = 1U << 0,
 
 	clear = 1
 };
 
 enum class UFSRFlags : uint16_t {
-	div_by_zero = 1 << 9,
-	unaligned = 1 << 8,
-	no_coprocessor = 1 << 3,
-	invalid_pc = 1 << 2,
-	invalid_state = 1 << 1,
-	undefined_instruction = 1 << 0,
+	div_by_zero           = 1U << 9,
+	unaligned             = 1U << 8,
+	no_coprocessor        = 1U << 3,
+	invalid_pc            = 1U << 2,
+	invalid_state         = 1U << 1,
+	undefined_instruction = 1U << 0,
 
 	clear = 1
 };
@@ -336,9 +336,9 @@ extern linker_placed_register<UFSR> ufsr __attribute__((__weak__, __alias__(".SC
 
 
 enum class HFSRFlags : uint32_t {
-	debug_event = 1U << 31,
-	forced = 1 << 30,
-	vector_table_fault = 1 << 1,
+	debug_event        = 1U << 31,
+	forced             = 1U << 30,
+	vector_table_fault = 1U << 1,
 
 	clear = 1 << 1
 };

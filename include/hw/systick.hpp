@@ -7,10 +7,10 @@
 namespace ense {
 
 enum class SystickCSRFlags : uint32_t {
-	wrapped = 1 << 16,
-	internally_clocked = 1 << 2,
-	interrupt_enabled = 1 << 1,
-	enable = 1 << 0
+	wrapped            = 1U << 16,
+	internally_clocked = 1U << 2,
+	interrupt_enabled  = 1U << 1,
+	enable             = 1U << 0
 };
 
 template<bool Config = false>
@@ -61,7 +61,7 @@ extern linker_placed_register<SystickCVR> sys_cvr __attribute__((__weak__, __ali
 
 enum class SystickCalibFlags : uint32_t {
 	reference_present = 1U << 31,
-	inexact = 1 << 30
+	inexact           = 1U << 30
 };
 
 class SystickCalib : public PlatformRegister<SystickCalibFlags, SystickCalib, volatile uint32_t> {

@@ -7,15 +7,15 @@
 namespace ense {
 
 enum class FPCCRFlags : uint32_t {
-	auto_save = 1U << 31,
-	lazy_save = 1 << 30,
-	debug_monitor_ready = 1 << 8,
-	bus_fault_ready = 1 << 6,
-	mem_manage_ready = 1 << 5,
-	hard_fault_ready = 1 << 4,
-	thread = 1 << 3,
-	user = 1 << 1,
-	lazy_save_active = 1 << 0
+	auto_save           = 1U << 31,
+	lazy_save           = 1U << 30,
+	debug_monitor_ready = 1U << 8,
+	bus_fault_ready     = 1U << 6,
+	mem_manage_ready    = 1U << 5,
+	hard_fault_ready    = 1U << 4,
+	thread              = 1U << 3,
+	user                = 1U << 1,
+	lazy_save_active    = 1U << 0
 };
 
 template<bool Config = false>
@@ -46,16 +46,16 @@ extern volatile void* const fpcar __attribute__((__weak__, __alias__(".SCS_FPCAR
 
 
 enum class FPDSCRFlags : uint32_t {
-	alternate_half_precision = 1 << 26,
-	default_nan = 1 << 25,
-	flush_to_zero = 1 << 24
+	alternate_half_precision = 1U << 26,
+	default_nan              = 1U << 25,
+	flush_to_zero            = 1U << 24
 };
 
 enum class RoundingMode : uint32_t {
-	to_nearest = 0,
+	to_nearest    = 0,
 	to_plus_infty = 1,
-	to_neg_infty = 2,
-	to_zero = 3
+	to_neg_infty  = 2,
+	to_zero       = 3
 };
 
 template<bool Config = false>
@@ -76,21 +76,21 @@ class FPDSCR : public ConfigurationRegister<FPDSCRFlags, Config, FPDSCR> {
 extern linker_placed_register<FPDSCR<>> fpdscr __attribute__((__weak__, __alias__(".SCS_FPDSCR")));
 
 enum class FPSCRFlags : uint32_t {
-	negative = 1U << 31,
-	zero = 1 << 30,
-	carry = 1 << 29,
-	overflow = 1 << 28,
+	negative                 = 1U << 31,
+	zero                     = 1U << 30,
+	carry                    = 1U << 29,
+	overflow                 = 1U << 28,
 
-	alternate_half_precision = 1 << 26,
-	default_nan = 1 << 25,
-	flush_to_zero = 1 << 24,
+	alternate_half_precision = 1U << 26,
+	default_nan              = 1U << 25,
+	flush_to_zero            = 1U << 24,
 
-	input_denormal_exc = 1 << 7,
-	inexact_exc = 1 << 4,
-	underflow_exc = 1 << 3,
-	overflow_exc = 1 << 2,
-	div_by_zero_exc = 1 << 1,
-	invalid_operation_exc = 1 << 0
+	input_denormal_exc       = 1U << 7,
+	inexact_exc              = 1U << 4,
+	underflow_exc            = 1U << 3,
+	overflow_exc             = 1U << 2,
+	div_by_zero_exc          = 1U << 1,
+	invalid_operation_exc    = 1U << 0
 };
 
 template<bool Config = false>

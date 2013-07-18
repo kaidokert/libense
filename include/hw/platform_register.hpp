@@ -5,61 +5,43 @@
 #include <type_traits>
 #include <tuple>
 
+#include <bit.hpp>
+
 namespace ense {
 
-namespace bit {
-	template<size_t Bit>
-	struct begin : std::integral_constant<size_t, Bit> {
-		typedef begin begin_t;
+namespace detail {
+
+	template<typename Target, typename Index, typename Value>
+	struct const_array_wrapper {
+		Target* target;
+		Index idx;
+
+		const_array_wrapper(Target* target, Index idx)
+			: target(target), idx(idx)
+		{
+		}
+
+		operator Value() const { return target->get(idx); }
+
+		template<typename T>
+		operator T() const { return static_cast<T>(target->get(idx)); }
+
 	};
 
-	template<size_t Bit>
-	struct end : std::integral_constant<size_t, Bit> {
-		typedef end end_t;
+	template<typename Target, typename Index, typename Value>
+	struct array_wrapper : const_array_wrapper<Target, Index, Value> {
+		array_wrapper(Target* target, Index idx)
+			: const_array_wrapper<Target, Index, Value>(target, idx)
+		{
+		}
+
+		Value operator=(Value val)
+		{
+			this->target->set(this->idx, val);
+			return val;
+		}
 	};
 
-	template<size_t Width>
-	struct width : std::integral_constant<size_t, Width> {
-		typedef width width_t;
-	};
-
-	template<size_t Bound1, size_t Bound2>
-	struct range :
-		std::conditional<Bound1 < Bound2, begin<Bound1>, begin<Bound2>>::type,
-		std::conditional<Bound1 < Bound2, end<Bound2>, end<Bound1>>::type {};
-
-	namespace detail {
-		template<typename... Args>
-		struct expand : expand<Args>... {};
-
-		template<typename Mismatch>
-		struct expand<Mismatch>;
-
-		template<size_t Bound1, size_t Bound2>
-		struct expand<range<Bound1, Bound2>> {
-			typedef range<Bound1, Bound2> range_t;
-
-			static constexpr size_t begin = range_t::begin_t::value;
-			static constexpr size_t end = range_t::end_t::value;
-
-			static_assert(end < 32, "Upper >= 32");
-			static_assert(begin < end, "Lower >= Upper");
-
-			static constexpr size_t range = end - begin + 1;
-			static constexpr size_t anchored_mask = 0xFFFFFFFF >> (32 - range);
-			static constexpr size_t mask = anchored_mask << begin;
-		};
-
-		template<size_t Width>
-		struct expand<width<Width>> {
-			static_assert(Width < 32, "Width >= 32");
-
-			static constexpr size_t width = Width;
-		};
-	}
-
-	template<typename... Args>
-	using expand = detail::expand<Args...>;
 }
 
 template<typename Bits, typename Inner, typename Value>
@@ -147,41 +129,41 @@ class WritablePlatformRegister<void, Inner, Value> : public PlatformRegister<voi
 
 namespace traits {
 
-template<typename Register>
-constexpr bool is_platform_array_valid()
-{
-	static_assert(std::is_standard_layout<Register>::value, "Register array is not standard-layout");
+	template<typename Register>
+	constexpr bool is_platform_array_valid()
+	{
+		static_assert(std::is_standard_layout<Register>::value, "Register array is not standard-layout");
 
-	static_assert(std::extent<typename Register::value_type>::value > 0, "Register array value is no fixed-size array");
+		static_assert(std::extent<typename Register::value_type>::value > 0, "Register array value is no fixed-size array");
 
-	static_assert(std::is_volatile<typename Register::value_type>::value, "Register array value is not volatile");
+		static_assert(std::is_volatile<typename Register::value_type>::value, "Register array value is not volatile");
 
-	static_assert(sizeof(Register) == sizeof(typename Register::value_type), "Register array contains superfluous fields");
+		static_assert(sizeof(Register) == sizeof(typename Register::value_type), "Register array contains superfluous fields");
 
-	static_assert(alignof(Register) <= sizeof(typename Register::value_type), "Register array has weird alignment requirements");
+		static_assert(alignof(Register) <= sizeof(typename Register::value_type), "Register array has weird alignment requirements");
 
-	return true;
-};
+		return true;
+	};
 
-template<typename Register>
-constexpr bool is_platform_register_valid()
-{
-	static_assert(
-		std::is_base_of<
-			ense::PlatformRegister<typename Register::bits_type, Register, typename Register::value_type>,
-			Register>::value,
-		"Register must inherit PlatformRegister<_, Register, _> somewhere");
+	template<typename Register>
+	constexpr bool is_platform_register_valid()
+	{
+		static_assert(
+			std::is_base_of<
+				ense::PlatformRegister<typename Register::bits_type, Register, typename Register::value_type>,
+				Register>::value,
+			"Register must inherit PlatformRegister<_, Register, _> somewhere");
 
-	static_assert(std::is_standard_layout<Register>::value, "Register is not standard-layout");
+		static_assert(std::is_standard_layout<Register>::value, "Register is not standard-layout");
 
-	static_assert(std::is_volatile<typename Register::value_type>::value, "Register value is not volatile");
+		static_assert(std::is_volatile<typename Register::value_type>::value, "Register value is not volatile");
 
-	static_assert(sizeof(Register) == sizeof(typename Register::value_type), "Register contains superfluous fields");
+		static_assert(sizeof(Register) == sizeof(typename Register::value_type), "Register contains superfluous fields");
 
-	static_assert(alignof(Register) <= sizeof(typename Register::value_type), "Register has weird alignment requirements");
+		static_assert(alignof(Register) <= sizeof(typename Register::value_type), "Register has weird alignment requirements");
 
-	return true;
-};
+		return true;
+	};
 
 }
 

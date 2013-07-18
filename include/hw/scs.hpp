@@ -7,9 +7,9 @@
 namespace ense {
 
 enum class SCRFlags : uint32_t {
-	wakeup_on_pending = 1 << 4,
-	sleep_deep = 1 << 2,
-	sleep_on_exit = 1 << 1
+	wakeup_on_pending = 1U << 4,
+	sleep_deep        = 1U << 2,
+	sleep_on_exit     = 1U << 1
 };
 
 template<bool Config = false>
@@ -29,12 +29,12 @@ extern linker_placed_register<SCR<>> scr __attribute__((__weak__, __alias__(".SC
 
 
 enum class CCRFlags : uint32_t {
-	stack_align_8byte = 1 << 9,
-	handlers_ignore_fault = 1 << 8,
-	div_0_trap = 1 << 4,
-	unalign_trap = 1 << 3,
-	user_allow_irq_trigger = 1 << 1,
-	non_base_thread_enable = 1 << 0
+	stack_align_8byte      = 1U << 9,
+	handlers_ignore_fault  = 1U << 8,
+	div_0_trap             = 1U << 4,
+	unalign_trap           = 1U << 3,
+	user_allow_irq_trigger = 1U << 1,
+	non_base_thread_enable = 1U << 0
 };
 
 template<bool Config = false>
@@ -57,23 +57,23 @@ extern linker_placed_register<CCR<>> ccr __attribute__((__weak__, __alias__(".SC
 
 
 enum class Coprocessor {
-	CP0 = 0,
-	CP1 = 2,
-	CP2 = 4,
-	CP3 = 6,
-	CP4 = 8,
-	CP5 = 10,
-	CP6 = 12,
-	CP7 = 14,
+	CP0  = 0,
+	CP1  = 2,
+	CP2  = 4,
+	CP3  = 6,
+	CP4  = 8,
+	CP5  = 10,
+	CP6  = 12,
+	CP7  = 14,
 
 	CP10 = 20,
 	CP11 = 22
 };
 
 enum class CoprocessorAccess {
-	none = 0,
+	none       = 0,
 	supervisor = 1,
-	both = 3
+	both       = 3
 };
 
 template<bool Config = false>
@@ -83,27 +83,6 @@ class CPACR : public ConfigurationRegister<void, Config, CPACR> {
 
 		static constexpr uint32_t cp_value(Coprocessor cp, CoprocessorAccess acc) { return static_cast<uint32_t>(acc) << static_cast<uint32_t>(cp); }
 		static constexpr uint32_t cp_mask(Coprocessor cp) { return cp_value(cp, CoprocessorAccess::both); }
-
-		struct array_wrapper {
-			CPACR* cpacr;
-			Coprocessor cp;
-
-			array_wrapper(CPACR* cpacr, Coprocessor cp)
-				: cpacr(cpacr), cp(cp)
-			{
-			}
-
-			operator CoprocessorAccess() const { return cpacr->get(cp); }
-
-			template<typename T>
-			operator T() const { return static_cast<T>(cpacr->get(cp)); }
-
-			CoprocessorAccess operator=(CoprocessorAccess acc)
-			{
-				cpacr->set(cp, acc);
-				return acc;
-			}
-		};
 
 	public:
 		CPACR& set(Coprocessor cp, CoprocessorAccess acc)
@@ -116,7 +95,10 @@ class CPACR : public ConfigurationRegister<void, Config, CPACR> {
 
 		CoprocessorAccess operator[](Coprocessor cp) const { return get(cp); }
 
-		array_wrapper operator[](Coprocessor cp) { return array_wrapper(this, cp); }
+		detail::array_wrapper<CPACR, Coprocessor, CoprocessorAccess> operator[](Coprocessor cp)
+		{
+			return detail::array_wrapper<CPACR, Coprocessor, CoprocessorAccess>(this, cp);
+		}
 };
 
 extern linker_placed_register<CPACR<>> cpacr __attribute__((__weak__, __alias__(".SCS_CPACR")));

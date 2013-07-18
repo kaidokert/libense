@@ -9,26 +9,26 @@
 namespace ense {
 
 enum class AHB1Peripheral : uint32_t {
-	usb_otg_hs_ulpi = 1 << 30,
-	usb_otg_hs = 1 << 29,
-	eth_mac_ptp = 1 << 28,
-	eth_mac_rx = 1 << 27,
-	eth_mac_tx = 1 << 26,
-	eth_mac = 1 << 25,
-	dma2 = 1 << 22,
-	dma1 = 1 << 21,
-	ccm_data_ram = 1 << 20,
-	backup_sram = 1 << 18,
-	crc = 1 << 12,
-	gpioI = 1 << 8,
-	gpioH = 1 << 7,
-	gpioG = 1 << 6,
-	gpioF = 1 << 5,
-	gpioE = 1 << 4,
-	gpioD = 1 << 3,
-	gpioC = 1 << 2,
-	gpioB = 1 << 1,
-	gpioA = 1 << 0
+	usb_otg_hs_ulpi = 1U << 30,
+	usb_otg_hs      = 1U << 29,
+	eth_mac_ptp     = 1U << 28,
+	eth_mac_rx      = 1U << 27,
+	eth_mac_tx      = 1U << 26,
+	eth_mac         = 1U << 25,
+	dma2            = 1U << 22,
+	dma1            = 1U << 21,
+	ccm_data_ram    = 1U << 20,
+	backup_sram     = 1U << 18,
+	crc             = 1U << 12,
+	gpioI           = 1U << 8,
+	gpioH           = 1U << 7,
+	gpioG           = 1U << 6,
+	gpioF           = 1U << 5,
+	gpioE           = 1U << 4,
+	gpioD           = 1U << 3,
+	gpioC           = 1U << 2,
+	gpioB           = 1U << 1,
+	gpioA           = 1U << 0
 };
 
 template<bool Config = false>
