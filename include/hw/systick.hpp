@@ -35,7 +35,7 @@ class SystickRVR : public PlatformRegister<void, SystickRVR, volatile uint32_t> 
 		typedef SystickRVR this_type;
 
 	public:
-		REGISTER_INT_R(reload_value, 23, 0)
+		REGISTER_INT_R(reload_value, bit::range<23, 0>)
 };
 
 extern linker_placed_register<SystickRVR> sys_rvr __attribute__((__weak__, __alias__(".SCS_SystickRVR")));
@@ -71,7 +71,7 @@ class SystickCalib : public PlatformRegister<SystickCalibFlags, SystickCalib, vo
 	public:
 		REGISTER_BIT_R(reference_present)
 		REGISTER_BIT_R(inexact)
-		REGISTER_INT_R(ten_ms, 23, 0)
+		REGISTER_INT_R(ten_ms, bit::range<23, 0>)
 };
 
 extern linker_placed_register<SystickCalib> systickcalib __attribute__((__weak__, __alias__(".SCS_SystickCalib")));

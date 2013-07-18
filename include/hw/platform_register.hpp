@@ -3,8 +3,64 @@
 
 #include <stdint.h>
 #include <type_traits>
+#include <tuple>
 
 namespace ense {
+
+namespace bit {
+	template<size_t Bit>
+	struct begin : std::integral_constant<size_t, Bit> {
+		typedef begin begin_t;
+	};
+
+	template<size_t Bit>
+	struct end : std::integral_constant<size_t, Bit> {
+		typedef end end_t;
+	};
+
+	template<size_t Width>
+	struct width : std::integral_constant<size_t, Width> {
+		typedef width width_t;
+	};
+
+	template<size_t Bound1, size_t Bound2>
+	struct range :
+		std::conditional<Bound1 < Bound2, begin<Bound1>, begin<Bound2>>::type,
+		std::conditional<Bound1 < Bound2, end<Bound2>, end<Bound1>>::type {};
+
+	namespace detail {
+		template<typename... Args>
+		struct expand : expand<Args>... {};
+
+		template<typename Mismatch>
+		struct expand<Mismatch>;
+
+		template<size_t Bound1, size_t Bound2>
+		struct expand<range<Bound1, Bound2>> {
+			typedef range<Bound1, Bound2> range_t;
+
+			static constexpr size_t begin = range_t::begin_t::value;
+			static constexpr size_t end = range_t::end_t::value;
+
+			static_assert(end < 32, "Upper >= 32");
+			static_assert(begin < end, "Lower >= Upper");
+
+			static constexpr size_t range = end - begin + 1;
+			static constexpr size_t anchored_mask = 0xFFFFFFFF >> (32 - range);
+			static constexpr size_t mask = anchored_mask << begin;
+		};
+
+		template<size_t Width>
+		struct expand<width<Width>> {
+			static_assert(Width < 32, "Width >= 32");
+
+			static constexpr size_t width = Width;
+		};
+	}
+
+	template<typename... Args>
+	using expand = detail::expand<Args...>;
+}
 
 template<typename Bits, typename Inner, typename Value>
 class PlatformRegister : public PlatformRegister<void, Inner, Value> {

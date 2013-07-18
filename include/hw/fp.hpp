@@ -70,7 +70,7 @@ class FPDSCR : public ConfigurationRegister<FPDSCRFlags, Config, FPDSCR> {
 		REGISTER_BIT_RW(alternate_half_precision)
 		REGISTER_BIT_RW(default_nan)
 		REGISTER_BIT_RW(flush_to_zero)
-		REGISTER_FIELD_RW(RoundingMode, rounding_mode, 23, 22)
+		REGISTER_FIELD_RW(RoundingMode, rounding_mode, bit::range<23, 22>)
 };
 
 extern linker_placed_register<FPDSCR<>> fpdscr __attribute__((__weak__, __alias__(".SCS_FPDSCR")));
@@ -121,7 +121,7 @@ class FPSCR : public ConfigurationRegister<FPSCRFlags, Config, FPSCR> {
 		REGISTER_BIT_RW(default_nan)
 		REGISTER_BIT_RW(flush_to_zero)
 
-		REGISTER_FIELD_RW(RoundingMode, rounding_mode, 23, 22)
+		REGISTER_FIELD_RW(RoundingMode, rounding_mode, bit::range<23, 22>)
 
 		REGISTER_BIT_R(input_denormal_exc)
 		REGISTER_BIT_R(inexact_exc)
