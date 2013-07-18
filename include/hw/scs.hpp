@@ -58,16 +58,16 @@ extern linker_placed_register<CCR<>> ccr __attribute__((__weak__, __alias__(".SC
 
 enum class Coprocessor {
 	CP0  = 0,
-	CP1  = 2,
-	CP2  = 4,
-	CP3  = 6,
-	CP4  = 8,
-	CP5  = 10,
-	CP6  = 12,
-	CP7  = 14,
+	CP1  = 1,
+	CP2  = 2,
+	CP3  = 3,
+	CP4  = 4,
+	CP5  = 5,
+	CP6  = 6,
+	CP7  = 7,
 
-	CP10 = 20,
-	CP11 = 22
+	CP10 = 10,
+	CP11 = 11
 };
 
 enum class CoprocessorAccess {
@@ -81,24 +81,9 @@ class CPACR : public ConfigurationRegister<void, Config, CPACR> {
 	private:
 		typedef CPACR this_type;
 
-		static constexpr uint32_t cp_value(Coprocessor cp, CoprocessorAccess acc) { return static_cast<uint32_t>(acc) << static_cast<uint32_t>(cp); }
-		static constexpr uint32_t cp_mask(Coprocessor cp) { return cp_value(cp, CoprocessorAccess::both); }
-
 	public:
-		CPACR& set(Coprocessor cp, CoprocessorAccess acc)
-		{
-			this->value((this->value() & ~cp_mask(cp)) | cp_value(cp, acc));
-			return *this;
-		}
-
-		CoprocessorAccess get(Coprocessor cp) const { return static_cast<CoprocessorAccess>((this->value() & cp_mask(cp)) >> static_cast<uint32_t>(cp)); }
-
-		CoprocessorAccess operator[](Coprocessor cp) const { return get(cp); }
-
-		detail::array_wrapper<CPACR, Coprocessor, CoprocessorAccess> operator[](Coprocessor cp)
-		{
-			return detail::array_wrapper<CPACR, Coprocessor, CoprocessorAccess>(this, cp);
-		}
+		REGISTER_SINGULAR_ARRAY_RW(CoprocessorAccess[16], bit::index<Coprocessor>, bit::range<0, 31>, bit::width<2>)
+		REGISTER_SINGULAR_ARRAY_RW(CoprocessorAccess[16], bit::range<0, 31>, bit::width<2>)
 };
 
 extern linker_placed_register<CPACR<>> cpacr __attribute__((__weak__, __alias__(".SCS_CPACR")));

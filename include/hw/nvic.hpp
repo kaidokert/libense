@@ -90,14 +90,16 @@ class NVIC {
 			assign<flags>(target, std::integral_constant<size_t, 15>());
 		}
 
+		static void set_flag(bitfield_t& target, ExternalInterrupt interrupt)
+		{
+			uint32_t value = static_cast<uint32_t>(interrupt);
+			target[value >> 5] = 1U << (value & 0x1F);
+		}
+
 	public:
 		NVIC& enabled(ExternalInterrupt interrupt, bool enable)
 		{
-			uint32_t value = static_cast<uint32_t>(interrupt);
-			if (enable)
-				iser[value >> 5] = 1U << (value & 0x1F);
-			else
-				icer[value >> 5] = 1U << (value & 0x1F);
+			set_flag(enable ? iser : icer, interrupt);
 			return *this;
 		}
 
@@ -109,11 +111,7 @@ class NVIC {
 
 		NVIC& pending(ExternalInterrupt interrupt, bool pending)
 		{
-			uint32_t value = static_cast<uint32_t>(interrupt);
-			if (pending)
-				ispr[value >> 5] = 1U << (value & 0x1F);
-			else
-				icpr[value >> 5] = 1U << (value & 0x1F);
+			set_flag(pending ? ispr : icpr, interrupt);
 			return *this;
 		}
 
