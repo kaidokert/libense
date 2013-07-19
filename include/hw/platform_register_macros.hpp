@@ -55,7 +55,7 @@
 		static_assert(bp::range == std::extent<array_type>::value * bp::width, "type does not fit range"); \
 		uint32_t pos = bp::begin + static_cast<uint32_t>(idx) * bp::width; \
 		uint32_t mask = bp::array_anchored_mask << pos; \
-		this->value((this->value() & ~mask) | ((static_cast<uint32_t>(value) & bp::array_anchored_mask) << pos)); \
+		this->value((this->value() & ~mask) | ((static_cast<uint32_t>(value) << pos) & mask)); \
 		return *this; \
 	}
 #define REGISTER_ARRAY_RW(type, name, ...) \
