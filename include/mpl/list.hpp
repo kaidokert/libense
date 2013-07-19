@@ -8,7 +8,9 @@ namespace mpl {
 
 
 template<typename... Items>
-struct list {};
+struct list {
+	typedef list type;
+};
 
 
 
@@ -30,6 +32,50 @@ namespace detail {
 
 template<typename Head, typename List>
 using cons = typename detail::cons<Head, List>::type;
+
+
+
+namespace detail {
+
+	template<typename ListA, typename List>
+	struct concat;
+
+	template<typename... ListA, typename... ListB>
+	struct concat<list<ListA...>, list<ListB...>> {
+		typedef list<ListA..., ListB...> type;
+	};
+}
+
+template<typename ListA, typename ListB>
+using concat = typename detail::concat<ListA, ListB>::type;
+
+
+
+
+namespace detail {
+
+	template<typename T, typename Length, T Offset>
+	struct make_range {
+		typedef mpl::concat<
+			typename make_range<T, std::integral_constant<T, (Length::value + 0) / 2>, Offset>::type,
+			typename make_range<T, std::integral_constant<T, (Length::value + 1) / 2>, Offset + (Length::value + 0) / 2>::type
+			> type;
+	};
+
+	template<typename T, T Offset>
+	struct make_range<T, std::integral_constant<T, 0>, Offset> {
+		typedef list<> type;
+	};
+
+	template<typename T, T Offset>
+	struct make_range<T, std::integral_constant<T, 1>, Offset> {
+		typedef list<std::integral_constant<T, Offset>> type;
+	};
+
+}
+
+template<typename T, T Begin, T End>
+using make_range = typename detail::make_range<T, std::integral_constant<T, End - Begin + 1>, Begin>::type;
 
 
 

@@ -9,6 +9,7 @@
 #include <hw/fp.hpp>
 #include <hw/systick.hpp>
 #include <hw/nvic.hpp>
+#include <hw/ivt.hpp>
 
 #define REG(x) *((volatile unsigned int*) (x))
 
@@ -100,18 +101,18 @@ void mem() { for (;;) ; }
 
 extern "C" {
 	extern void _start();
-
-	__attribute__((section("..isr_vectors"), used))
-	void (*const isr_vectors[])() {
-		_start,
-		nmi,
-		hard,
-		mem,
-		bus,
-		usage
-	};
 }
 
+__attribute__((section("..isr_vectors"), used))
+constexpr ense::IVT<
+	ense::reset_handler<_start>,
+	ense::nmi_handler<nmi>,
+	ense::hard_fault_handler<hard>,
+
+	ense::system_handler<ense::SystemHandlerName::MemManage, mem>,
+	ense::system_handler<ense::SystemHandlerName::BusFault, bus>,
+	ense::system_handler<ense::SystemHandlerName::UsageFault, usage>
+> ivt;
 
 // TODO: future-ify all the things
 
