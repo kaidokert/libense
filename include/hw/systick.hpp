@@ -30,12 +30,12 @@ extern linker_placed_register<SystickCSR<>> sys_csr __attribute__((__weak__, __a
 
 
 
-class SystickRVR : public PlatformRegister<void, SystickRVR, volatile uint32_t> {
+class SystickRVR : public WritablePlatformRegister<void, SystickRVR, volatile uint32_t> {
 	private:
 		typedef SystickRVR this_type;
 
 	public:
-		REGISTER_INT_R(reload_value, bit::range<23, 0>)
+		REGISTER_INT_RW(reload_value, bit::range<23, 0>)
 };
 
 extern linker_placed_register<SystickRVR> sys_rvr __attribute__((__weak__, __alias__(".SCS_SystickRVR")));
