@@ -99,13 +99,8 @@ void usage() { for (;;) ; }
 void bus() { for (;;) ; }
 void mem() { for (;;) ; }
 
-extern "C" {
-	extern void _start();
-}
-
 __attribute__((section("..isr_vectors"), used))
 constexpr ense::IVT<
-	ense::reset_handler<_start>,
 	ense::nmi_handler<nmi>,
 	ense::hard_fault_handler<hard>,
 

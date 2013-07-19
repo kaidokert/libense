@@ -48,6 +48,10 @@ struct external_interrupt {
 
 namespace detail {
 
+	extern "C" {
+		extern void _start();
+	}
+
 	template<typename>
 	struct ignore {};
 
@@ -91,12 +95,22 @@ namespace detail {
 		}
 	};
 
+	template<typename... Handlers>
+	struct interrupt_vector_table : detail::ivt_handler_list<
+		mpl::make_range<uint32_t, 0, mpl::max(Handlers::slot...)>,
+		Handlers...> {
+		constexpr interrupt_vector_table()
+		{
+		}
+	};
+
 }
 
 template<typename... Handlers>
-class IVT : detail::ivt_handler_list<
-		mpl::make_range<uint32_t, 0, mpl::max(Handlers::slot...)>,
-		Handlers...> {
+class IVT : std::conditional<
+		detail::defines_slot<reset_handler<nullptr>::slot, Handlers...>::value,
+		detail::interrupt_vector_table<Handlers...>,
+		detail::interrupt_vector_table<Handlers..., reset_handler<detail::_start>>>::type {
 
 	public:
 		constexpr IVT()
