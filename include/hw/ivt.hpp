@@ -90,8 +90,6 @@ namespace detail {
 					>::type::value...
 			}
 		{
-			static_assert(defines_slot<0, Handlers...>::value, "");
-			static_assert(defines_slot<1, Handlers...>::value, "");
 		}
 	};
 
