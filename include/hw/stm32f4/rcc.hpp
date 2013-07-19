@@ -7,6 +7,7 @@
 #include <hw/platform_register_macros.hpp>
 
 namespace ense {
+namespace platform {
 
 enum class AHB1Peripheral : uint32_t {
 	usb_otg_hs_ulpi = 1U << 30,
@@ -61,6 +62,7 @@ class AHB1PeripheralClockEnable : public ConfigurationRegister<AHB1Peripheral, C
 
 extern linker_placed_register<AHB1PeripheralClockEnable<>> ahb1peripheral_clock __attribute__((__weak__, __alias__(".RCC_AHB1ENR")));
 
+}
 }
 
 #include <hw/platform_register_macros_clear.hpp>

@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 #include <hw/stm32f4/rcc.hpp>
+
 #include <hw/cpuid.hpp>
 #include <hw/interrupt.hpp>
 #include <hw/scs.hpp>
@@ -32,7 +33,7 @@ struct X {
 		asm volatile ("nop");
 		asm volatile ("nop");
 		ense::system_handler_priorities.set(ense::SystemHandlerName::SysTick, 0xff);
-		ense::ahb1peripheral_clock.begin()
+		ense::platform::ahb1peripheral_clock.begin()
 			.gpioA(true)
 			.gpioB(true)
 			.gpioC(true)
@@ -50,23 +51,7 @@ struct X {
 
 	X()
 	{
-//		ense::cpacr[ense::Coprocessor::CP10] = ense::CoprocessorAccess::both;
 		foo();
-		asm volatile ("dbg $1");
-		asm volatile ("dbg $1");
-		asm volatile ("dbg $1");
-		asm volatile ("dbg $1");
-		asm volatile ("dbg $1");
-		asm volatile ("dbg $1");
-//		ense::nvic.enable<ense::ExternalInterrupt::a, ense::ExternalInterrupt::x>().clear<ense::ExternalInterrupt::x, ense::ExternalInterrupt::a>();
-		ense::nvic.enabled(ense::ExternalInterrupt::x, true);
-		asm volatile ("dbg $2");
-		asm volatile ("dbg $2");
-		asm volatile ("dbg $2");
-		asm volatile ("dbg $2");
-		asm volatile ("dbg $2");
-		asm volatile ("dbg $2");
-//		ense::fpscr.rounding_mode(ense::RoundingMode::to_neg_infty);
 	}
 };
 
