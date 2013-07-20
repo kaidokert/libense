@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 #include <hw/stm32f4/rcc.hpp>
+#include <hw/stm32f4/gpio.hpp>
 
 #include <hw/cpuid.hpp>
 #include <hw/interrupt.hpp>
@@ -10,11 +11,6 @@
 #include <hw/systick.hpp>
 #include <hw/nvic.hpp>
 #include <hw/ivt.hpp>
-
-#define REG(x) *((volatile unsigned int*) (x))
-
-static const unsigned int RCC_BASE = 0x40023800;
-static const unsigned int GPIO_A_BASE = 0x40020c00;
 
 extern "C" {
 void __attribute__((__used__)) __aeabi_memset(void *dest, size_t n, int c)
@@ -44,10 +40,27 @@ struct X {
 		asm volatile ("nop");
 		asm volatile ("nop");
 
-		// set gpioA9 to output
-		REG(GPIO_A_BASE + 0x00) |= 0x55555555;
-		// set speed 50MHz
-		REG(GPIO_A_BASE + 0x08) |= 0xaaaaaaaa;
+		ense::platform::gpio::gpioD.mode().begin()
+			.set(0, ense::platform::gpio::PortFunction::output)
+			.set(1, ense::platform::gpio::PortFunction::output)
+			.set(2, ense::platform::gpio::PortFunction::output)
+			.set(3, ense::platform::gpio::PortFunction::output)
+			.set(4, ense::platform::gpio::PortFunction::output)
+			.set(5, ense::platform::gpio::PortFunction::output)
+			.set(6, ense::platform::gpio::PortFunction::output)
+			.set(7, ense::platform::gpio::PortFunction::output)
+			.set(8, ense::platform::gpio::PortFunction::output)
+			.set(9, ense::platform::gpio::PortFunction::output)
+			.set(10, ense::platform::gpio::PortFunction::output)
+			.set(11, ense::platform::gpio::PortFunction::output)
+			.set(12, ense::platform::gpio::PortFunction::output)
+			.set(13, ense::platform::gpio::PortFunction::output)
+			.set(14, ense::platform::gpio::PortFunction::output)
+			.set(15, ense::platform::gpio::PortFunction::output)
+			.commit();
+		asm volatile ("nop");
+		asm volatile ("nop");
+		asm volatile ("nop");
 	}
 
 	X()
@@ -62,6 +75,7 @@ char y[] = "\001\002\003\004\005\006\007\010\011\012\013\014\015\016";
 
 static void print()
 {
+	using namespace ense::platform::gpio;
 	ense::shcsr.usage_fault_enabled(true);
 //	const char foo[] = "brutzelbums";
 	for (unsigned char j = 0; ; j++) {
@@ -70,18 +84,18 @@ static void print()
 //		char c = j % sizeof(y); {
 //		for (char c : foo) {
 			for (int i = 0; i < 16; i++) {
-				REG(GPIO_A_BASE + 0x14) = ((c & 1) << 12) | (1 << 13);
+				gpioD.output().value(((c & 1) << 12) | (1 << 13));
 				for (int i = 0; i < 400000; i++)
 					__asm__ __volatile__ ("nop");
-				REG(GPIO_A_BASE + 0x14) = 0;
+				gpioD.output().value(0);
 				for (int i = 0; i < 400000; i++)
 					__asm__ __volatile__ ("nop");
 				c >>= 1;
 			}
-			REG(GPIO_A_BASE + 0x14) = 1 << 14;
+			gpioD.output().value(1 << 14);
 			for (int i = 0; i < 400000; i++)
 				__asm__ __volatile__ ("nop");
-			REG(GPIO_A_BASE + 0x14) = 0;
+			gpioD.output().value(0);
 			for (int i = 0; i < 1200000; i++)
 				__asm__ __volatile__ ("nop");
 		}

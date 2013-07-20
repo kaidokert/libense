@@ -16,7 +16,7 @@ SECTIONS
 {
 	..stack = ORIGIN(CCM) + LENGTH(CCM);
 
-	.ccmdata : AT(ALIGN(_data_content_end, 4)) {
+	.ccmdata : AT(ALIGN(_data_content_end, 4)+4) {
 		PROVIDE(_ccmdata_begin = .);
 		*(.ccmdata .ccmdata.*)
 		PROVIDE(_ccmdata_end = .);
@@ -26,3 +26,4 @@ SECTIONS
 
 }
 INCLUDE "ldscripts/stm32f4/rcc.ld"
+INCLUDE "ldscripts/stm32f4/gpio.ld"
