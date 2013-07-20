@@ -14,35 +14,30 @@ namespace ense {
 template<void (*Vector)()>
 struct reset_handler {
 	static constexpr uint32_t slot = 0;
-	static constexpr void (*vector)() = Vector;
 	typedef std::integral_constant<void (*)(), Vector> vector_t;
 };
 
 template<void (*Vector)()>
 struct nmi_handler {
 	static constexpr uint32_t slot = 1;
-	static constexpr void (*vector)() = Vector;
 	typedef std::integral_constant<void (*)(), Vector> vector_t;
 };
 
 template<void (*Vector)()>
 struct hard_fault_handler {
 	static constexpr uint32_t slot = 2;
-	static constexpr void (*vector)() = Vector;
 	typedef std::integral_constant<void (*)(), Vector> vector_t;
 };
 
 template<SystemHandlerName Handler, void (*Vector)()>
 struct system_handler {
 	static constexpr uint32_t slot = static_cast<uint32_t>(Handler) - 1;
-	static constexpr void (*vector)() = Vector;
 	typedef std::integral_constant<void (*)(), Vector> vector_t;
 };
 
 template<ExternalInterrupt Interrupt, void (*Vector)()>
 struct external_interrupt {
 	static constexpr uint32_t slot = static_cast<uint32_t>(Interrupt) + 15;
-	static constexpr void (*vector)() = Vector;
 	typedef std::integral_constant<void (*)(), Vector> vector_t;
 };
 
