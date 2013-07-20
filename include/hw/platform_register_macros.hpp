@@ -67,10 +67,10 @@
 	REGISTER_ARRAY_R(array_type, operator[], __VA_ARGS__)
 #define REGISTER_SINGULAR_ARRAY_W(array_type, ...) \
 	REGISTER_ARRAY_W(array_type, set, __VA_ARGS__) \
-	detail::array_wrapper<this_type, bit::index_type<__VA_ARGS__>, std::remove_all_extents<array_type>::type> \
+	ense::detail::array_wrapper<this_type, bit::index_type<__VA_ARGS__>, std::remove_all_extents<array_type>::type> \
 		operator[](bit::index_type<__VA_ARGS__> idx) \
 	{ \
-		return detail::array_wrapper<this_type, bit::index_type<__VA_ARGS__>, std::remove_all_extents<array_type>::type>(this, idx); \
+		return ense::detail::array_wrapper<this_type, bit::index_type<__VA_ARGS__>, std::remove_all_extents<array_type>::type>(this, idx); \
 	}
 #define REGISTER_SINGULAR_ARRAY_RW(type, ...) \
 	REGISTER_SINGULAR_ARRAY_R(type, __VA_ARGS__) \

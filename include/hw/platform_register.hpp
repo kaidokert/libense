@@ -110,9 +110,10 @@ class WritablePlatformRegister : public PlatformRegister<Bits, Inner, Value> {
 
 		Value value() const { return this->_value; }
 
-		void value(Value val)
+		Inner& value(Value val)
 		{
 			this->_value = val;
+			return static_cast<Inner&>(*this);
 		}
 };
 
@@ -121,9 +122,10 @@ class WritablePlatformRegister<void, Inner, Value> : public PlatformRegister<voi
 	public:
 		Value value() const { return this->_value; }
 
-		void value(Value val)
+		Inner value(Value val)
 		{
 			this->_value = val;
+			return static_cast<Inner&>(*this);
 		}
 };
 
