@@ -21,10 +21,16 @@ namespace detail {
 		{
 		}
 
-		operator Value() const { return target->get(idx); }
+		operator Value() const
+		{
+			return target->get(idx);
+		}
 
 		template<typename T>
-		operator T() const { return static_cast<T>(target->get(idx)); }
+		operator T() const
+		{
+			return static_cast<T>(target->get(idx));
+		}
 
 	};
 
@@ -56,7 +62,10 @@ class PlatformRegister : public PlatformRegister<void, Inner, Value> {
 		typedef Bits bits_type;
 
 	public:
-		bool get(Bits bit) const { return this->_value & static_cast<Value>(bit); }
+		bool get(Bits bit) const
+		{
+			return this->_value & static_cast<typename PlatformRegister::value_type>(bit);
+		}
 };
 
 template<typename Inner, typename Value>
@@ -65,53 +74,42 @@ class PlatformRegister<void, Inner, Value> {
 
 	public:
 		typedef void bits_type;
-		typedef Value value_type;
+		typedef Value memory_type;
+		typedef typename std::remove_cv<memory_type>::type value_type;
 
 	protected:
 		Value _value;
 
 	public:
-		Value value() const { return _value; }
+		value_type value() const { return _value; }
 };
 
 template<typename Bits, typename Inner, typename Value>
 class WritablePlatformRegister : public PlatformRegister<Bits, Inner, Value> {
-	private:
-		static Value set_bits(Value value, Bits bit) { return value | static_cast<Value>(bit); }
-		template<typename... Rest>
-		static Value set_bits(Value value, Bits bit, Rest... rest)
-		{
-			return set_bits(set_bits(value, bit), rest...);
-		}
-
-		static Value clear_bits(Value value, Bits bit) { return value & ~static_cast<Value>(bit); }
-		template<typename... Rest>
-		static Value clear_bits(Value value, Bits bit, Rest... rest)
-		{
-			return clear_bits(clear_bits(value, bit), rest...);
-		}
-
 	public:
 		template<typename... Flags>
 		Inner& set(Flags... flags)
 		{
 			static_assert(std::is_base_of<WritablePlatformRegister, Inner>::value, "");
-			static_cast<Inner*>(this)->value(set_bits(this->_value, flags...));
-			return static_cast<Inner&>(*this);
+			Inner* self = static_cast<Inner*>(this);
+			self->value(self->value() | bit::mask<typename WritablePlatformRegister::value_type>(flags...));
+			return *self;
 		}
 
 		template<typename... Flags>
 		Inner& clear(Flags... flags)
 		{
 			static_assert(std::is_base_of<WritablePlatformRegister, Inner>::value, "");
-			static_cast<Inner*>(this)->value(clear_bits(this->_value, flags...));
-			return static_cast<Inner&>(*this);
+			Inner* self = static_cast<Inner*>(this);
+			self->value(self->value() & ~bit::mask<typename WritablePlatformRegister::value_type>(flags...));
+			return *self;
 		}
 
-		Value value() const { return this->_value; }
+		typename WritablePlatformRegister::value_type value() const { return this->_value; }
 
-		Inner& value(Value val)
+		Inner& value(typename WritablePlatformRegister::value_type val)
 		{
+			static_assert(std::is_base_of<WritablePlatformRegister, Inner>::value, "");
 			this->_value = val;
 			return static_cast<Inner&>(*this);
 		}
@@ -120,10 +118,11 @@ class WritablePlatformRegister : public PlatformRegister<Bits, Inner, Value> {
 template<typename Inner, typename Value>
 class WritablePlatformRegister<void, Inner, Value> : public PlatformRegister<void, Inner, Value> {
 	public:
-		Value value() const { return this->_value; }
+		typename WritablePlatformRegister::value_type value() const { return this->_value; }
 
-		Inner value(Value val)
+		Inner& value(typename WritablePlatformRegister::value_type val)
 		{
+			static_assert(std::is_base_of<WritablePlatformRegister, Inner>::value, "");
 			this->_value = val;
 			return static_cast<Inner&>(*this);
 		}
@@ -138,7 +137,7 @@ namespace traits {
 
 		static_assert(std::extent<typename Register::value_type>::value > 0, "Register array value is no fixed-size array");
 
-		static_assert(std::is_volatile<typename Register::value_type>::value, "Register array value is not volatile");
+		static_assert(std::is_volatile<typename Register::memory_type>::value, "Register array value is not volatile");
 
 		static_assert(sizeof(Register) == sizeof(typename Register::value_type), "Register array contains superfluous fields");
 
@@ -152,13 +151,13 @@ namespace traits {
 	{
 		static_assert(
 			std::is_base_of<
-				ense::PlatformRegister<typename Register::bits_type, Register, typename Register::value_type>,
+				ense::PlatformRegister<typename Register::bits_type, Register, typename Register::memory_type>,
 				Register>::value,
 			"Register must inherit PlatformRegister<_, Register, _> somewhere");
 
 		static_assert(std::is_standard_layout<Register>::value, "Register is not standard-layout");
 
-		static_assert(std::is_volatile<typename Register::value_type>::value, "Register value is not volatile");
+		static_assert(std::is_volatile<typename Register::memory_type>::value, "Register value is not volatile");
 
 		static_assert(sizeof(Register) == sizeof(typename Register::value_type), "Register contains superfluous fields");
 

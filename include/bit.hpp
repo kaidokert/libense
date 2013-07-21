@@ -84,6 +84,21 @@ using expand = detail::expand<Args...>;
 template<typename... Args>
 using index_type = typename detail::index_type<Args...>::index_t;
 
+
+
+template<typename T, typename Bit>
+constexpr T mask(Bit bit)
+{
+	static_assert(std::is_same<typename std::underlying_type<Bit>::type, T>::value, "Type mismatch");
+	return static_cast<T>(bit);
+}
+
+template<typename T, typename Bit, typename... Rest>
+constexpr T mask(Bit bit, Rest... rest)
+{
+	return mask(rest...) | mask(bit);
+}
+
 }
 }
 

@@ -119,7 +119,8 @@ enum class SystemHandlerName : uint32_t {
 
 class SystemHandlerPriorities {
 	public:
-		typedef volatile uint8_t value_type[12];
+		typedef uint8_t value_type[12];
+		typedef volatile value_type memory_type;
 
 	private:
 		value_type priorities;
