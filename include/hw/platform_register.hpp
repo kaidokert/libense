@@ -6,49 +6,10 @@
 #include <tuple>
 
 #include <bit.hpp>
+#include <detail/const_array_wrapper.hpp>
+#include <detail/array_wrapper.hpp>
 
 namespace ense {
-
-namespace detail {
-
-	template<typename Target, typename Index, typename Value>
-	struct const_array_wrapper {
-		Target* target;
-		Index idx;
-
-		const_array_wrapper(Target* target, Index idx)
-			: target(target), idx(idx)
-		{
-		}
-
-		operator Value() const
-		{
-			return target->get(idx);
-		}
-
-		template<typename T>
-		operator T() const
-		{
-			return static_cast<T>(target->get(idx));
-		}
-
-	};
-
-	template<typename Target, typename Index, typename Value>
-	struct array_wrapper : const_array_wrapper<Target, Index, Value> {
-		array_wrapper(Target* target, Index idx)
-			: const_array_wrapper<Target, Index, Value>(target, idx)
-		{
-		}
-
-		Value operator=(Value val)
-		{
-			this->target->set(this->idx, val);
-			return val;
-		}
-	};
-
-}
 
 template<typename Bits, typename Inner, typename Value>
 class PlatformRegister : public PlatformRegister<void, Inner, Value> {
