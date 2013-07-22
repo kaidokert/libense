@@ -24,14 +24,14 @@
 #define REGISTER_FIELD_R(type, name, ...) \
 	type name() const \
 	{ \
-		typedef bit::expand<__VA_ARGS__> bp; \
+		typedef detail::bit::expand<__VA_ARGS__> bp; \
 		return static_cast<type>((this->value() & bp::field_mask) >> bp::begin); \
 	}
 #define REGISTER_FIELD_W(field_type, name, ...) \
 	auto name(field_type value) \
 		-> typename std::decay<decltype(*this)>::type \
 	{ \
-		typedef bit::expand<__VA_ARGS__> bp; \
+		typedef detail::bit::expand<__VA_ARGS__> bp; \
 		this->value((this->value() & ~bp::field_mask) | ((static_cast<uint32_t>(value) << bp::begin) & bp::field_mask)); \
 		return *this; \
 	}
@@ -40,21 +40,21 @@
 	REGISTER_FIELD_W(type, name, __VA_ARGS__)
 
 #define REGISTER_ARRAY_R(array_type, name, ...) \
-	std::remove_all_extents<array_type>::type name(bit::index_type<__VA_ARGS__> idx) const \
+	std::remove_all_extents<array_type>::type name(detail::bit::index_type<__VA_ARGS__> idx) const \
 	{ \
 		typedef std::remove_all_extents<array_type>::type value_type; \
-		typedef bit::expand<__VA_ARGS__> bp; \
+		typedef detail::bit::expand<__VA_ARGS__> bp; \
 		static_assert(std::rank<array_type>::value == 1, "type must be one-dimensional"); \
 		static_assert(bp::range == std::extent<array_type>::value * bp::width, "type does not fit range"); \
 		uint32_t pos = bp::begin + static_cast<uint32_t>(idx) * bp::width; \
 		return static_cast<value_type>((this->value() >> pos) & bp::array_anchored_mask); \
 	}
 #define REGISTER_ARRAY_W(array_type, name, ...) \
-	auto name(bit::index_type<__VA_ARGS__> idx, std::remove_all_extents<array_type>::type value) \
+	auto name(detail::bit::index_type<__VA_ARGS__> idx, std::remove_all_extents<array_type>::type value) \
 		-> typename std::decay<decltype(*this)>::type \
 	{ \
 		typedef std::remove_all_extents<array_type>::type value_type; \
-		typedef bit::expand<__VA_ARGS__> bp; \
+		typedef detail::bit::expand<__VA_ARGS__> bp; \
 		static_assert(std::rank<array_type>::value == 1, "type must be one-dimensional"); \
 		static_assert(bp::range == std::extent<array_type>::value * bp::width, "type does not fit range"); \
 		uint32_t pos = bp::begin + static_cast<uint32_t>(idx) * bp::width; \
@@ -71,10 +71,10 @@
 	REGISTER_ARRAY_R(array_type, operator[], __VA_ARGS__)
 #define REGISTER_SINGULAR_ARRAY_W(array_type, ...) \
 	REGISTER_ARRAY_W(array_type, set, __VA_ARGS__) \
-	auto operator[](bit::index_type<__VA_ARGS__> idx) \
-		-> ense::detail::array_wrapper<typename std::decay<decltype(*this)>::type, bit::index_type<__VA_ARGS__>, std::remove_all_extents<array_type>::type> \
+	auto operator[](detail::bit::index_type<__VA_ARGS__> idx) \
+		-> ense::detail::array_wrapper<typename std::decay<decltype(*this)>::type, detail::bit::index_type<__VA_ARGS__>, std::remove_all_extents<array_type>::type> \
 	{ \
-		return ense::detail::array_wrapper<typename std::decay<decltype(*this)>::type, bit::index_type<__VA_ARGS__>, std::remove_all_extents<array_type>::type>(this, idx); \
+		return ense::detail::array_wrapper<typename std::decay<decltype(*this)>::type, detail::bit::index_type<__VA_ARGS__>, std::remove_all_extents<array_type>::type>(this, idx); \
 	}
 #define REGISTER_SINGULAR_ARRAY_RW(type, ...) \
 	REGISTER_SINGULAR_ARRAY_R(type, __VA_ARGS__) \

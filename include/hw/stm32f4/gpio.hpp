@@ -17,7 +17,7 @@ enum class PortFunction : uint32_t {
 
 template<bool Config = false>
 struct GPIO_MODER : ConfigurationRegister<void, Config, GPIO_MODER> {
-	REGISTER_SINGULAR_ARRAY_RW(PortFunction[16], bit::range<0, 31>, bit::width<2>)
+	REGISTER_SINGULAR_ARRAY_RW(PortFunction[16], detail::bit::range<0, 31>, detail::bit::width<2>)
 };
 
 static_assert(traits::is_platform_register_valid<GPIO_MODER<>>(), "");
@@ -30,7 +30,7 @@ enum class PortOutputType : uint32_t {
 
 template<bool Config = false>
 struct GPIO_OTYPER : ConfigurationRegister<void, Config, GPIO_OTYPER> {
-	REGISTER_SINGULAR_ARRAY_RW(PortOutputType[16], bit::range<0, 15>, bit::width<1>)
+	REGISTER_SINGULAR_ARRAY_RW(PortOutputType[16], detail::bit::range<0, 15>, detail::bit::width<1>)
 };
 
 static_assert(traits::is_platform_register_valid<GPIO_OTYPER<>>(), "");
@@ -45,7 +45,7 @@ enum class PortSpeed : uint32_t {
 
 template<bool Config = false>
 struct GPIO_OSPEEDR : ConfigurationRegister<void, Config, GPIO_OSPEEDR> {
-	REGISTER_SINGULAR_ARRAY_RW(PortSpeed[16], bit::range<0, 31>, bit::width<2>)
+	REGISTER_SINGULAR_ARRAY_RW(PortSpeed[16], detail::bit::range<0, 31>, detail::bit::width<2>)
 };
 
 static_assert(traits::is_platform_register_valid<GPIO_OSPEEDR<>>(), "");
@@ -59,7 +59,7 @@ enum class PortPull : uint32_t {
 
 template<bool Config = false>
 struct GPIO_PUPDR : ConfigurationRegister<void, Config, GPIO_PUPDR> {
-	REGISTER_SINGULAR_ARRAY_RW(PortPull[16], bit::range<0, 31>, bit::width<2>)
+	REGISTER_SINGULAR_ARRAY_RW(PortPull[16], detail::bit::range<0, 31>, detail::bit::width<2>)
 };
 
 static_assert(traits::is_platform_register_valid<GPIO_PUPDR<>>(), "");
@@ -67,8 +67,8 @@ static_assert(traits::is_platform_register_valid<GPIO_PUPDR<>>(), "");
 
 template<bool Config = false>
 struct GPIO_IDR : ConfigurationRegister<void, Config, GPIO_IDR> {
-	REGISTER_SINGULAR_ARRAY_R(bool[16], bit::range<0, 15>, bit::width<1>)
-	REGISTER_FIELD_R(uint16_t, raw, bit::range<0, 15>)
+	REGISTER_SINGULAR_ARRAY_R(bool[16], detail::bit::range<0, 15>, detail::bit::width<1>)
+	REGISTER_FIELD_R(uint16_t, raw, detail::bit::range<0, 15>)
 };
 
 static_assert(traits::is_platform_register_valid<GPIO_IDR<>>(), "");
@@ -76,8 +76,8 @@ static_assert(traits::is_platform_register_valid<GPIO_IDR<>>(), "");
 
 template<bool Config = false>
 struct GPIO_ODR : ConfigurationRegister<void, Config, GPIO_ODR> {
-	REGISTER_SINGULAR_ARRAY_RW(bool[16], bit::range<0, 15>, bit::width<1>)
-	REGISTER_FIELD_RW(uint16_t, raw, bit::range<0, 15>)
+	REGISTER_SINGULAR_ARRAY_RW(bool[16], detail::bit::range<0, 15>, detail::bit::width<1>)
+	REGISTER_FIELD_RW(uint16_t, raw, detail::bit::range<0, 15>)
 };
 
 static_assert(traits::is_platform_register_valid<GPIO_ODR<>>(), "");
@@ -85,8 +85,8 @@ static_assert(traits::is_platform_register_valid<GPIO_ODR<>>(), "");
 
 template<bool Config = false>
 struct GPIO_BSSR : ConfigurationRegister<void, Config, GPIO_BSSR> {
-	REGISTER_ARRAY_W(bool[16], set, bit::range<0, 15>, bit::width<1>)
-	REGISTER_ARRAY_W(bool[16], reset, bit::range<16, 31>, bit::width<1>)
+	REGISTER_ARRAY_W(bool[16], set, detail::bit::range<0, 15>, detail::bit::width<1>)
+	REGISTER_ARRAY_W(bool[16], reset, detail::bit::range<16, 31>, detail::bit::width<1>)
 };
 
 static_assert(traits::is_platform_register_valid<GPIO_BSSR<>>(), "");

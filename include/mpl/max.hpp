@@ -1,5 +1,5 @@
-#ifndef INCLUDE_MPL_VALUES__HPP_
-#define INCLUDE_MPL_VALUES__HPP_
+#ifndef INCLUDE_MPL_MAX__HPP_
+#define INCLUDE_MPL_MAX__HPP_
 
 namespace ense {
 namespace mpl {
@@ -23,4 +23,4 @@ constexpr uint32_t max(uint32_t arg1, uint32_t arg2, Args... args)
 }
 }
 
-#endif /* INCLUDE_MPL_VALUES__HPP_ */
+#endif /* INCLUDE_MPL_MAX__HPP_ */

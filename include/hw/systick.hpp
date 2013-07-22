@@ -27,7 +27,7 @@ extern linker_placed_register<SystickCSR<>> sys_csr __attribute__((__weak__, __a
 
 
 struct SystickRVR : WritablePlatformRegister<void, SystickRVR, volatile uint32_t> {
-	REGISTER_INT_RW(reload_value, bit::range<23, 0>)
+	REGISTER_INT_RW(reload_value, detail::bit::range<23, 0>)
 };
 
 extern linker_placed_register<SystickRVR> sys_rvr __attribute__((__weak__, __alias__(".SCS_SystickRVR")));
@@ -55,7 +55,7 @@ enum class SystickCalibFlags : uint32_t {
 struct SystickCalib : PlatformRegister<SystickCalibFlags, SystickCalib, volatile uint32_t> {
 	REGISTER_BIT_R(reference_present)
 	REGISTER_BIT_R(inexact)
-	REGISTER_INT_R(ten_ms, bit::range<23, 0>)
+	REGISTER_INT_R(ten_ms, detail::bit::range<23, 0>)
 };
 
 extern linker_placed_register<SystickCalib> systickcalib __attribute__((__weak__, __alias__(".SCS_SystickCalib")));

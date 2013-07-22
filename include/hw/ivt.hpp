@@ -7,7 +7,7 @@
 #include <hw/nvic.hpp>
 
 #include <mpl/list.hpp>
-#include <mpl/values.hpp>
+#include <mpl/max.hpp>
 
 namespace ense {
 

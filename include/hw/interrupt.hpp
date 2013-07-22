@@ -52,9 +52,9 @@ struct ICSR : WritablePlatformRegister<ICSRFlags, ICSR, volatile uint32_t> {
 	REGISTER_BIT_C(systick_clear)
 	REGISTER_BIT_R(isr_preempt)
 	REGISTER_BIT_R(isr_pending)
-	REGISTER_INT_R(vect_pending, bit::range<20, 12>)
+	REGISTER_INT_R(vect_pending, detail::bit::range<20, 12>)
 	REGISTER_BIT_R(ret_to_base)
-	REGISTER_INT_R(vect_active,  bit::range<8, 0>)
+	REGISTER_INT_R(vect_active,  detail::bit::range<8, 0>)
 };
 
 extern linker_placed_register<ICSR> icsr __attribute__((__weak__, __alias__(".SCS_ICSR")));
@@ -85,9 +85,9 @@ struct AIRCR : ConfigurationRegister<AIRCRFlags, Config, AIRCR> {
 		this->_value = (val & 0xFFFF) | 0x05FA0000;
 	}
 
-	REGISTER_INT_R(vector_key,            bit::range<31, 16>)
+	REGISTER_INT_R(vector_key,            detail::bit::range<31, 16>)
 	REGISTER_BIT_R(big_endian)
-	REGISTER_INT_RW(priority_group_split, bit::range<10, 8>)
+	REGISTER_INT_RW(priority_group_split, detail::bit::range<10, 8>)
 	REGISTER_BIT_RW(request_system_reset)
 	REGISTER_BIT_C(vector_clear_active)
 	REGISTER_BIT_C(local_reset)

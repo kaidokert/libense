@@ -6,7 +6,6 @@
 
 #include <type_traits>
 #include <mpl/list.hpp>
-#include <mpl/operators.hpp>
 
 namespace ense {
 
@@ -84,8 +83,7 @@ class NVIC {
 		template<ExternalInterrupt... Interrupts>
 		static void assign(bitfield_t& target)
 		{
-			typedef mpl::list<std::integral_constant<ExternalInterrupt, Interrupts>...> interrupts;
-			typedef mpl::map<mpl::static_cast_to<uint32_t>, interrupts> flags;
+			typedef mpl::list<std::integral_constant<uint32_t, static_cast<uint32_t>(Interrupts)>...> flags;
 			assign<flags>(target, std::integral_constant<size_t, 15>());
 		}
 

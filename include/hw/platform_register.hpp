@@ -5,9 +5,10 @@
 #include <type_traits>
 #include <tuple>
 
-#include <bit.hpp>
+#include <detail/bit.hpp>
 #include <detail/const_array_wrapper.hpp>
 #include <detail/array_wrapper.hpp>
+#include <bitmask.hpp>
 
 namespace ense {
 
@@ -53,7 +54,7 @@ class WritablePlatformRegister : public PlatformRegister<Bits, Inner, Value> {
 		{
 			static_assert(std::is_base_of<WritablePlatformRegister, Inner>::value, "");
 			Inner* self = static_cast<Inner*>(this);
-			self->value(self->value() | bit::mask<typename WritablePlatformRegister::value_type>(flags...));
+			self->value(self->value() | bitmask(flags...));
 			return *self;
 		}
 
@@ -62,7 +63,7 @@ class WritablePlatformRegister : public PlatformRegister<Bits, Inner, Value> {
 		{
 			static_assert(std::is_base_of<WritablePlatformRegister, Inner>::value, "");
 			Inner* self = static_cast<Inner*>(this);
-			self->value(self->value() & ~bit::mask<typename WritablePlatformRegister::value_type>(flags...));
+			self->value(self->value() & ~bitmask(flags...));
 			return *self;
 		}
 
