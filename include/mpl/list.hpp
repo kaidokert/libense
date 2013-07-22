@@ -14,27 +14,6 @@ struct list {
 
 
 
-
-namespace detail {
-
-	template<typename Head, typename Tail>
-	struct cons {
-		static_assert(std::is_same<Tail, list<>>::value, "");
-		typedef list<Head> type;
-	};
-
-	template<typename Head, typename... Tail>
-	struct cons<Head, list<Tail...>> {
-		typedef list<Head, Tail...> type;
-	};
-
-}
-
-template<typename Head, typename List>
-using cons = typename detail::cons<Head, List>::type;
-
-
-
 namespace detail {
 
 	template<typename ListA, typename List>
@@ -48,6 +27,9 @@ namespace detail {
 
 template<typename ListA, typename ListB>
 using concat = typename detail::concat<ListA, ListB>::type;
+
+template<typename Head, typename List>
+using cons = concat<list<Head>, List>;
 
 
 

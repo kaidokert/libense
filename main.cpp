@@ -39,7 +39,12 @@ struct X {
 		asm volatile ("nop");
 		asm volatile ("nop");
 		asm volatile ("nop");
-
+		ense::nvic.enable<
+			ense::ExternalInterrupt::a,
+			ense::ExternalInterrupt::x>();
+		asm volatile ("nop");
+		asm volatile ("nop");
+		asm volatile ("nop");
 		ense::platform::gpio::gpioD.mode().begin()
 			.set(0, ense::platform::gpio::PortFunction::output)
 			.set(1, ense::platform::gpio::PortFunction::output)
