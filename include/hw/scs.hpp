@@ -13,11 +13,10 @@ enum class SCRFlags : uint32_t {
 };
 
 template<bool Config = false>
-class SCR : public ConfigurationRegister<SCRFlags, Config, SCR> {
-	public:
-		REGISTER_BIT_RW(wakeup_on_pending)
-		REGISTER_BIT_RW(sleep_deep)
-		REGISTER_BIT_RW(sleep_on_exit)
+struct SCR : ConfigurationRegister<SCRFlags, Config, SCR> {
+	REGISTER_BIT_RW(wakeup_on_pending)
+	REGISTER_BIT_RW(sleep_deep)
+	REGISTER_BIT_RW(sleep_on_exit)
 };
 
 extern linker_placed_register<SCR<>> scr __attribute__((__weak__, __alias__(".SCS_SCR")));
@@ -35,14 +34,13 @@ enum class CCRFlags : uint32_t {
 };
 
 template<bool Config = false>
-class CCR : public ConfigurationRegister<CCRFlags, Config, CCR> {
-	public:
-		REGISTER_BIT_RW(stack_align_8byte)
-		REGISTER_BIT_RW(handlers_ignore_fault)
-		REGISTER_BIT_RW(div_0_trap)
-		REGISTER_BIT_RW(unalign_trap)
-		REGISTER_BIT_RW(user_allow_irq_trigger)
-		REGISTER_BIT_RW(non_base_thread_enable)
+struct CCR : ConfigurationRegister<CCRFlags, Config, CCR> {
+	REGISTER_BIT_RW(stack_align_8byte)
+	REGISTER_BIT_RW(handlers_ignore_fault)
+	REGISTER_BIT_RW(div_0_trap)
+	REGISTER_BIT_RW(unalign_trap)
+	REGISTER_BIT_RW(user_allow_irq_trigger)
+	REGISTER_BIT_RW(non_base_thread_enable)
 };
 
 extern linker_placed_register<CCR<>> ccr __attribute__((__weak__, __alias__(".SCS_CCR")));
@@ -71,10 +69,9 @@ enum class CoprocessorAccess {
 };
 
 template<bool Config = false>
-class CPACR : public ConfigurationRegister<void, Config, CPACR> {
-	public:
-		REGISTER_SINGULAR_ARRAY_RW(CoprocessorAccess[16], bit::index<Coprocessor>, bit::range<0, 31>, bit::width<2>)
-		REGISTER_SINGULAR_ARRAY_RW(CoprocessorAccess[16], bit::range<0, 31>, bit::width<2>)
+struct CPACR : ConfigurationRegister<void, Config, CPACR> {
+	REGISTER_SINGULAR_ARRAY_RW(CoprocessorAccess[16], bit::index<Coprocessor>, bit::range<0, 31>, bit::width<2>)
+	REGISTER_SINGULAR_ARRAY_RW(CoprocessorAccess[16], bit::range<0, 31>, bit::width<2>)
 };
 
 extern linker_placed_register<CPACR<>> cpacr __attribute__((__weak__, __alias__(".SCS_CPACR")));

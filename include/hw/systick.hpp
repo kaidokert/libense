@@ -14,12 +14,11 @@ enum class SystickCSRFlags : uint32_t {
 };
 
 template<bool Config = false>
-class SystickCSR : public ConfigurationRegister<SystickCSRFlags, Config, SystickCSR> {
-	public:
-		REGISTER_BIT_R(wrapped)
-		REGISTER_BIT_RW(internally_clocked)
-		REGISTER_BIT_RW(interrupt_enabled)
-		REGISTER_BIT_RW(enable)
+struct SystickCSR : ConfigurationRegister<SystickCSRFlags, Config, SystickCSR> {
+	REGISTER_BIT_R(wrapped)
+	REGISTER_BIT_RW(internally_clocked)
+	REGISTER_BIT_RW(interrupt_enabled)
+	REGISTER_BIT_RW(enable)
 };
 
 extern linker_placed_register<SystickCSR<>> sys_csr __attribute__((__weak__, __alias__(".SCS_SystickCSR")));
@@ -27,9 +26,8 @@ extern linker_placed_register<SystickCSR<>> sys_csr __attribute__((__weak__, __a
 
 
 
-class SystickRVR : public WritablePlatformRegister<void, SystickRVR, volatile uint32_t> {
-	public:
-		REGISTER_INT_RW(reload_value, bit::range<23, 0>)
+struct SystickRVR : WritablePlatformRegister<void, SystickRVR, volatile uint32_t> {
+	REGISTER_INT_RW(reload_value, bit::range<23, 0>)
 };
 
 extern linker_placed_register<SystickRVR> sys_rvr __attribute__((__weak__, __alias__(".SCS_SystickRVR")));
@@ -37,12 +35,11 @@ extern linker_placed_register<SystickRVR> sys_rvr __attribute__((__weak__, __ali
 
 
 
-class SystickCVR : public WritablePlatformRegister<void, SystickCVR, volatile uint32_t> {
-	public:
-		void clear()
-		{
-			this->value(0);
-		}
+struct SystickCVR : WritablePlatformRegister<void, SystickCVR, volatile uint32_t> {
+	void clear()
+	{
+		this->value(0);
+	}
 };
 
 extern linker_placed_register<SystickCVR> sys_cvr __attribute__((__weak__, __alias__(".SCS_SystickCVR")));
@@ -55,11 +52,10 @@ enum class SystickCalibFlags : uint32_t {
 	inexact           = 1U << 30
 };
 
-class SystickCalib : public PlatformRegister<SystickCalibFlags, SystickCalib, volatile uint32_t> {
-	public:
-		REGISTER_BIT_R(reference_present)
-		REGISTER_BIT_R(inexact)
-		REGISTER_INT_R(ten_ms, bit::range<23, 0>)
+struct SystickCalib : PlatformRegister<SystickCalibFlags, SystickCalib, volatile uint32_t> {
+	REGISTER_BIT_R(reference_present)
+	REGISTER_BIT_R(inexact)
+	REGISTER_INT_R(ten_ms, bit::range<23, 0>)
 };
 
 extern linker_placed_register<SystickCalib> systickcalib __attribute__((__weak__, __alias__(".SCS_SystickCalib")));

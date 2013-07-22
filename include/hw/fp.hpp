@@ -19,17 +19,16 @@ enum class FPCCRFlags : uint32_t {
 };
 
 template<bool Config = false>
-class FPCCR : public ConfigurationRegister<FPCCRFlags, Config, FPCCR> {
-	public:
-		REGISTER_BIT_RW(auto_save)
-		REGISTER_BIT_RW(lazy_save)
-		REGISTER_BIT_R(debug_monitor_ready)
-		REGISTER_BIT_R(bus_fault_ready)
-		REGISTER_BIT_R(mem_manage_ready)
-		REGISTER_BIT_R(hard_fault_ready)
-		REGISTER_BIT_R(thread)
-		REGISTER_BIT_R(user)
-		REGISTER_BIT_R(lazy_save_active)
+struct FPCCR : ConfigurationRegister<FPCCRFlags, Config, FPCCR> {
+	REGISTER_BIT_RW(auto_save)
+	REGISTER_BIT_RW(lazy_save)
+	REGISTER_BIT_R(debug_monitor_ready)
+	REGISTER_BIT_R(bus_fault_ready)
+	REGISTER_BIT_R(mem_manage_ready)
+	REGISTER_BIT_R(hard_fault_ready)
+	REGISTER_BIT_R(thread)
+	REGISTER_BIT_R(user)
+	REGISTER_BIT_R(lazy_save_active)
 };
 
 extern linker_placed_register<FPCCR<>> fpccr __attribute__((__weak__, __alias__(".SCS_FPCCR")));
@@ -56,15 +55,14 @@ enum class RoundingMode : uint32_t {
 };
 
 template<bool Config = false>
-class FPDSCR : public ConfigurationRegister<FPDSCRFlags, Config, FPDSCR> {
+struct FPDSCR : ConfigurationRegister<FPDSCRFlags, Config, FPDSCR> {
 	template<bool>
-	friend class FPSCR;
+	friend struct FPSCR;
 
-	public:
-		REGISTER_BIT_RW(alternate_half_precision)
-		REGISTER_BIT_RW(default_nan)
-		REGISTER_BIT_RW(flush_to_zero)
-		REGISTER_FIELD_RW(RoundingMode, rounding_mode, bit::range<23, 22>)
+	REGISTER_BIT_RW(alternate_half_precision)
+	REGISTER_BIT_RW(default_nan)
+	REGISTER_BIT_RW(flush_to_zero)
+	REGISTER_FIELD_RW(RoundingMode, rounding_mode, bit::range<23, 22>)
 };
 
 extern linker_placed_register<FPDSCR<>> fpdscr __attribute__((__weak__, __alias__(".SCS_FPDSCR")));
@@ -88,38 +86,37 @@ enum class FPSCRFlags : uint32_t {
 };
 
 template<bool Config = false>
-class FPSCR : public ConfigurationRegister<FPSCRFlags, Config, FPSCR> {
-	public:
-		uint32_t value() const
-		{
-			uint32_t result;
-			asm volatile ("vmrs %0, FPSCR" : "=r" (result));
-			return result;
-		}
+struct FPSCR : ConfigurationRegister<FPSCRFlags, Config, FPSCR> {
+	uint32_t value() const
+	{
+		uint32_t result;
+		asm volatile ("vmrs %0, FPSCR" : "=r" (result));
+		return result;
+	}
 
-		FPSCR& value(uint32_t val)
-		{
-			asm volatile ("vmsr FPSCR, %0" : : "r" (val));
-			return *this;
-		}
+	FPSCR& value(uint32_t val)
+	{
+		asm volatile ("vmsr FPSCR, %0" : : "r" (val));
+		return *this;
+	}
 
-		REGISTER_BIT_R(negative)
-		REGISTER_BIT_R(zero)
-		REGISTER_BIT_R(carry)
-		REGISTER_BIT_R(overflow)
+	REGISTER_BIT_R(negative)
+	REGISTER_BIT_R(zero)
+	REGISTER_BIT_R(carry)
+	REGISTER_BIT_R(overflow)
 
-		REGISTER_BIT_RW(alternate_half_precision)
-		REGISTER_BIT_RW(default_nan)
-		REGISTER_BIT_RW(flush_to_zero)
+	REGISTER_BIT_RW(alternate_half_precision)
+	REGISTER_BIT_RW(default_nan)
+	REGISTER_BIT_RW(flush_to_zero)
 
-		REGISTER_FIELD_RW(RoundingMode, rounding_mode, bit::range<23, 22>)
+	REGISTER_FIELD_RW(RoundingMode, rounding_mode, bit::range<23, 22>)
 
-		REGISTER_BIT_R(input_denormal_exc)
-		REGISTER_BIT_R(inexact_exc)
-		REGISTER_BIT_R(underflow_exc)
-		REGISTER_BIT_R(overflow_exc)
-		REGISTER_BIT_R(div_by_zero_exc)
-		REGISTER_BIT_R(invalid_operation_exc)
+	REGISTER_BIT_R(input_denormal_exc)
+	REGISTER_BIT_R(inexact_exc)
+	REGISTER_BIT_R(underflow_exc)
+	REGISTER_BIT_R(overflow_exc)
+	REGISTER_BIT_R(div_by_zero_exc)
+	REGISTER_BIT_R(invalid_operation_exc)
 };
 
 extern linker_placed_register<FPSCR<>> fpscr __attribute__((__weak__, __alias__(".SCS_FPSCR")));

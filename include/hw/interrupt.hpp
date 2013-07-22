@@ -6,13 +6,12 @@
 
 namespace ense {
 
-class ICTR : public PlatformRegister<void, ICTR, volatile uint32_t> {
-	public:
-		uint32_t lines() const
-		{
-			uint32_t line_code = _value & 0xF;
-			return line_code == 0xf ? 496 : 32 * (line_code + 1);
-		}
+struct ICTR : PlatformRegister<void, ICTR, volatile uint32_t> {
+	uint32_t lines() const
+	{
+		uint32_t line_code = _value & 0xF;
+		return line_code == 0xf ? 496 : 32 * (line_code + 1);
+	}
 };
 
 extern linker_placed_register<ICTR> ictr __attribute__((__weak__, __alias__(".SCS_ICTR")));
@@ -45,18 +44,17 @@ enum class ICSRFlags : uint32_t {
 	ret_to_base     = 1U << 11
 };
 
-class ICSR : public WritablePlatformRegister<ICSRFlags, ICSR, volatile uint32_t> {
-	public:
-		REGISTER_BIT_RW(nmi_pending)
-		REGISTER_BIT_RW(pendsv_pending)
-		REGISTER_BIT_C(pendsv_clear)
-		REGISTER_BIT_RW(systick_pending)
-		REGISTER_BIT_C(systick_clear)
-		REGISTER_BIT_R(isr_preempt)
-		REGISTER_BIT_R(isr_pending)
-		REGISTER_INT_R(vect_pending, bit::range<20, 12>)
-		REGISTER_BIT_R(ret_to_base)
-		REGISTER_INT_R(vect_active,  bit::range<8, 0>)
+struct ICSR : WritablePlatformRegister<ICSRFlags, ICSR, volatile uint32_t> {
+	REGISTER_BIT_RW(nmi_pending)
+	REGISTER_BIT_RW(pendsv_pending)
+	REGISTER_BIT_C(pendsv_clear)
+	REGISTER_BIT_RW(systick_pending)
+	REGISTER_BIT_C(systick_clear)
+	REGISTER_BIT_R(isr_preempt)
+	REGISTER_BIT_R(isr_pending)
+	REGISTER_INT_R(vect_pending, bit::range<20, 12>)
+	REGISTER_BIT_R(ret_to_base)
+	REGISTER_INT_R(vect_active,  bit::range<8, 0>)
 };
 
 extern linker_placed_register<ICSR> icsr __attribute__((__weak__, __alias__(".SCS_ICSR")));
@@ -79,21 +77,20 @@ enum class AIRCRFlags : uint32_t {
 };
 
 template<bool Config = false>
-class AIRCR : public ConfigurationRegister<AIRCRFlags, Config, AIRCR> {
-	public:
-		uint32_t value() const { return this->_value; }
+struct AIRCR : ConfigurationRegister<AIRCRFlags, Config, AIRCR> {
+	uint32_t value() const { return this->_value; }
 
-		void value(uint32_t val)
-		{
-			this->_value = (val & 0xFFFF) | 0x05FA0000;
-		}
+	void value(uint32_t val)
+	{
+		this->_value = (val & 0xFFFF) | 0x05FA0000;
+	}
 
-		REGISTER_INT_R(vector_key,            bit::range<31, 16>)
-		REGISTER_BIT_R(big_endian)
-		REGISTER_INT_RW(priority_group_split, bit::range<10, 8>)
-		REGISTER_BIT_RW(request_system_reset)
-		REGISTER_BIT_C(vector_clear_active)
-		REGISTER_BIT_C(local_reset)
+	REGISTER_INT_R(vector_key,            bit::range<31, 16>)
+	REGISTER_BIT_R(big_endian)
+	REGISTER_INT_RW(priority_group_split, bit::range<10, 8>)
+	REGISTER_BIT_RW(request_system_reset)
+	REGISTER_BIT_C(vector_clear_active)
+	REGISTER_BIT_C(local_reset)
 };
 
 extern linker_placed_register<AIRCR<>> aircr __attribute__((__weak__, __alias__(".SCS_AIRCR")));
@@ -160,22 +157,21 @@ enum class SHCSRFlags : uint32_t {
 };
 
 template<bool Config = false>
-class SHCSR : public ConfigurationRegister<SHCSRFlags, Config, SHCSR> {
-	public:
-		REGISTER_BIT_RW(usage_fault_enabled)
-		REGISTER_BIT_RW(bus_fault_enabled)
-		REGISTER_BIT_RW(mem_fault_enabled)
-		REGISTER_BIT_RW(svcall_pending)
-		REGISTER_BIT_RW(bus_fault_pending)
-		REGISTER_BIT_RW(mem_fault_pending)
-		REGISTER_BIT_RW(usage_fault_pending)
-		REGISTER_BIT_RW(sys_tick_active)
-		REGISTER_BIT_RW(pendsv_active)
-		REGISTER_BIT_RW(monitor_active)
-		REGISTER_BIT_RW(svcall_active)
-		REGISTER_BIT_RW(usage_fault_active)
-		REGISTER_BIT_RW(bus_fault_active)
-		REGISTER_BIT_RW(mem_fault_active)
+struct SHCSR : ConfigurationRegister<SHCSRFlags, Config, SHCSR> {
+	REGISTER_BIT_RW(usage_fault_enabled)
+	REGISTER_BIT_RW(bus_fault_enabled)
+	REGISTER_BIT_RW(mem_fault_enabled)
+	REGISTER_BIT_RW(svcall_pending)
+	REGISTER_BIT_RW(bus_fault_pending)
+	REGISTER_BIT_RW(mem_fault_pending)
+	REGISTER_BIT_RW(usage_fault_pending)
+	REGISTER_BIT_RW(sys_tick_active)
+	REGISTER_BIT_RW(pendsv_active)
+	REGISTER_BIT_RW(monitor_active)
+	REGISTER_BIT_RW(svcall_active)
+	REGISTER_BIT_RW(usage_fault_active)
+	REGISTER_BIT_RW(bus_fault_active)
+	REGISTER_BIT_RW(mem_fault_active)
 };
 
 extern linker_placed_register<SHCSR<>> shcsr __attribute__((__weak__, __alias__(".SCS_SHCSR")));
@@ -245,66 +241,62 @@ enum class CFSRFlags : uint32_t {
 };
 
 template<bool Config = false>
-class CFSR : public ConfigurationRegister<CFSRFlags, Config, CFSR> {
-	public:
-		REGISTER_BIT_R(div_by_zero)
-		REGISTER_BIT_R(unaligned)
-		REGISTER_BIT_R(no_coprocessor)
-		REGISTER_BIT_R(invalid_pc)
-		REGISTER_BIT_R(invalid_state)
-		REGISTER_BIT_R(undefined_instruction)
-		REGISTER_BIT_C(clear_ufsr)
+struct CFSR : ConfigurationRegister<CFSRFlags, Config, CFSR> {
+	REGISTER_BIT_R(div_by_zero)
+	REGISTER_BIT_R(unaligned)
+	REGISTER_BIT_R(no_coprocessor)
+	REGISTER_BIT_R(invalid_pc)
+	REGISTER_BIT_R(invalid_state)
+	REGISTER_BIT_R(undefined_instruction)
+	REGISTER_BIT_C(clear_ufsr)
 
-		REGISTER_BIT_R(bfar_valid)
-		REGISTER_BIT_R(lsp_err)
-		REGISTER_BIT_R(stack_err)
-		REGISTER_BIT_R(unstack_err)
-		REGISTER_BIT_R(imprecise_err)
-		REGISTER_BIT_R(precise_err)
-		REGISTER_BIT_R(ibus_err)
-		REGISTER_BIT_C(clear_bfsr)
+	REGISTER_BIT_R(bfar_valid)
+	REGISTER_BIT_R(lsp_err)
+	REGISTER_BIT_R(stack_err)
+	REGISTER_BIT_R(unstack_err)
+	REGISTER_BIT_R(imprecise_err)
+	REGISTER_BIT_R(precise_err)
+	REGISTER_BIT_R(ibus_err)
+	REGISTER_BIT_C(clear_bfsr)
 
-		REGISTER_BIT_R(mmar_valid)
-		REGISTER_BIT_R(mlsp_err)
-		REGISTER_BIT_R(mstack_err)
-		REGISTER_BIT_R(munstack_err)
-		REGISTER_BIT_R(dacc_violation)
-		REGISTER_BIT_R(iacc_violation)
-		REGISTER_BIT_C(clear_mmfsr)
+	REGISTER_BIT_R(mmar_valid)
+	REGISTER_BIT_R(mlsp_err)
+	REGISTER_BIT_R(mstack_err)
+	REGISTER_BIT_R(munstack_err)
+	REGISTER_BIT_R(dacc_violation)
+	REGISTER_BIT_R(iacc_violation)
+	REGISTER_BIT_C(clear_mmfsr)
 };
 
-class MMFSR : public WritablePlatformRegister<MMFSRFlags, MMFSR, volatile uint8_t> {
-	public:
-		REGISTER_BIT_R(mmar_valid)
-		REGISTER_BIT_R(mlsp_err)
-		REGISTER_BIT_R(mstack_err)
-		REGISTER_BIT_R(munstack_err)
-		REGISTER_BIT_R(dacc_violation)
-		REGISTER_BIT_R(iacc_violation)
-		REGISTER_BIT_C(clear)
+struct MMFSR : WritablePlatformRegister<MMFSRFlags, MMFSR, volatile uint8_t> {
+	REGISTER_BIT_R(mmar_valid)
+	REGISTER_BIT_R(mlsp_err)
+	REGISTER_BIT_R(mstack_err)
+	REGISTER_BIT_R(munstack_err)
+	REGISTER_BIT_R(dacc_violation)
+	REGISTER_BIT_R(iacc_violation)
+	REGISTER_BIT_C(clear)
 };
 
-class BFSR : public WritablePlatformRegister<BFSRFlags, BFSR, volatile uint8_t> {
-	public:
-		REGISTER_BIT_R(bfar_valid)
-		REGISTER_BIT_R(lsp_err)
-		REGISTER_BIT_R(stack_err)
-		REGISTER_BIT_R(unstack_err)
-		REGISTER_BIT_R(imprecise_err)
-		REGISTER_BIT_R(precise_err)
-		REGISTER_BIT_R(ibus_err)
-		REGISTER_BIT_C(clear)
+struct BFSR : WritablePlatformRegister<BFSRFlags, BFSR, volatile uint8_t> {
+	REGISTER_BIT_R(bfar_valid)
+	REGISTER_BIT_R(lsp_err)
+	REGISTER_BIT_R(stack_err)
+	REGISTER_BIT_R(unstack_err)
+	REGISTER_BIT_R(imprecise_err)
+	REGISTER_BIT_R(precise_err)
+	REGISTER_BIT_R(ibus_err)
+	REGISTER_BIT_C(clear)
 };
 
-class UFSR : public WritablePlatformRegister<UFSRFlags, UFSR, volatile uint16_t> {
-	public:
-		REGISTER_BIT_R(div_by_zero)
-		REGISTER_BIT_R(unaligned)
-		REGISTER_BIT_R(no_coprocessor)
-		REGISTER_BIT_R(invalid_pc)
-		REGISTER_BIT_R(invalid_state)
-		REGISTER_BIT_R(undefined_instruction)
-		REGISTER_BIT_C(clear)
+struct UFSR : WritablePlatformRegister<UFSRFlags, UFSR, volatile uint16_t> {
+	REGISTER_BIT_R(div_by_zero)
+	REGISTER_BIT_R(unaligned)
+	REGISTER_BIT_R(no_coprocessor)
+	REGISTER_BIT_R(invalid_pc)
+	REGISTER_BIT_R(invalid_state)
+	REGISTER_BIT_R(undefined_instruction)
+	REGISTER_BIT_C(clear)
 };
 
 extern linker_placed_register<CFSR<>> cfsr __attribute__((__weak__, __alias__(".SCS_CFSR")));
@@ -323,12 +315,11 @@ enum class HFSRFlags : uint32_t {
 	clear = 1 << 1
 };
 
-class HFSR : public WritablePlatformRegister<HFSRFlags, HFSR, volatile uint32_t> {
-	public:
-		REGISTER_BIT_R(debug_event)
-		REGISTER_BIT_R(forced)
-		REGISTER_BIT_R(vector_table_fault)
-		REGISTER_BIT_C(clear)
+struct HFSR : WritablePlatformRegister<HFSRFlags, HFSR, volatile uint32_t> {
+	REGISTER_BIT_R(debug_event)
+	REGISTER_BIT_R(forced)
+	REGISTER_BIT_R(vector_table_fault)
+	REGISTER_BIT_C(clear)
 };
 
 extern linker_placed_register<HFSR> hfsr __attribute__((__weak__, __alias__(".SCS_HFSR")));
