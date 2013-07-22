@@ -17,9 +17,16 @@
 		this->set(std::decay<decltype(*this)>::type::bits_type::name); \
 		return *this; \
 	}
+#define REGISTER_BIT_T(name) \
+	auto toggle_ ## name() \
+		-> typename std::decay<decltype(*this)>::type \
+	{ \
+		return this->value(this->value() ^ static_cast<uint32_t>(std::decay<decltype(*this)>::type::bits_type::name)); \
+	}
 #define REGISTER_BIT_RW(name) \
 	REGISTER_BIT_R(name) \
-	REGISTER_BIT_W(name)
+	REGISTER_BIT_W(name) \
+	REGISTER_BIT_T(name)
 
 #define REGISTER_FIELD_R(type, name, ...) \
 	type name() const \
