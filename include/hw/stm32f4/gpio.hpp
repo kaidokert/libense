@@ -85,8 +85,8 @@ static_assert(traits::is_platform_register_valid<GPIO_ODR<>>(), "");
 
 template<bool Config = false>
 struct GPIO_BSSR : ConfigurationRegister<void, Config, GPIO_BSSR> {
-	REGISTER_ARRAY_W(bool[16], set, detail::bit::range<0, 15>, detail::bit::width<1>)
-	REGISTER_ARRAY_W(bool[16], reset, detail::bit::range<16, 31>, detail::bit::width<1>)
+	REGISTER_ARRAY_C(bool[16], set, detail::bit::range<0, 15>, detail::bit::width<1>)
+	REGISTER_ARRAY_C(bool[16], reset, detail::bit::range<16, 31>, detail::bit::width<1>)
 };
 
 static_assert(traits::is_platform_register_valid<GPIO_BSSR<>>(), "");

@@ -75,6 +75,16 @@ using index_type = typename std::conditional<
 	index<uint32_t>
 	>::type::index_t;
 
+
+
+
+constexpr uint32_t splice_multiplier(uint32_t first_bit, uint32_t bit_width, uint32_t count)
+{
+	return count
+		? (1U << first_bit) | splice_multiplier(first_bit + bit_width, bit_width, count - 1)
+		: 0;
+}
+
 }
 }
 }

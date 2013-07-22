@@ -56,8 +56,8 @@
 		uint32_t pos = bp::begin + static_cast<uint32_t>(idx) * bp::width; \
 		return static_cast<value_type>((this->value() >> pos) & bp::array_anchored_mask); \
 	}
-#define REGISTER_ARRAY_W(array_type, name, ...) \
-	auto name(detail::bit::index_type<__VA_ARGS__> idx, std::remove_all_extents<array_type>::type value) \
+#define REGISTER_ARRAY_W_INNER(array_type, name, value_arg_prefix, value_arg, value_val, ...) \
+	auto name(detail::bit::index_type<__VA_ARGS__> idx value_arg_prefix value_arg) \
 		-> typename std::decay<decltype(*this)>::type \
 	{ \
 		typedef std::remove_all_extents<array_type>::type value_type; \
@@ -66,9 +66,28 @@
 		static_assert(bp::range == std::extent<array_type>::value * bp::width, "type does not fit range"); \
 		uint32_t pos = bp::begin + static_cast<uint32_t>(idx) * bp::width; \
 		uint32_t mask = bp::array_anchored_mask << pos; \
-		this->value((this->value() & ~mask) | ((static_cast<uint32_t>(value) << pos) & mask)); \
+		this->value((this->value() & ~mask) | ((static_cast<uint32_t>(value_val) << pos) & mask)); \
+		return *this; \
+	} \
+	template<detail::bit::index_type<__VA_ARGS__> Bound1, detail::bit::index_type<__VA_ARGS__> Bound2> \
+	auto name ## _range(value_arg) \
+		-> typename std::decay<decltype(*this)>::type \
+	{ \
+		typedef detail::bit::expand<__VA_ARGS__> bp; \
+		typedef detail::bit::expand<detail::bit::range<static_cast<uint32_t>(Bound1), static_cast<uint32_t>(Bound2)>> range; \
+		static_assert(range::end < std::extent<array_type>::value, "Index out or range"); \
+		constexpr uint32_t splice_factor = detail::bit::splice_multiplier(0, bp::width, range::range); \
+		constexpr uint32_t splice_offset = bp::begin + bp::width * range::begin; \
+		constexpr uint32_t splice_mask = detail::bit::splice_multiplier(splice_offset, 1, range::range * bp::width); \
+		uint32_t splice_value = (splice_factor * static_cast<uint32_t>(value_val)) << splice_offset; \
+		this->value((this->value() & ~splice_mask) | splice_value); \
 		return *this; \
 	}
+#define COMMA ,
+#define REGISTER_ARRAY_W(array_type, name, ...) \
+	REGISTER_ARRAY_W_INNER(array_type, name, COMMA, std::remove_all_extents<array_type>::type value, value, __VA_ARGS__)
+#define REGISTER_ARRAY_C(array_type, name, ...) \
+	REGISTER_ARRAY_W_INNER(array_type, name, , , 1, __VA_ARGS__)
 #define REGISTER_ARRAY_RW(type, name, ...) \
 	REGISTER_ARRAY_R(type, name, __VA_ARGS__) \
 	REGISTER_ARRAY_W(type, name, __VA_ARGS__)
@@ -83,6 +102,8 @@
 	{ \
 		return ense::detail::array_wrapper<typename std::decay<decltype(*this)>::type, detail::bit::index_type<__VA_ARGS__>, std::remove_all_extents<array_type>::type>(this, idx); \
 	}
+#define REGISTER_SINGULAR_ARRAY_C(array_type, ...) \
+	REGISTER_ARRAY_C(array_type, clear, __VA_ARGS__)
 #define REGISTER_SINGULAR_ARRAY_RW(type, ...) \
 	REGISTER_SINGULAR_ARRAY_R(type, __VA_ARGS__) \
 	REGISTER_SINGULAR_ARRAY_W(type, __VA_ARGS__)
