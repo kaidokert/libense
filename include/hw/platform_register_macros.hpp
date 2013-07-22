@@ -83,9 +83,9 @@
 		this->value((this->value() & ~splice_mask) | splice_value); \
 		return *this; \
 	}
-#define COMMA ,
+#define REGISTER_COMMA ,
 #define REGISTER_ARRAY_W(array_type, name, ...) \
-	REGISTER_ARRAY_W_INNER(array_type, name, COMMA, std::remove_all_extents<array_type>::type value, value, __VA_ARGS__)
+	REGISTER_ARRAY_W_INNER(array_type, name, REGISTER_COMMA, std::remove_all_extents<array_type>::type value, value, __VA_ARGS__)
 #define REGISTER_ARRAY_C(array_type, name, ...) \
 	REGISTER_ARRAY_W_INNER(array_type, name, , , 1, __VA_ARGS__)
 #define REGISTER_ARRAY_RW(type, name, ...) \
