@@ -34,9 +34,6 @@ enum class AHB1Peripheral : uint32_t {
 
 template<bool Config = false>
 class AHB1PeripheralClockEnable : public ConfigurationRegister<AHB1Peripheral, Config, AHB1PeripheralClockEnable> {
-	private:
-		typedef AHB1PeripheralClockEnable this_type;
-
 	public:
 		REGISTER_BIT_RW(usb_otg_hs_ulpi)
 		REGISTER_BIT_RW(usb_otg_hs)

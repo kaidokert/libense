@@ -15,9 +15,6 @@ enum class SystickCSRFlags : uint32_t {
 
 template<bool Config = false>
 class SystickCSR : public ConfigurationRegister<SystickCSRFlags, Config, SystickCSR> {
-	private:
-		typedef SystickCSR this_type;
-
 	public:
 		REGISTER_BIT_R(wrapped)
 		REGISTER_BIT_RW(internally_clocked)
@@ -31,9 +28,6 @@ extern linker_placed_register<SystickCSR<>> sys_csr __attribute__((__weak__, __a
 
 
 class SystickRVR : public WritablePlatformRegister<void, SystickRVR, volatile uint32_t> {
-	private:
-		typedef SystickRVR this_type;
-
 	public:
 		REGISTER_INT_RW(reload_value, bit::range<23, 0>)
 };
@@ -44,9 +38,6 @@ extern linker_placed_register<SystickRVR> sys_rvr __attribute__((__weak__, __ali
 
 
 class SystickCVR : public WritablePlatformRegister<void, SystickCVR, volatile uint32_t> {
-	private:
-		typedef SystickCVR this_type;
-
 	public:
 		void clear()
 		{
@@ -65,9 +56,6 @@ enum class SystickCalibFlags : uint32_t {
 };
 
 class SystickCalib : public PlatformRegister<SystickCalibFlags, SystickCalib, volatile uint32_t> {
-	private:
-		typedef SystickCalib this_type;
-
 	public:
 		REGISTER_BIT_R(reference_present)
 		REGISTER_BIT_R(inexact)

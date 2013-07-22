@@ -14,9 +14,6 @@ enum class SCRFlags : uint32_t {
 
 template<bool Config = false>
 class SCR : public ConfigurationRegister<SCRFlags, Config, SCR> {
-	private:
-		typedef SCR this_type;
-
 	public:
 		REGISTER_BIT_RW(wakeup_on_pending)
 		REGISTER_BIT_RW(sleep_deep)
@@ -39,9 +36,6 @@ enum class CCRFlags : uint32_t {
 
 template<bool Config = false>
 class CCR : public ConfigurationRegister<CCRFlags, Config, CCR> {
-	private:
-		typedef CCR this_type;
-
 	public:
 		REGISTER_BIT_RW(stack_align_8byte)
 		REGISTER_BIT_RW(handlers_ignore_fault)
@@ -78,9 +72,6 @@ enum class CoprocessorAccess {
 
 template<bool Config = false>
 class CPACR : public ConfigurationRegister<void, Config, CPACR> {
-	private:
-		typedef CPACR this_type;
-
 	public:
 		REGISTER_SINGULAR_ARRAY_RW(CoprocessorAccess[16], bit::index<Coprocessor>, bit::range<0, 31>, bit::width<2>)
 		REGISTER_SINGULAR_ARRAY_RW(CoprocessorAccess[16], bit::range<0, 31>, bit::width<2>)

@@ -14,7 +14,6 @@ enum class ExternalInterrupt { a, b, c, d, x = 179 };
 
 class NVIC {
 	private:
-		typedef NVIC this_type;
 		typedef volatile uint32_t bitfield_t[16];
 
 	private:

@@ -20,9 +20,6 @@ enum class FPCCRFlags : uint32_t {
 
 template<bool Config = false>
 class FPCCR : public ConfigurationRegister<FPCCRFlags, Config, FPCCR> {
-	private:
-		typedef FPCCR this_type;
-
 	public:
 		REGISTER_BIT_RW(auto_save)
 		REGISTER_BIT_RW(lazy_save)
@@ -63,9 +60,6 @@ class FPDSCR : public ConfigurationRegister<FPDSCRFlags, Config, FPDSCR> {
 	template<bool>
 	friend class FPSCR;
 
-	private:
-		typedef FPDSCR this_type;
-
 	public:
 		REGISTER_BIT_RW(alternate_half_precision)
 		REGISTER_BIT_RW(default_nan)
@@ -95,9 +89,6 @@ enum class FPSCRFlags : uint32_t {
 
 template<bool Config = false>
 class FPSCR : public ConfigurationRegister<FPSCRFlags, Config, FPSCR> {
-	private:
-		typedef FPSCR this_type;
-
 	public:
 		uint32_t value() const
 		{

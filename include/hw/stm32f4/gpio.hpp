@@ -17,9 +17,6 @@ enum class PortFunction : uint32_t {
 
 template<bool Config = false>
 class GPIO_MODER : public ConfigurationRegister<void, Config, GPIO_MODER> {
-	private:
-		typedef GPIO_MODER this_type;
-
 	public:
 		REGISTER_SINGULAR_ARRAY_RW(PortFunction[16], bit::range<0, 31>, bit::width<2>)
 };
@@ -34,9 +31,6 @@ enum class PortOutputType : uint32_t {
 
 template<bool Config = false>
 class GPIO_OTYPER : public ConfigurationRegister<void, Config, GPIO_OTYPER> {
-	private:
-		typedef GPIO_OTYPER this_type;
-
 	public:
 		REGISTER_SINGULAR_ARRAY_RW(PortOutputType[16], bit::range<0, 15>, bit::width<1>)
 };
@@ -53,9 +47,6 @@ enum class PortSpeed : uint32_t {
 
 template<bool Config = false>
 class GPIO_OSPEEDR : public ConfigurationRegister<void, Config, GPIO_OSPEEDR> {
-	private:
-		typedef GPIO_OSPEEDR this_type;
-
 	public:
 		REGISTER_SINGULAR_ARRAY_RW(PortSpeed[16], bit::range<0, 31>, bit::width<2>)
 };
@@ -71,9 +62,6 @@ enum class PortPull : uint32_t {
 
 template<bool Config = false>
 class GPIO_PUPDR : public ConfigurationRegister<void, Config, GPIO_PUPDR> {
-	private:
-		typedef GPIO_PUPDR this_type;
-
 	public:
 		REGISTER_SINGULAR_ARRAY_RW(PortPull[16], bit::range<0, 31>, bit::width<2>)
 };
@@ -83,9 +71,6 @@ static_assert(traits::is_platform_register_valid<GPIO_PUPDR<>>(), "");
 
 template<bool Config = false>
 class GPIO_IDR : public ConfigurationRegister<void, Config, GPIO_IDR> {
-	private:
-		typedef GPIO_IDR this_type;
-
 	public:
 		REGISTER_SINGULAR_ARRAY_R(bool[16], bit::range<0, 15>, bit::width<1>)
 		REGISTER_FIELD_R(uint16_t, raw, bit::range<0, 15>)
@@ -96,9 +81,6 @@ static_assert(traits::is_platform_register_valid<GPIO_IDR<>>(), "");
 
 template<bool Config = false>
 class GPIO_ODR : public ConfigurationRegister<void, Config, GPIO_ODR> {
-	private:
-		typedef GPIO_ODR this_type;
-
 	public:
 		REGISTER_SINGULAR_ARRAY_RW(bool[16], bit::range<0, 15>, bit::width<1>)
 		REGISTER_FIELD_RW(uint16_t, raw, bit::range<0, 15>)
@@ -109,9 +91,6 @@ static_assert(traits::is_platform_register_valid<GPIO_ODR<>>(), "");
 
 template<bool Config = false>
 class GPIO_BSSR : public ConfigurationRegister<void, Config, GPIO_BSSR> {
-	private:
-		typedef GPIO_BSSR this_type;
-
 	public:
 		REGISTER_ARRAY_W(bool[16], set, bit::range<0, 15>, bit::width<1>)
 		REGISTER_ARRAY_W(bool[16], reset, bit::range<16, 31>, bit::width<1>)

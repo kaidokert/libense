@@ -1,18 +1,20 @@
 #define REGISTER_BIT_R(name) \
-	bool name() const { return this->get(this_type::bits_type::name); }
+	bool name() const { return this->get(std::decay<decltype(*this)>::type::bits_type::name); }
 #define REGISTER_BIT_W(name) \
-	this_type& name(bool enable) \
+	auto name(bool enable) \
+		-> typename std::decay<decltype(*this)>::type \
 	{ \
 		if (enable) \
-			this->set(this_type::bits_type::name); \
+			this->set(std::decay<decltype(*this)>::type::bits_type::name); \
 		else \
-		   this->clear(this_type::bits_type::name); \
+		   this->clear(std::decay<decltype(*this)>::type::bits_type::name); \
 		return *this; \
 	}
 #define REGISTER_BIT_C(name) \
-	this_type& name() \
+	auto name() \
+		-> typename std::decay<decltype(*this)>::type \
 	{ \
-		this->set(this_type::bits_type::name); \
+		this->set(std::decay<decltype(*this)>::type::bits_type::name); \
 		return *this; \
 	}
 #define REGISTER_BIT_RW(name) \
@@ -25,8 +27,9 @@
 		typedef bit::expand<__VA_ARGS__> bp; \
 		return static_cast<type>((this->value() & bp::field_mask) >> bp::begin); \
 	}
-#define REGISTER_FIELD_W(type, name, ...) \
-	this_type& name(type value) \
+#define REGISTER_FIELD_W(field_type, name, ...) \
+	auto name(field_type value) \
+		-> typename std::decay<decltype(*this)>::type \
 	{ \
 		typedef bit::expand<__VA_ARGS__> bp; \
 		this->value((this->value() & ~bp::field_mask) | ((static_cast<uint32_t>(value) << bp::begin) & bp::field_mask)); \
@@ -47,7 +50,8 @@
 		return static_cast<value_type>((this->value() >> pos) & bp::array_anchored_mask); \
 	}
 #define REGISTER_ARRAY_W(array_type, name, ...) \
-	this_type& name(bit::index_type<__VA_ARGS__> idx, std::remove_all_extents<array_type>::type value) \
+	auto name(bit::index_type<__VA_ARGS__> idx, std::remove_all_extents<array_type>::type value) \
+		-> typename std::decay<decltype(*this)>::type \
 	{ \
 		typedef std::remove_all_extents<array_type>::type value_type; \
 		typedef bit::expand<__VA_ARGS__> bp; \
@@ -67,10 +71,10 @@
 	REGISTER_ARRAY_R(array_type, operator[], __VA_ARGS__)
 #define REGISTER_SINGULAR_ARRAY_W(array_type, ...) \
 	REGISTER_ARRAY_W(array_type, set, __VA_ARGS__) \
-	ense::detail::array_wrapper<this_type, bit::index_type<__VA_ARGS__>, std::remove_all_extents<array_type>::type> \
-		operator[](bit::index_type<__VA_ARGS__> idx) \
+	auto operator[](bit::index_type<__VA_ARGS__> idx) \
+		-> ense::detail::array_wrapper<typename std::decay<decltype(*this)>::type, bit::index_type<__VA_ARGS__>, std::remove_all_extents<array_type>::type> \
 	{ \
-		return ense::detail::array_wrapper<this_type, bit::index_type<__VA_ARGS__>, std::remove_all_extents<array_type>::type>(this, idx); \
+		return ense::detail::array_wrapper<typename std::decay<decltype(*this)>::type, bit::index_type<__VA_ARGS__>, std::remove_all_extents<array_type>::type>(this, idx); \
 	}
 #define REGISTER_SINGULAR_ARRAY_RW(type, ...) \
 	REGISTER_SINGULAR_ARRAY_R(type, __VA_ARGS__) \

@@ -46,9 +46,6 @@ enum class ICSRFlags : uint32_t {
 };
 
 class ICSR : public WritablePlatformRegister<ICSRFlags, ICSR, volatile uint32_t> {
-	private:
-		typedef ICSR this_type;
-
 	public:
 		REGISTER_BIT_RW(nmi_pending)
 		REGISTER_BIT_RW(pendsv_pending)
@@ -83,9 +80,6 @@ enum class AIRCRFlags : uint32_t {
 
 template<bool Config = false>
 class AIRCR : public ConfigurationRegister<AIRCRFlags, Config, AIRCR> {
-	private:
-		typedef AIRCR this_type;
-
 	public:
 		uint32_t value() const { return this->_value; }
 
@@ -167,9 +161,6 @@ enum class SHCSRFlags : uint32_t {
 
 template<bool Config = false>
 class SHCSR : public ConfigurationRegister<SHCSRFlags, Config, SHCSR> {
-	private:
-		typedef SHCSR this_type;
-
 	public:
 		REGISTER_BIT_RW(usage_fault_enabled)
 		REGISTER_BIT_RW(bus_fault_enabled)
@@ -255,9 +246,6 @@ enum class CFSRFlags : uint32_t {
 
 template<bool Config = false>
 class CFSR : public ConfigurationRegister<CFSRFlags, Config, CFSR> {
-	private:
-		typedef CFSR this_type;
-
 	public:
 		REGISTER_BIT_R(div_by_zero)
 		REGISTER_BIT_R(unaligned)
@@ -286,9 +274,6 @@ class CFSR : public ConfigurationRegister<CFSRFlags, Config, CFSR> {
 };
 
 class MMFSR : public WritablePlatformRegister<MMFSRFlags, MMFSR, volatile uint8_t> {
-	private:
-		typedef MMFSR this_type;
-
 	public:
 		REGISTER_BIT_R(mmar_valid)
 		REGISTER_BIT_R(mlsp_err)
@@ -300,9 +285,6 @@ class MMFSR : public WritablePlatformRegister<MMFSRFlags, MMFSR, volatile uint8_
 };
 
 class BFSR : public WritablePlatformRegister<BFSRFlags, BFSR, volatile uint8_t> {
-	private:
-		typedef BFSR this_type;
-
 	public:
 		REGISTER_BIT_R(bfar_valid)
 		REGISTER_BIT_R(lsp_err)
@@ -315,9 +297,6 @@ class BFSR : public WritablePlatformRegister<BFSRFlags, BFSR, volatile uint8_t> 
 };
 
 class UFSR : public WritablePlatformRegister<UFSRFlags, UFSR, volatile uint16_t> {
-	private:
-		typedef UFSR this_type;
-
 	public:
 		REGISTER_BIT_R(div_by_zero)
 		REGISTER_BIT_R(unaligned)
@@ -345,9 +324,6 @@ enum class HFSRFlags : uint32_t {
 };
 
 class HFSR : public WritablePlatformRegister<HFSRFlags, HFSR, volatile uint32_t> {
-	private:
-		typedef HFSR this_type;
-
 	public:
 		REGISTER_BIT_R(debug_event)
 		REGISTER_BIT_R(forced)
