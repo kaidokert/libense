@@ -69,6 +69,35 @@
 		this->value((this->value() & ~mask) | ((static_cast<uint32_t>(value_val) << pos) & mask)); \
 		return *this; \
 	} \
+	auto name ## _mask(detail::bit::index_type<__VA_ARGS__> idx_mask value_arg_prefix value_arg) \
+		-> typename std::decay<decltype(*this)>::type \
+	{ \
+		typedef detail::bit::expand<__VA_ARGS__> bp; \
+		uint32_t mask = static_cast<uint32_t>(idx_mask) & bp::field_anchored_mask; \
+		uint32_t splice_mask = 0; \
+		uint32_t splice_value = 0; \
+		uint32_t offset = bp::width * bp::begin; \
+		while (mask) { \
+			splice_mask |= bp::array_anchored_mask << offset; \
+			splice_value |= static_cast<uint32_t>(value_val) << offset; \
+			offset += bp::width; \
+			mask >>= 1; \
+		} \
+		this->value((this->value() & ~splice_mask) | splice_value); \
+		return *this; \
+	} \
+	template<detail::bit::index_type<__VA_ARGS__> Mask> \
+	auto name ## _mask(value_arg) \
+		-> typename std::enable_if<std::is_integral<decltype(Mask)>::value, typename std::decay<decltype(*this)>::type>::type \
+	{ \
+		typedef detail::bit::expand<__VA_ARGS__> bp; \
+		static_assert((static_cast<uint32_t>(Mask) & bp::field_anchored_mask) == static_cast<uint32_t>(Mask), "Mask invalid"); \
+		constexpr uint32_t splice_factor = detail::bit::splice_factor(0, bp::width, static_cast<uint32_t>(Mask)); \
+		constexpr uint32_t splice_mask = detail::bit::splice_mask(0, bp::width, static_cast<uint32_t>(Mask)); \
+		uint32_t splice_value = splice_factor * static_cast<uint32_t>(value_val); \
+		this->value((this->value() & ~splice_mask) | splice_value); \
+		return *this; \
+	} \
 	template<detail::bit::index_type<__VA_ARGS__> Bound1, detail::bit::index_type<__VA_ARGS__> Bound2> \
 	auto name ## _range(value_arg) \
 		-> typename std::decay<decltype(*this)>::type \
@@ -76,9 +105,10 @@
 		typedef detail::bit::expand<__VA_ARGS__> bp; \
 		typedef detail::bit::expand<detail::bit::range<static_cast<uint32_t>(Bound1), static_cast<uint32_t>(Bound2)>> range; \
 		static_assert(range::end < std::extent<array_type>::value, "Index out or range"); \
-		constexpr uint32_t splice_factor = detail::bit::splice_multiplier(0, bp::width, range::range); \
+		constexpr uint32_t splice_factor = detail::bit::splice_factor(0, bp::width, range::field_anchored_mask); \
 		constexpr uint32_t splice_offset = bp::begin + bp::width * range::begin; \
-		constexpr uint32_t splice_mask = detail::bit::splice_multiplier(splice_offset, 1, range::range * bp::width); \
+		constexpr uint32_t splice_width = bp::width * range::range; \
+		constexpr uint32_t splice_mask = detail::bit::expand<detail::bit::range<splice_offset, splice_offset + splice_width - 1>>::field_mask; \
 		uint32_t splice_value = (splice_factor * static_cast<uint32_t>(value_val)) << splice_offset; \
 		this->value((this->value() & ~splice_mask) | splice_value); \
 		return *this; \

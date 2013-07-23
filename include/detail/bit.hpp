@@ -78,10 +78,17 @@ using index_type = typename std::conditional<
 
 
 
-constexpr uint32_t splice_multiplier(uint32_t first_bit, uint32_t bit_width, uint32_t count)
+constexpr uint32_t splice_factor(uint32_t first_bit, uint32_t bit_width, uint32_t mask)
 {
-	return count
-		? (1U << first_bit) | splice_multiplier(first_bit + bit_width, bit_width, count - 1)
+	return mask
+		? ((mask & 1) << first_bit) | splice_factor(first_bit + bit_width, bit_width, mask >> 1)
+		: 0;
+}
+
+constexpr uint32_t splice_mask(uint32_t first_bit, uint32_t bit_width, uint32_t mask)
+{
+	return mask
+		? ((mask & 1 ? (1U << bit_width) - 1 : 0) << first_bit) | splice_mask(first_bit + bit_width, bit_width, mask >> 1)
 		: 0;
 }
 
