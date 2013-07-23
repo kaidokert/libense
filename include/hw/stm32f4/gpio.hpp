@@ -92,6 +92,14 @@ struct GPIO_BSSR : ConfigurationRegister<void, Config, GPIO_BSSR> {
 static_assert(traits::is_platform_register_valid<GPIO_BSSR<>>(), "");
 
 
+template<bool Config = false>
+struct GPIO_AFR : ConfigurationRegister<void, Config, GPIO_AFR> {
+	REGISTER_SINGULAR_ARRAY_RW(uint8_t[8], detail::bit::range<0, 31>, detail::bit::width<4>)
+};
+
+static_assert(traits::is_platform_register_valid<GPIO_AFR<>>(), "");
+
+
 
 
 class GPIO {
@@ -103,9 +111,9 @@ class GPIO {
 		GPIO_IDR<> _idr;
 		GPIO_ODR<> _odr;
 		GPIO_BSSR<> _bssr;
-		// lock
-		// afh
-		// afl
+		volatile uint32_t _lock;
+		GPIO_AFR<> _afl;
+		GPIO_AFR<> _afh;
 
 	public:
 		GPIO_MODER<>& mode() { return _mode; }
@@ -121,6 +129,26 @@ class GPIO {
 		GPIO_ODR<>& output() { return _odr; }
 
 		GPIO_BSSR<>& set_reset() { return _bssr; }
+
+		GPIO& lock(uint16_t bits)
+		{
+			asm volatile (
+				"str %1, %0\n"
+				"str %2, %0\n"
+				"str %1, %0\n"
+				"ldr r2, %0"
+				: "+m" (_lock) : "r"(0x10000 | bits), "r"(bits) : "r2", "memory");
+			return *this;
+		}
+
+		uint16_t lock() const
+		{
+			return _lock;
+		}
+
+		GPIO_AFR<>& afl() { return _afl; }
+
+		GPIO_AFR<>& afh() { return _afh; }
 };
 
 static_assert(std::is_standard_layout<GPIO>::value, "");
