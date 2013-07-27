@@ -69,6 +69,11 @@ template<bool Config = false>
 struct GPIO_IDR : ConfigurationRegister<void, Config, GPIO_IDR> {
 	REGISTER_SINGULAR_ARRAY_R(bool[16], detail::bit::range<0, 15>, detail::bit::width<1>)
 	REGISTER_FIELD_R(uint16_t, raw, detail::bit::range<0, 15>)
+
+	operator uint16_t() const
+	{
+		return raw();
+	}
 };
 
 static_assert(traits::is_platform_register_valid<GPIO_IDR<>>(), "");
@@ -78,6 +83,17 @@ template<bool Config = false>
 struct GPIO_ODR : ConfigurationRegister<void, Config, GPIO_ODR> {
 	REGISTER_SINGULAR_ARRAY_RW(bool[16], detail::bit::range<0, 15>, detail::bit::width<1>)
 	REGISTER_FIELD_RW(uint16_t, raw, detail::bit::range<0, 15>)
+
+	uint16_t operator=(uint16_t value)
+	{
+		raw(value);
+		return value;
+	}
+
+	operator uint16_t() const
+	{
+		return raw();
+	}
 };
 
 static_assert(traits::is_platform_register_valid<GPIO_ODR<>>(), "");
