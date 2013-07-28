@@ -30,7 +30,7 @@ struct X {
 		asm volatile ("nop");
 		asm volatile ("nop");
 		ense::system_handler_priorities.set(ense::SystemHandlerName::SysTick, 0xff);
-		ense::platform::ahb1peripheral_clock.begin()
+		ense::platform::rcc::ahb1_enable.begin()
 			.gpioA(true)
 			.gpioB(true)
 			.gpioC(true)
@@ -45,27 +45,58 @@ struct X {
 		asm volatile ("nop");
 		asm volatile ("nop");
 		asm volatile ("nop");
-		ense::platform::gpio::gpioD.mode().begin()
-			.set(0, ense::platform::gpio::PortFunction::output)
-			.set(1, ense::platform::gpio::PortFunction::output)
-			.set(2, ense::platform::gpio::PortFunction::output)
-			.set(3, ense::platform::gpio::PortFunction::output)
-			.set(4, ense::platform::gpio::PortFunction::output)
-			.set(5, ense::platform::gpio::PortFunction::output)
-			.set(6, ense::platform::gpio::PortFunction::output)
-			.set(7, ense::platform::gpio::PortFunction::output)
-			.set(8, ense::platform::gpio::PortFunction::output)
-			.set(9, ense::platform::gpio::PortFunction::output)
-			.set(10, ense::platform::gpio::PortFunction::output)
-			.set(11, ense::platform::gpio::PortFunction::output)
-			.set(12, ense::platform::gpio::PortFunction::output)
-			.set(13, ense::platform::gpio::PortFunction::output)
-			.set(14, ense::platform::gpio::PortFunction::output)
-			.set(15, ense::platform::gpio::PortFunction::output)
+		ense::platform::gpio::gpioD.mode()
+			.set_range<0, 15>(ense::platform::gpio::PortFunction::output);
+
+		ense::platform::gpio::gpioA.mode()
+			.set(8, ense::platform::gpio::PortFunction::alternate);
+		ense::platform::gpio::gpioA.output_type()
+			.set(8, ense::platform::gpio::PortOutputType::push_pull);
+		ense::platform::gpio::gpioA.speed()
+			.set(8, ense::platform::gpio::PortSpeed::fast);
+		ense::platform::gpio::gpioA.afh()
+			.set(0, 0);
+
+		ense::platform::gpio::gpioC.mode()
+			.set(9, ense::platform::gpio::PortFunction::alternate);
+		ense::platform::gpio::gpioC.output_type()
+			.set(9, ense::platform::gpio::PortOutputType::push_pull);
+		ense::platform::gpio::gpioC.speed()
+			.set(9, ense::platform::gpio::PortSpeed::fast);
+		ense::platform::gpio::gpioC.afh()
+			.set(1, 0);
+		asm volatile ("nop");
+		asm volatile ("nop");
+		asm volatile ("nop");
+
+		using namespace ense::platform::rcc;
+		clock_control.begin()
+			.hse_on(true)
 			.commit();
-		asm volatile ("nop");
-		asm volatile ("nop");
-		asm volatile ("nop");
+		while (!clock_control.hse_ready())
+			;
+		pll_config.begin()
+			.pll_source(PLLSource::hse)
+			.n(80)
+			.m(32)
+			.p(PLLDivider::div_8)
+			.q(8)
+			.commit();
+		clock_control.begin()
+			.pll_on(true)
+			.commit();
+		while (!clock_control.pll_ready())
+			;
+		spread_spectrum_clock.begin()
+			.enabled(true)
+			.spread(SpectrumSpread::center)
+			.step(1000)
+			.period(999)
+			.commit();
+		clock_config.begin()
+			.clock_source_switch(SystemClockSource::pll)
+			.mco1_source(ClockOutSource::pll)
+			.commit();
 	}
 
 	X()

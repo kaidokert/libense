@@ -48,7 +48,7 @@ struct expand<range<Bound1, Bound2>> : range<Bound1, Bound2> {
 	static constexpr uint32_t end = expand::end_t::value;
 
 	static_assert(end < 32, "Upper >= 32");
-	static_assert(begin < end, "Lower >= Upper");
+	static_assert(begin <= end, "Lower > Upper");
 
 	static constexpr uint32_t range = end - begin + 1;
 	static constexpr uint32_t field_anchored_mask = 0xFFFFFFFF >> (32 - range);
