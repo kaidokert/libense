@@ -2,7 +2,7 @@
 	bool name() const { return this->get(std::decay<decltype(*this)>::type::bits_type::name); }
 #define REGISTER_BIT_W(name) \
 	auto name(bool enable) \
-		-> typename std::decay<decltype(*this)>::type \
+		-> typename std::decay<decltype(*this)>::type& \
 	{ \
 		if (enable) \
 			this->set(std::decay<decltype(*this)>::type::bits_type::name); \
@@ -12,14 +12,14 @@
 	}
 #define REGISTER_BIT_C(name) \
 	auto name() \
-		-> typename std::decay<decltype(*this)>::type \
+		-> typename std::decay<decltype(*this)>::type& \
 	{ \
 		this->set(std::decay<decltype(*this)>::type::bits_type::name); \
 		return *this; \
 	}
 #define REGISTER_BIT_T(name) \
 	auto toggle_ ## name() \
-		-> typename std::decay<decltype(*this)>::type \
+		-> typename std::decay<decltype(*this)>::type& \
 	{ \
 		return this->value(this->value() ^ static_cast<uint32_t>(std::decay<decltype(*this)>::type::bits_type::name)); \
 	}
@@ -36,7 +36,7 @@
 	}
 #define REGISTER_FIELD_W(field_type, name, ...) \
 	auto name(field_type value) \
-		-> typename std::decay<decltype(*this)>::type \
+		-> typename std::decay<decltype(*this)>::type& \
 	{ \
 		typedef detail::bit::expand<__VA_ARGS__> bp; \
 		this->value((this->value() & ~bp::field_mask) | ((static_cast<uint32_t>(value) << bp::begin) & bp::field_mask)); \
@@ -58,7 +58,7 @@
 	}
 #define REGISTER_ARRAY_W_INNER(array_type, name, value_arg_prefix, value_arg, value_val, ...) \
 	auto name(detail::bit::index_type<__VA_ARGS__> idx value_arg_prefix value_arg) \
-		-> typename std::decay<decltype(*this)>::type \
+		-> typename std::decay<decltype(*this)>::type& \
 	{ \
 		typedef std::remove_all_extents<array_type>::type value_type; \
 		typedef detail::bit::expand<__VA_ARGS__> bp; \
@@ -70,7 +70,7 @@
 		return *this; \
 	} \
 	auto name ## _mask(detail::bit::index_type<__VA_ARGS__> idx_mask value_arg_prefix value_arg) \
-		-> typename std::decay<decltype(*this)>::type \
+		-> typename std::decay<decltype(*this)>::type& \
 	{ \
 		typedef detail::bit::expand<__VA_ARGS__> bp; \
 		uint32_t mask = static_cast<uint32_t>(idx_mask) & bp::field_anchored_mask; \
@@ -88,7 +88,7 @@
 	} \
 	template<detail::bit::index_type<__VA_ARGS__> Mask> \
 	auto name ## _mask(value_arg) \
-		-> typename std::enable_if<std::is_integral<decltype(Mask)>::value, typename std::decay<decltype(*this)>::type>::type \
+		-> typename std::enable_if<std::is_integral<decltype(Mask)>::value, typename std::decay<decltype(*this)>::type&>::type \
 	{ \
 		typedef detail::bit::expand<__VA_ARGS__> bp; \
 		static_assert((static_cast<uint32_t>(Mask) & bp::field_anchored_mask) == static_cast<uint32_t>(Mask), "Mask invalid"); \
@@ -100,7 +100,7 @@
 	} \
 	template<detail::bit::index_type<__VA_ARGS__> Bound1, detail::bit::index_type<__VA_ARGS__> Bound2> \
 	auto name ## _range(value_arg) \
-		-> typename std::decay<decltype(*this)>::type \
+		-> typename std::decay<decltype(*this)>::type& \
 	{ \
 		typedef detail::bit::expand<__VA_ARGS__> bp; \
 		typedef detail::bit::expand<detail::bit::range<static_cast<uint32_t>(Bound1), static_cast<uint32_t>(Bound2)>> range; \

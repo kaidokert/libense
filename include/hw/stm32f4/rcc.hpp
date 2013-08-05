@@ -34,7 +34,7 @@ struct ClockControl : ConfigurationRegister<ClockControlFlags, Config, ClockCont
 	REGISTER_BIT_R(hse_ready)
 	REGISTER_BIT_RW(hse_on)
 	REGISTER_INT_R(hsi_cal, detail::bit::range<15, 8>)
-	REGISTER_INT_R(hsi_trim, detail::bit::range<7, 3>)
+	REGISTER_INT_RW(hsi_trim, detail::bit::range<7, 3>)
 	REGISTER_BIT_R(hsi_ready)
 	REGISTER_BIT_RW(hsi_on)
 };
