@@ -27,3 +27,4 @@ SECTIONS
 }
 INCLUDE "ldscripts/stm32f4/rcc.ld"
 INCLUDE "ldscripts/stm32f4/gpio.ld"
+INCLUDE "ldscripts/stm32f4/usart.ld"

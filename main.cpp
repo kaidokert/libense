@@ -3,6 +3,7 @@
 
 #include <hw/stm32f4/rcc.hpp>
 #include <hw/stm32f4/gpio.hpp>
+#include <hw/stm32f4/usart.hpp>
 
 #include <hw/cpuid.hpp>
 #include <hw/interrupt.hpp>
@@ -47,24 +48,6 @@ struct X {
 		asm volatile ("nop");
 		ense::platform::gpio::gpioD.mode()
 			.set_range<0, 15>(ense::platform::gpio::PortFunction::output);
-
-		ense::platform::gpio::gpioA.mode()
-			.set(8, ense::platform::gpio::PortFunction::alternate);
-		ense::platform::gpio::gpioA.output_type()
-			.set(8, ense::platform::gpio::PortOutputType::push_pull);
-		ense::platform::gpio::gpioA.speed()
-			.set(8, ense::platform::gpio::PortSpeed::fast);
-		ense::platform::gpio::gpioA.afh()
-			.set(0, 0);
-
-		ense::platform::gpio::gpioC.mode()
-			.set(9, ense::platform::gpio::PortFunction::alternate);
-		ense::platform::gpio::gpioC.output_type()
-			.set(9, ense::platform::gpio::PortOutputType::push_pull);
-		ense::platform::gpio::gpioC.speed()
-			.set(9, ense::platform::gpio::PortSpeed::fast);
-		ense::platform::gpio::gpioC.afh()
-			.set(1, 0);
 		asm volatile ("nop");
 		asm volatile ("nop");
 		asm volatile ("nop");
@@ -77,9 +60,9 @@ struct X {
 			;
 		pll_config.begin()
 			.pll_source(PLLSource::hse)
-			.n(80)
-			.m(32)
-			.p(PLLDivider::div_8)
+			.n(84 * 2)
+			.m(8)
+			.p(PLLDivider::div_2)
 			.q(8)
 			.commit();
 		clock_control.begin()
@@ -87,16 +70,35 @@ struct X {
 			.commit();
 		while (!clock_control.pll_ready())
 			;
-		spread_spectrum_clock.begin()
-			.enabled(true)
-			.spread(SpectrumSpread::center)
-			.step(1000)
-			.period(999)
-			.commit();
 		clock_config.begin()
 			.clock_source_switch(SystemClockSource::pll)
 			.mco1_source(ClockOutSource::pll)
+			.apb2_prescaler(APBPrescaler::div_1)
 			.commit();
+
+
+
+
+
+		ense::platform::gpio::gpioA.mode()
+			.set(8, ense::platform::gpio::PortFunction::alternate);
+		ense::platform::gpio::gpioA.output_type()
+			.set(8, ense::platform::gpio::PortOutputType::push_pull);
+		ense::platform::gpio::gpioA.speed()
+			.set(8, ense::platform::gpio::PortSpeed::fast);
+		ense::platform::gpio::gpioA.afh()
+			.set(0, 0);
+
+		ense::platform::gpio::gpioB.mode()
+			.set(6, ense::platform::gpio::PortFunction::alternate);
+		ense::platform::gpio::gpioB.output_type()
+			.set(6, ense::platform::gpio::PortOutputType::push_pull);
+		ense::platform::gpio::gpioB.speed()
+			.set(6, ense::platform::gpio::PortSpeed::fast);
+		ense::platform::gpio::gpioB.afl()
+			.set(6, 7);
+
+		ense::platform::rcc::apb2_enable.usart1(true);
 	}
 
 	X()
@@ -111,7 +113,40 @@ char y[] = "\001\002\003\004\005\006\007\010\011\012\013\014\015\016";
 
 static void print()
 {
+	int i = 0;
+	using namespace ense::platform::usart;
 	using namespace ense::platform::gpio;
+	asm volatile ("nop");
+	asm volatile ("nop");
+	asm volatile ("nop");
+	asm volatile ("nop");
+	asm volatile ("nop");
+	asm volatile ("nop");
+	usart1.cr1()
+		.enable(true)
+		.oversample_by_8(true);
+	asm volatile ("nop");
+	asm volatile ("nop");
+	asm volatile ("nop");
+	asm volatile ("nop");
+	asm volatile ("nop");
+	asm volatile ("nop");
+	usart1.baudrate().begin()
+		.mantissa(1)
+		.fraction(0)
+		.commit();
+	usart1.cr1()
+		.transmit_enable(true);
+	usart1.cr2()
+		.clock_enabled(false);
+	for (;;) {
+		usart1.data().content(0x55);
+		while (!usart1.status().tx_complete())
+			;
+
+		for (int x = 0; x < 3000000; x++)
+			asm volatile ("nop");
+	}
 	ense::shcsr.usage_fault_enabled(true);
 //	const char foo[] = "brutzelbums";
 	for (unsigned char j = 0; ; j++) {
