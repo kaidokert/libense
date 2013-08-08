@@ -1,5 +1,5 @@
-#ifndef INCLUDE_DETAIL_ARRAY__WRAPPER__HPP_
-#define INCLUDE_DETAIL_ARRAY__WRAPPER__HPP_
+#ifndef INCLUDE_DETAIL_ARRAY__WRAPPER__HPP_7436E64E2CA426E3
+#define INCLUDE_DETAIL_ARRAY__WRAPPER__HPP_7436E64E2CA426E3
 
 #include <detail/const_array_wrapper.hpp>
 
@@ -29,4 +29,4 @@ class array_wrapper : public const_array_wrapper<Target, Index, Value> {
 }
 }
 
-#endif /* INCLUDE_DETAIL_ARRAY__WRAPPER__HPP_ */
+#endif /* INCLUDE_DETAIL_ARRAY__WRAPPER__HPP_7436E64E2CA426E3 */

@@ -1,5 +1,5 @@
-#ifndef INCLUDE_HW_CONFIG__REGISTER__HPP_
-#define INCLUDE_HW_CONFIG__REGISTER__HPP_
+#ifndef INCLUDE_HW_CONFIG__REGISTER__HPP_EF97A831B829FDCC
+#define INCLUDE_HW_CONFIG__REGISTER__HPP_EF97A831B829FDCC
 
 #include <stdint.h>
 
@@ -35,4 +35,4 @@ class ConfigurationRegister<Bits, false, RegisterName> : public WritablePlatform
 
 }
 
-#endif /* INCLUDE_HW_CONFIG__REGISTER__HPP_ */
+#endif /* INCLUDE_HW_CONFIG__REGISTER__HPP_EF97A831B829FDCC */

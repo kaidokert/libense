@@ -1,5 +1,5 @@
-#ifndef INCLUDE_HW_STM32F4_USART__HPP_
-#define INCLUDE_HW_STM32F4_USART__HPP_
+#ifndef INCLUDE_HW_STM32F4_USART__HPP_332391B11B521C28
+#define INCLUDE_HW_STM32F4_USART__HPP_332391B11B521C28
 
 #include <stdint.h>
 
@@ -230,4 +230,4 @@ extern USART usart8 __attribute__((__weak__, __alias__(".USART_USART8")));
 
 #include <hw/platform_register_macros_clear.hpp>
 
-#endif /* INCLUDE_HW_STM32F4_UART__HPP_ */
+#endif /* INCLUDE_HW_STM32F4_USART__HPP_332391B11B521C28 */

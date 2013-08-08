@@ -1,5 +1,5 @@
-#ifndef INCLUDE_HW_SCS__HPP_
-#define INCLUDE_HW_SCS__HPP_
+#ifndef INCLUDE_HW_SCS__HPP_F219D4CB2F9EBE0D
+#define INCLUDE_HW_SCS__HPP_F219D4CB2F9EBE0D
 
 #include <hw/platform_register.hpp>
 #include <hw/platform_register_macros.hpp>
@@ -80,4 +80,4 @@ extern linker_placed_register<CPACR<>> cpacr __attribute__((__weak__, __alias__(
 
 #include <hw/platform_register_macros_clear.hpp>
 
-#endif /* INCLUDE_HW_SCS__HPP_ */
+#endif /* INCLUDE_HW_SCS__HPP_F219D4CB2F9EBE0D */

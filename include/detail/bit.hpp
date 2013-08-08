@@ -1,5 +1,5 @@
-#ifndef INCLUDE_DETAIL_BIT__HPP_
-#define INCLUDE_DETAIL_BIT__HPP_
+#ifndef INCLUDE_DETAIL_BIT__HPP_D397B4F8F926519E
+#define INCLUDE_DETAIL_BIT__HPP_D397B4F8F926519E
 
 namespace ense {
 namespace detail {
@@ -96,4 +96,4 @@ constexpr uint32_t splice_mask(uint32_t first_bit, uint32_t bit_width, uint32_t 
 }
 }
 
-#endif /* INCLUDE_DETAIL_BIT__HPP_ */
+#endif /* INCLUDE_DETAIL_BIT__HPP_D397B4F8F926519E */

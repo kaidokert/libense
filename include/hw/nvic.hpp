@@ -1,5 +1,5 @@
-#ifndef INCLUDE_HW_NVIC__HPP_
-#define INCLUDE_HW_NVIC__HPP_
+#ifndef INCLUDE_HW_NVIC__HPP_6E44CE169E4DF4A3
+#define INCLUDE_HW_NVIC__HPP_6E44CE169E4DF4A3
 
 #include <hw/platform_register.hpp>
 #include <hw/platform_register_macros.hpp>
@@ -172,6 +172,4 @@ extern NVIC nvic __attribute__((__weak__, __alias__(".SCS_NVIC")));
 
 #include <hw/platform_register_macros_clear.hpp>
 
-
-
-#endif /* INCLUDE_HW_NVIC__HPP_ */
+#endif /* INCLUDE_HW_NVIC__HPP_6E44CE169E4DF4A3 */

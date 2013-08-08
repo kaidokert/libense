@@ -1,5 +1,5 @@
-#ifndef INCLUDE_HW_INTERRUPT__HPP_
-#define INCLUDE_HW_INTERRUPT__HPP_
+#ifndef INCLUDE_HW_INTERRUPT__HPP_1B47B690D6B89BEA
+#define INCLUDE_HW_INTERRUPT__HPP_1B47B690D6B89BEA
 
 #include <hw/platform_register.hpp>
 #include <hw/platform_register_macros.hpp>
@@ -398,4 +398,4 @@ inline void base_priority(uint8_t base)
 
 #include <hw/platform_register_macros_clear.hpp>
 
-#endif /* INCLUDE_HW_INTERRUPT__HPP_ */
+#endif /* INCLUDE_HW_INTERRUPT__HPP_1B47B690D6B89BEA */

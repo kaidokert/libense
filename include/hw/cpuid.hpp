@@ -1,5 +1,5 @@
-#ifndef INCLUDE_HW_CPUID__HPP_
-#define INCLUDE_HW_CPUID__HPP_
+#ifndef INCLUDE_HW_CPUID__HPP_AEA6A64CBB0389A6
+#define INCLUDE_HW_CPUID__HPP_AEA6A64CBB0389A6
 
 #include <hw/platform_register.hpp>
 #include <hw/platform_register_macros.hpp>
@@ -20,4 +20,4 @@ extern linker_placed_register<CPUID> cpuid __attribute__((__weak__, __alias__(".
 
 #include <hw/platform_register_macros_clear.hpp>
 
-#endif /* INCLUDE_HW_CPUID__HPP_ */
+#endif /* INCLUDE_HW_CPUID__HPP_AEA6A64CBB0389A6 */

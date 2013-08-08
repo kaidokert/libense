@@ -1,5 +1,5 @@
-#ifndef INCLUDE_HW_SYSTICK__HPP_
-#define INCLUDE_HW_SYSTICK__HPP_
+#ifndef INCLUDE_HW_SYSTICK__HPP_23D4D4AD4A9496DD
+#define INCLUDE_HW_SYSTICK__HPP_23D4D4AD4A9496DD
 
 #include <hw/platform_register.hpp>
 #include <hw/platform_register_macros.hpp>
@@ -64,4 +64,4 @@ extern linker_placed_register<SystickCalib> systickcalib __attribute__((__weak__
 
 #include <hw/platform_register_macros_clear.hpp>
 
-#endif /* INCLUDE_HW_SYSTICK__HPP_ */
+#endif /* INCLUDE_HW_SYSTICK__HPP_23D4D4AD4A9496DD */

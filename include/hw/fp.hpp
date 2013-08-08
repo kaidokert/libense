@@ -1,5 +1,5 @@
-#ifndef INCLUDE_HW_FP__HPP_
-#define INCLUDE_HW_FP__HPP_
+#ifndef INCLUDE_HW_FP__HPP_51E4BD102E30CA98
+#define INCLUDE_HW_FP__HPP_51E4BD102E30CA98
 
 #include <hw/platform_register.hpp>
 #include <hw/platform_register_macros.hpp>
@@ -125,4 +125,4 @@ extern linker_placed_register<FPSCR<>> fpscr __attribute__((__weak__, __alias__(
 
 #include <hw/platform_register_macros_clear.hpp>
 
-#endif /* INCLUDE_HW_FP__HPP_ */
+#endif /* INCLUDE_HW_FP__HPP_51E4BD102E30CA98 */

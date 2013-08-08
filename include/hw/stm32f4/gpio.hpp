@@ -1,5 +1,5 @@
-#ifndef INCLUDE_HW_STM32F4_GPIO__HPP_
-#define INCLUDE_HW_STM32F4_GPIO__HPP_
+#ifndef INCLUDE_HW_STM32F4_GPIO__HPP_1F2CE1E9C788264A
+#define INCLUDE_HW_STM32F4_GPIO__HPP_1F2CE1E9C788264A
 
 #include <hw/config_register.hpp>
 #include <hw/platform_register_macros.hpp>
@@ -185,4 +185,4 @@ extern GPIO gpioI __attribute__((__weak__, __alias__(".GPIO_PORTI")));
 
 #include <hw/platform_register_macros_clear.hpp>
 
-#endif /* INCLUDE_HW_STM32F4_GPIO__HPP_ */
+#endif /* INCLUDE_HW_STM32F4_GPIO__HPP_1F2CE1E9C788264A */

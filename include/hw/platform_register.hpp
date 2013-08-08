@@ -1,5 +1,5 @@
-#ifndef INCLUDE_HW_PLATFORM__REGISTER__HPP_
-#define INCLUDE_HW_PLATFORM__REGISTER__HPP_
+#ifndef INCLUDE_HW_PLATFORM__REGISTER__HPP_EE91900D64381C0D
+#define INCLUDE_HW_PLATFORM__REGISTER__HPP_EE91900D64381C0D
 
 #include <stdint.h>
 #include <type_traits>
@@ -138,4 +138,4 @@ using linker_placed_register = typename std::conditional<traits::is_platform_reg
 
 }
 
-#endif /* INCLUDE_HW_PLATFORM__REGISTER__HPP_ */
+#endif /* INCLUDE_HW_PLATFORM__REGISTER__HPP_EE91900D64381C0D */

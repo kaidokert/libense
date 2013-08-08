@@ -1,5 +1,5 @@
-#ifndef INCLUDE_HW_STM32F4_RCC__HPP_
-#define INCLUDE_HW_STM32F4_RCC__HPP_
+#ifndef INCLUDE_HW_STM32F4_RCC__HPP_645C98828FBCC4F0
+#define INCLUDE_HW_STM32F4_RCC__HPP_645C98828FBCC4F0
 
 #include <stdint.h>
 
@@ -613,4 +613,4 @@ extern linker_placed_register<DedicatedClockConfig<>> dedicated_clock_config __a
 
 #include <hw/platform_register_macros_clear.hpp>
 
-#endif /* INCLUDE_HW_STM32F4_RCC__HPP_ */
+#endif /* INCLUDE_HW_STM32F4_RCC__HPP_645C98828FBCC4F0 */

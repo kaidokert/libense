@@ -1,5 +1,5 @@
-#ifndef INCLUDE_BITMASK__HPP_
-#define INCLUDE_BITMASK__HPP_
+#ifndef INCLUDE_BITMASK__HPP_0165DF979A4D958C
+#define INCLUDE_BITMASK__HPP_0165DF979A4D958C
 
 #include <type_traits>
 
@@ -32,4 +32,4 @@ constexpr auto bitmask(Args... args)
 
 }
 
-#endif /* INCLUDE_BITMASK__HPP_ */
+#endif /* INCLUDE_BITMASK__HPP_0165DF979A4D958C */
