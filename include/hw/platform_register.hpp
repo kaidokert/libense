@@ -12,8 +12,8 @@
 
 namespace ense {
 
-template<typename Bits, typename Inner, typename Value>
-class PlatformRegister : public PlatformRegister<void, Inner, Value> {
+template<typename Bits, typename Derived, typename Value>
+class PlatformRegister : public PlatformRegister<void, Derived, Value> {
 	static_assert(
 		std::is_same<
 			typename std::underlying_type<Bits>::type,
@@ -30,8 +30,8 @@ class PlatformRegister : public PlatformRegister<void, Inner, Value> {
 		}
 };
 
-template<typename Inner, typename Value>
-class PlatformRegister<void, Inner, Value> {
+template<typename Derived, typename Value>
+class PlatformRegister<void, Derived, Value> {
 	static_assert(std::is_integral<Value>::value, "");
 
 	public:
@@ -46,47 +46,47 @@ class PlatformRegister<void, Inner, Value> {
 		value_type value() const { return _value; }
 };
 
-template<typename Bits, typename Inner, typename Value>
-class WritablePlatformRegister : public PlatformRegister<Bits, Inner, Value> {
+template<typename Bits, typename Derived, typename Value>
+class WritablePlatformRegister : public PlatformRegister<Bits, Derived, Value> {
 	public:
 		template<typename... Flags>
-		Inner& set(Flags... flags)
+		Derived& set(Flags... flags)
 		{
-			static_assert(std::is_base_of<WritablePlatformRegister, Inner>::value, "");
-			Inner* self = static_cast<Inner*>(this);
+			static_assert(std::is_base_of<WritablePlatformRegister, Derived>::value, "");
+			Derived* self = static_cast<Derived*>(this);
 			self->value(self->value() | bitmask(flags...));
 			return *self;
 		}
 
 		template<typename... Flags>
-		Inner& clear(Flags... flags)
+		Derived& clear(Flags... flags)
 		{
-			static_assert(std::is_base_of<WritablePlatformRegister, Inner>::value, "");
-			Inner* self = static_cast<Inner*>(this);
+			static_assert(std::is_base_of<WritablePlatformRegister, Derived>::value, "");
+			Derived* self = static_cast<Derived*>(this);
 			self->value(self->value() & ~bitmask(flags...));
 			return *self;
 		}
 
 		typename WritablePlatformRegister::value_type value() const { return this->_value; }
 
-		Inner& value(typename WritablePlatformRegister::value_type val)
+		Derived& value(typename WritablePlatformRegister::value_type val)
 		{
-			static_assert(std::is_base_of<WritablePlatformRegister, Inner>::value, "");
+			static_assert(std::is_base_of<WritablePlatformRegister, Derived>::value, "");
 			this->_value = val;
-			return static_cast<Inner&>(*this);
+			return static_cast<Derived&>(*this);
 		}
 };
 
-template<typename Inner, typename Value>
-class WritablePlatformRegister<void, Inner, Value> : public PlatformRegister<void, Inner, Value> {
+template<typename Derived, typename Value>
+class WritablePlatformRegister<void, Derived, Value> : public PlatformRegister<void, Derived, Value> {
 	public:
 		typename WritablePlatformRegister::value_type value() const { return this->_value; }
 
-		Inner& value(typename WritablePlatformRegister::value_type val)
+		Derived& value(typename WritablePlatformRegister::value_type val)
 		{
-			static_assert(std::is_base_of<WritablePlatformRegister, Inner>::value, "");
+			static_assert(std::is_base_of<WritablePlatformRegister, Derived>::value, "");
 			this->_value = val;
-			return static_cast<Inner&>(*this);
+			return static_cast<Derived&>(*this);
 		}
 };
 

@@ -15,15 +15,18 @@ class ConfigurationRegister : public WritablePlatformRegister<Bits, RegisterName
 		RegisterName<false>* _target;
 
 	public:
-		void commit()
+		RegisterName<false>& commit()
 		{
 			_target->value(this->_value);
+			return *_target;
 		}
 };
 
 template<typename Bits, template<bool> class RegisterName>
 class ConfigurationRegister<Bits, false, RegisterName> : public WritablePlatformRegister<Bits, RegisterName<false>, volatile uint32_t> {
 	public:
+		typedef RegisterName<true> in_flight_type;
+
 		RegisterName<true> begin()
 		{
 			auto result = RegisterName<true>();
