@@ -1,8 +1,9 @@
 #ifndef INCLUDE_HW_STM32F4_GPIO__HPP_1F2CE1E9C788264A
 #define INCLUDE_HW_STM32F4_GPIO__HPP_1F2CE1E9C788264A
 
-#include <hw/config_register.hpp>
+#include <hw/config_struct.hpp>
 #include <hw/platform_register_macros.hpp>
+#include <hw/config_struct_macros.hpp>
 
 namespace ense {
 namespace platform {
@@ -118,71 +119,146 @@ static_assert(traits::is_platform_register_valid<GPIO_AFR<>>(), "");
 
 
 
-class GPIO {
-	private:
-		GPIO_MODER<> _mode;
-		GPIO_OTYPER<> _otype;
-		GPIO_OSPEEDR<> _ospeed;
-		GPIO_PUPDR<> _pupd;
-		GPIO_IDR<> _idr;
-		GPIO_ODR<> _odr;
-		GPIO_BSSR<> _bssr;
-		volatile uint32_t _lock;
-		GPIO_AFR<> _afl;
-		GPIO_AFR<> _afh;
+namespace detail {
+
+	struct gpio_layout {
+		GPIO_MODER<> moder;
+		GPIO_OTYPER<> otyper;
+		GPIO_OSPEEDR<> ospeedr;
+		GPIO_PUPDR<> pupdr;
+		GPIO_IDR<> idr;
+		GPIO_ODR<> odr;
+		GPIO_BSSR<> bssr;
+		volatile uint32_t lckr;
+		GPIO_AFR<> afrl;
+		GPIO_AFR<> afrh;
+	};
+
+}
+
+template<typename Flight = void>
+struct GPIO : ConfigurationStruct<GPIO, detail::gpio_layout, Flight> {
+	template<typename>
+	friend struct GPIO;
 
 	public:
-		GPIO_MODER<>& mode() { return _mode; }
+		typedef detail::gpio_layout struct_type;
 
-		GPIO_OTYPER<>& output_type() { return _otype; }
+	private:
+		template<typename FlightType, uint32_t Offset>
+		struct afr_next {
+		   typedef typename ense::detail::extend_flight_type<ense::detail::ConfigurationStructFlightPart<Offset, GPIO_AFR<>::in_flight_type>, FlightType>::type type;
+		};
+		template<uint32_t Offset>
+		struct afr_next<void, Offset> {
+			typedef void type;
+		};
 
-		GPIO_OSPEEDR<>& speed() { return _ospeed; }
+		typedef typename std::conditional<
+			std::is_same<Flight, void>::value,
+			GPIO&,
+			GPIO<typename afr_next<typename afr_next<Flight, STRUCT_OFFSETOF(afrl)>::type, STRUCT_OFFSETOF(afrh)>::type>
+			>::type alternate_function_next_type;
 
-		GPIO_PUPDR<>& pull_state() { return _pupd; }
+		template<typename T>
+		static alternate_function_next_type begin_apply_af(T& self)
+		{
+			return self.template extend<STRUCT_OFFSETOF(afrl)>(self.target()->afrl)
+				.template extend<STRUCT_OFFSETOF(afrh)>(self.target()->afrh);
+		}
+		static alternate_function_next_type begin_apply_af(alternate_function_next_type& self)
+		{
+			return self;
+		}
 
-		GPIO_IDR<>& input() { return _idr; }
+		template<uint32_t Idx, uint32_t Mask>
+		alternate_function_next_type apply_af(uint32_t fn, std::integral_constant<uint32_t, Mask>)
+		{
+			if (Mask & 1) {
+				return alternate_function(Idx, fn).template apply_af<Idx + 1>(fn, std::integral_constant<uint32_t, (Mask >> 1)>());
+			} else {
+				return apply_af<Idx + 1>(fn, std::integral_constant<uint32_t, (Mask >> 1)>());
+			}
+		}
+		template<uint32_t Idx>
+		alternate_function_next_type apply_af(uint32_t, std::integral_constant<uint32_t, 0>)
+		{
+			return begin_apply_af(*this);
+		}
 
-		GPIO_ODR<>& output() { return _odr; }
+	public:
+		STRUCT_SINGULAR_ARRAY_RW(mode, uint32_t, moder)
+		STRUCT_SINGULAR_ARRAY_RW(output_type, uint32_t, otyper)
+		STRUCT_SINGULAR_ARRAY_RW(output_speed, uint32_t, ospeedr)
+		STRUCT_SINGULAR_ARRAY_RW(pull, uint32_t, pupdr)
+		STRUCT_SINGULAR_ARRAY_R(input, uint32_t, idr)
+		STRUCT_SINGULAR_ARRAY_RW(output, uint32_t, odr)
+		STRUCT_ARRAY_C(set, uint32_t, bssr, set)
+		STRUCT_ARRAY_C(reset, uint32_t, bssr, reset)
 
-		GPIO_BSSR<>& set_reset() { return _bssr; }
+		auto alternate_function(uint32_t idx, uint32_t fn)
+			-> alternate_function_next_type
+		{
+			alternate_function_next_type extended = begin_apply_af(*this);
+			if (idx > 7) {
+				STRUCT_EXTRACT(extended, afrh).set(idx - 8, fn);
+			} else {
+				STRUCT_EXTRACT(extended, afrl).set(idx, fn);
+			}
+			return extended;
+		}
 
+		template<uint32_t Mask>
+		auto alternate_function_mask(uint32_t fn)
+			-> alternate_function_next_type
+		{
+			static_assert(Mask <= 0xFFFF, "Mask invalid");
+			return apply_af<0>(fn, std::integral_constant<uint32_t, Mask>());
+		}
+
+		template<uint32_t Bound1, uint32_t Bound2>
+		auto alternate_function_range(uint32_t fn)
+			-> alternate_function_next_type
+		{
+			typedef ense::detail::bit::expand<ense::detail::bit::range<Bound1, Bound2>> range;
+			static_assert(range::end < 16, "Index out or range");
+			return alternate_function_mask<range::field_mask>(fn);
+		}
+
+		template<typename = void>
 		GPIO& lock(uint16_t bits)
 		{
+			static_assert(std::is_same<Flight, void>::value, "Cannot lock configuration flights");
 			asm volatile (
 				"str %1, %0\n"
 				"str %2, %0\n"
 				"str %1, %0\n"
 				"ldr r2, %0"
-				: "+m" (_lock) : "r"(0x10000 | bits), "r"(bits) : "r2", "memory");
+				: "+m" (this->lckr) : "r"(0x10000 | bits), "r"(bits) : "r2", "memory");
 			return *this;
 		}
 
-		uint16_t lock() const
+		uint32_t lock()
 		{
-			return _lock;
+			return this->lckr;
 		}
-
-		GPIO_AFR<>& afl() { return _afl; }
-
-		GPIO_AFR<>& afh() { return _afh; }
 };
 
-static_assert(std::is_standard_layout<GPIO>::value, "");
-
-extern GPIO gpioA __attribute__((__weak__, __alias__(".GPIO_PORTA")));
-extern GPIO gpioB __attribute__((__weak__, __alias__(".GPIO_PORTB")));
-extern GPIO gpioC __attribute__((__weak__, __alias__(".GPIO_PORTC")));
-extern GPIO gpioD __attribute__((__weak__, __alias__(".GPIO_PORTD")));
-extern GPIO gpioE __attribute__((__weak__, __alias__(".GPIO_PORTE")));
-extern GPIO gpioF __attribute__((__weak__, __alias__(".GPIO_PORTF")));
-extern GPIO gpioG __attribute__((__weak__, __alias__(".GPIO_PORTG")));
-extern GPIO gpioH __attribute__((__weak__, __alias__(".GPIO_PORTH")));
-extern GPIO gpioI __attribute__((__weak__, __alias__(".GPIO_PORTI")));
+extern linker_placed_struct<GPIO> gpioA __attribute__((__weak__, __alias__(".GPIO_PORTA")));
+extern linker_placed_struct<GPIO> gpioB __attribute__((__weak__, __alias__(".GPIO_PORTB")));
+extern linker_placed_struct<GPIO> gpioC __attribute__((__weak__, __alias__(".GPIO_PORTC")));
+extern linker_placed_struct<GPIO> gpioD __attribute__((__weak__, __alias__(".GPIO_PORTD")));
+extern linker_placed_struct<GPIO> gpioE __attribute__((__weak__, __alias__(".GPIO_PORTE")));
+extern linker_placed_struct<GPIO> gpioF __attribute__((__weak__, __alias__(".GPIO_PORTF")));
+extern linker_placed_struct<GPIO> gpioG __attribute__((__weak__, __alias__(".GPIO_PORTG")));
+extern linker_placed_struct<GPIO> gpioH __attribute__((__weak__, __alias__(".GPIO_PORTH")));
+extern linker_placed_struct<GPIO> gpioI __attribute__((__weak__, __alias__(".GPIO_PORTI")));
 
 }
 }
 }
 
 #include <hw/platform_register_macros_clear.hpp>
+#include <hw/config_struct_macros_clear.hpp>
 
 #endif /* INCLUDE_HW_STM32F4_GPIO__HPP_1F2CE1E9C788264A */

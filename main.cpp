@@ -46,8 +46,9 @@ struct X {
 		asm volatile ("nop");
 		asm volatile ("nop");
 		asm volatile ("nop");
-		ense::platform::gpio::gpioD.mode()
-			.set_range<0, 15>(ense::platform::gpio::PortFunction::output);
+		ense::platform::gpio::gpioD.begin()
+			.mode_range<8, 15>(ense::platform::gpio::PortFunction::output)
+			.commit();
 		asm volatile ("nop");
 		asm volatile ("nop");
 		asm volatile ("nop");
@@ -80,23 +81,23 @@ struct X {
 
 
 
-		ense::platform::gpio::gpioA.mode()
-			.set(8, ense::platform::gpio::PortFunction::alternate);
-		ense::platform::gpio::gpioA.output_type()
-			.set(8, ense::platform::gpio::PortOutputType::push_pull);
-		ense::platform::gpio::gpioA.speed()
-			.set(8, ense::platform::gpio::PortSpeed::fast);
-		ense::platform::gpio::gpioA.afh()
-			.set(0, 0);
+		ense::platform::gpio::gpioA
+			.mode(8, ense::platform::gpio::PortFunction::alternate);
+		ense::platform::gpio::gpioA
+			.output_type(8, ense::platform::gpio::PortOutputType::push_pull);
+		ense::platform::gpio::gpioA
+			.output_speed(8, ense::platform::gpio::PortSpeed::fast);
+		ense::platform::gpio::gpioA
+			.afrh.set(0, 0);
 
-		ense::platform::gpio::gpioB.mode()
-			.set(6, ense::platform::gpio::PortFunction::alternate);
-		ense::platform::gpio::gpioB.output_type()
-			.set(6, ense::platform::gpio::PortOutputType::push_pull);
-		ense::platform::gpio::gpioB.speed()
-			.set(6, ense::platform::gpio::PortSpeed::fast);
-		ense::platform::gpio::gpioB.afl()
-			.set(6, 7);
+		ense::platform::gpio::gpioB
+			.mode(6, ense::platform::gpio::PortFunction::alternate);
+		ense::platform::gpio::gpioB
+			.output_type(6, ense::platform::gpio::PortOutputType::push_pull);
+		ense::platform::gpio::gpioB
+			.output_speed(6, ense::platform::gpio::PortSpeed::fast);
+		ense::platform::gpio::gpioB
+			.afrl.set(6, 7);
 
 		ense::platform::rcc::apb2_enable.usart1(true);
 	}
@@ -155,18 +156,18 @@ static void print()
 //		char c = j % sizeof(y); {
 //		for (char c : foo) {
 			for (int i = 0; i < 16; i++) {
-				gpioD.output().value(((c & 1) << 12) | (1 << 13));
+				gpioD.odr.value(((c & 1) << 12) | (1 << 13));
 				for (int i = 0; i < 400000; i++)
 					__asm__ __volatile__ ("nop");
-				gpioD.output().value(0);
+				gpioD.odr.value(0);
 				for (int i = 0; i < 400000; i++)
 					__asm__ __volatile__ ("nop");
 				c >>= 1;
 			}
-			gpioD.output().value(1 << 14);
+			gpioD.odr.value(1 << 14);
 			for (int i = 0; i < 400000; i++)
 				__asm__ __volatile__ ("nop");
-			gpioD.output().value(0);
+			gpioD.odr.value(0);
 			for (int i = 0; i < 1200000; i++)
 				__asm__ __volatile__ ("nop");
 		}

@@ -1,5 +1,4 @@
-#define STRUCT_OFFSETOF(reg) \
-	offsetof(typename std::decay<decltype(*this)>::type::struct_type, reg)
+#define STRUCT_OFFSETOF(reg) offsetof(struct_type, reg)
 #define STRUCT_EXTEND(reg) this->template extend<STRUCT_OFFSETOF(reg)>(this->target()->reg)
 #define STRUCT_EXTENDED_TYPE(reg) decltype(STRUCT_EXTEND(reg))
 #define STRUCT_EXTRACT(extended, reg) ense::detail::extract<STRUCT_OFFSETOF(reg)>(extended, this->target()->reg)
@@ -70,12 +69,25 @@
 	STRUCT_INT_R(name, reg, name_in_reg) \
 	STRUCT_INT_W(name, reg, name_in_reg)
 
-#define STRUCT_ARRAY_R STRUCT_FORWARD1
+#define STRUCT_ARRAY_R(name, index_type, reg, name_in_reg) \
+	STRUCT_FORWARD1(name, reg, name_in_reg)
+#define STRUCT_ARRAY_C(name, index_type, reg, name_in_reg) \
+	STRUCT_FORWARD1(name, reg, name_in_reg)
 #define STRUCT_ARRAY_W(name, index_type, reg, name_in_reg) \
 	STRUCT_FORWARD2(name, reg, name_in_reg) \
 	/* FIXME: find a way to fix this, or drop it altogether // STRUCT_FORWARD2(name ## _mask, reg, name_in_reg ## _mask)*/ \
 	STRUCT_FORWARD1_TMASK(name, index_type, reg, name_in_reg) \
 	STRUCT_FORWARD1_TRANGE(name, index_type, reg, name_in_reg)
 #define STRUCT_ARRAY_RW(name, index_type, reg, name_in_reg) \
-	STRUCT_ARRAY_R(name, reg, name_in_reg) \
+	STRUCT_ARRAY_R(name, index_type, reg, name_in_reg) \
 	STRUCT_ARRAY_W(name, index_type, reg, name_in_reg)
+
+#define STRUCT_SINGULAR_ARRAY_R(name, index_type, reg) \
+	STRUCT_ARRAY_R(name, index_type, reg, get)
+#define STRUCT_SINGULAR_ARRAY_C(name, index_type, reg) \
+	STRUCT_ARRAY_C(name, index_type, reg, clear)
+#define STRUCT_SINGULAR_ARRAY_W(name, index_type, reg) \
+	STRUCT_ARRAY_W(name, index_type, reg, set)
+#define STRUCT_SINGULAR_ARRAY_RW(name, index_type, reg) \
+	STRUCT_SINGULAR_ARRAY_R(name, index_type, reg) \
+	STRUCT_SINGULAR_ARRAY_W(name, index_type, reg)

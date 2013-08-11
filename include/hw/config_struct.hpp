@@ -91,6 +91,13 @@ namespace detail {
 		}
 	};
 
+	template<typename NextPart, typename Flight>
+	struct extend_flight_type;
+	template<typename NextPart, typename... Parts>
+	struct extend_flight_type<NextPart, ConfigurationStructFlight<Parts...>> {
+		typedef typename extended_flight<NextPart, Parts...>::type type;
+	};
+
 	template<typename NextPart, typename... Parts>
 	auto extend(ConfigurationStructFlight<Parts...>& flight, const NextPart& next)
 		-> typename extended_flight<NextPart, Parts...>::type
@@ -108,6 +115,13 @@ namespace detail {
 	template<typename Result, typename Class, typename Arg1>
 	constexpr auto select_memfn1(Result (Class::*fn)(Arg1))
 		-> Result (Class::*)(Arg1)
+	{
+		return fn;
+	}
+
+	template<typename Result, typename Class, typename Arg1>
+	constexpr auto select_memfn1(Result (Class::*fn)(Arg1) const)
+		-> Result (Class::*)(Arg1) const
 	{
 		return fn;
 	}

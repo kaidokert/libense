@@ -11,6 +11,10 @@ template<size_t N, typename R, typename C, typename... Args>
 struct nth_arg<N, R (C::*)(Args...)> : nth_arg<N, R(Args...)> {
 };
 
+template<size_t N, typename R, typename C, typename... Args>
+struct nth_arg<N, R (C::*)(Args...) const> : nth_arg<N, R(Args...)> {
+};
+
 template<size_t N, typename R, typename FirstArg, typename... Rest>
 struct nth_arg<N, R(FirstArg, Rest...)> : nth_arg<N - 1, R(Rest...)> {
 };
