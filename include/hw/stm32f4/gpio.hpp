@@ -136,6 +136,12 @@ namespace detail {
 
 }
 
+struct AF {
+	const uint32_t af;
+
+	explicit AF(uint32_t af) : af(af) {}
+};
+
 template<typename Flight = void>
 struct GPIO : ConfigurationStruct<GPIO, detail::gpio_layout, Flight> {
 	template<typename>
@@ -196,33 +202,77 @@ struct GPIO : ConfigurationStruct<GPIO, detail::gpio_layout, Flight> {
 		STRUCT_ARRAY_C(set, uint32_t, bssr, set)
 		STRUCT_ARRAY_C(reset, uint32_t, bssr, reset)
 
-		auto alternate_function(uint32_t idx, uint32_t fn)
+		auto alternate_function(uint32_t idx, AF fn)
 			-> alternate_function_next_type
 		{
 			alternate_function_next_type extended = begin_apply_af(*this);
 			if (idx > 7) {
-				STRUCT_EXTRACT(extended, afrh).set(idx - 8, fn);
+				STRUCT_EXTRACT(extended, afrh).set(idx - 8, fn.af);
 			} else {
-				STRUCT_EXTRACT(extended, afrl).set(idx, fn);
+				STRUCT_EXTRACT(extended, afrl).set(idx, fn.af);
 			}
 			return extended;
 		}
 
 		template<uint32_t Mask>
-		auto alternate_function_mask(uint32_t fn)
+		auto alternate_function_mask(AF fn)
 			-> alternate_function_next_type
 		{
 			static_assert(Mask <= 0xFFFF, "Mask invalid");
-			return apply_af<0>(fn, std::integral_constant<uint32_t, Mask>());
+			return apply_af<0>(fn.af, std::integral_constant<uint32_t, Mask>());
 		}
 
 		template<uint32_t Bound1, uint32_t Bound2>
-		auto alternate_function_range(uint32_t fn)
+		auto alternate_function_range(AF fn)
 			-> alternate_function_next_type
 		{
 			typedef ense::detail::bit::expand<ense::detail::bit::range<Bound1, Bound2>> range;
 			static_assert(range::end < 16, "Index out or range");
-			return alternate_function_mask<range::field_mask>(fn);
+			return alternate_function_mask<range::field_mask>(fn.af);
+		}
+
+#define GPIO_CONFIG_ONE(target) \
+		auto configure(uint32_t pin, typename ense::mpl::nth_arg<1, decltype(ense::detail::select_memfn2(&GPIO::target))>::type arg) \
+			-> decltype(this->target(pin, arg)) \
+		{ \
+			return this->target(pin, arg); \
+		} \
+		template<uint32_t Mask> \
+		auto configure_mask(typename ense::mpl::nth_arg<1, decltype(ense::detail::select_memfn2(&GPIO::target))>::type arg) \
+			-> decltype(this->target ## _mask<Mask>(arg)) \
+		{ \
+			return this->target ## _mask<Mask>(arg); \
+		} \
+		template<uint32_t Bound1, uint32_t Bound2> \
+		auto configure_range(typename ense::mpl::nth_arg<1, decltype(ense::detail::select_memfn2(&GPIO::target))>::type arg) \
+			-> decltype(this->target ## _range<Bound1, Bound2>(arg)) \
+		{ \
+			return this->target ## _range<Bound1, Bound2>(arg); \
+		}
+		GPIO_CONFIG_ONE(mode)
+		GPIO_CONFIG_ONE(output_type)
+		GPIO_CONFIG_ONE(output_speed)
+		GPIO_CONFIG_ONE(pull)
+		GPIO_CONFIG_ONE(alternate_function)
+#undef GPIO_CONFIG_ONE
+
+		template<typename First, typename... Rest>
+		auto configure(uint32_t pin, First first, Rest... rest)
+			-> decltype(this->configure(pin, first).configure(pin, rest...))
+		{
+			return this->configure(pin, first).configure(pin, rest...);
+		}
+		template<uint32_t Mask, typename First, typename... Rest>
+		auto configure_mask(First first, Rest... rest)
+			-> decltype(this->configure_mask<Mask>(first).template configure_mask<Mask>(rest...))
+		{
+			return this->configure_mask<Mask>(first).template configure_mask<Mask>(rest...);
+		}
+		template<uint32_t Bound1, uint32_t Bound2, typename First, typename... Rest>
+		auto configure_range(First first, Rest... rest)
+			-> decltype(this->configure_range<Bound1, Bound2>(first).template configure_range<Bound1, Bound2>(rest...))
+		{
+			return this->configure_range<Bound1, Bound2>(first).template configure_range<Bound1, Bound2>(rest...);
 		}
 
 		template<typename = void>

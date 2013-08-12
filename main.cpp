@@ -81,23 +81,14 @@ struct X {
 
 
 
-		ense::platform::gpio::gpioA
-			.mode(8, ense::platform::gpio::PortFunction::alternate);
-		ense::platform::gpio::gpioA
-			.output_type(8, ense::platform::gpio::PortOutputType::push_pull);
-		ense::platform::gpio::gpioA
-			.output_speed(8, ense::platform::gpio::PortSpeed::fast);
-		ense::platform::gpio::gpioA
-			.afrh.set(0, 0);
+		using namespace ense::platform::gpio;
+		gpioA.begin()
+			.configure(8, PortFunction::alternate, PortOutputType::push_pull, PortSpeed::fast, AF(0))
+			.commit();
 
-		ense::platform::gpio::gpioB
-			.mode(6, ense::platform::gpio::PortFunction::alternate);
-		ense::platform::gpio::gpioB
-			.output_type(6, ense::platform::gpio::PortOutputType::push_pull);
-		ense::platform::gpio::gpioB
-			.output_speed(6, ense::platform::gpio::PortSpeed::fast);
-		ense::platform::gpio::gpioB
-			.afrl.set(6, 7);
+		gpioB.begin()
+			.configure(6, PortFunction::alternate, PortOutputType::push_pull, PortSpeed::fast, AF(7))
+			.commit();
 
 		ense::platform::rcc::apb2_enable.usart1(true);
 	}
