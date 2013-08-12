@@ -15,7 +15,7 @@ ASFLAGS_DEBUG := -g
 #CCFLAGS += -Werror
 CCFLAGS += -Wall -Wextra -pedantic -mstrict-align
 CCFLAGS += -mcpu=cortex-m4 -mthumb -mfloat-abi=hard
-CCFLAGS += -ffreestanding -nostdlib --sysroot '^'
+CCFLAGS += -ffreestanding -nostdlib -nostdlibinc
 CCFLAGS += -fno-exceptions -fno-rtti -fno-stack-protector
 #CCFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += $(CCFLAGS) -std=c99
