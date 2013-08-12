@@ -6,7 +6,7 @@ PARTICLES := ense
 override CPPFLAGS += -I include
 override CPPFLAGS += -I ../libcxx/include
 
-CCFLAGS_RELEASE := -Oz -emit-llvm
+CCFLAGS_RELEASE := -Os -emit-llvm
 LDFLAGS_RELEASE := -plugin /usr/lib/LLVMgold.so -plugin-opt "mcpu=cortex-m4"
 
 CCFLAGS_DEBUG := -g -O0

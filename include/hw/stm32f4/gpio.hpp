@@ -139,7 +139,7 @@ namespace detail {
 struct AF {
 	const uint32_t af;
 
-	explicit AF(uint32_t af) : af(af) {}
+	constexpr explicit AF(uint32_t af) : af(af) {}
 };
 
 template<typename Flight = void>
@@ -210,6 +210,18 @@ struct GPIO : ConfigurationStruct<GPIO, detail::gpio_layout, Flight> {
 				STRUCT_EXTRACT(extended, afrh).set(idx - 8, fn.af);
 			} else {
 				STRUCT_EXTRACT(extended, afrl).set(idx, fn.af);
+			}
+			return extended;
+		}
+
+		auto alternate_function_mask(uint32_t mask, AF fn)
+			-> alternate_function_next_type
+		{
+			auto extended = begin_apply_af(*this);
+			for (uint32_t i = 0; i < 16; i++) {
+				if (mask & (1 << i)) {
+					extended = extended.alternate_function(i, fn);
+				}
 			}
 			return extended;
 		}

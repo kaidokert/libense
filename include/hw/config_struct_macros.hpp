@@ -37,16 +37,21 @@
 		STRUCT_EXTRACT(extended, reg).template name_in_reg ## _range<Bound1, Bound2>(arg); \
 		return extended; \
 	}
-#define STRUCT_FORWARD2(name, reg, name_in_reg) \
+#define STRUCT_UNPACK(...) __VA_ARGS__
+#define STRUCT_FORWARD2_EXPLICIT(name, reg, name_in_reg, T0, T1) \
 	auto name( \
-			typename ense::mpl::nth_arg<0, decltype(ense::detail::select_memfn2(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type arg0, \
-			typename ense::mpl::nth_arg<1, decltype(ense::detail::select_memfn2(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type arg1) \
+			STRUCT_UNPACK T0 arg0, \
+			STRUCT_UNPACK T1 arg1) \
 		-> STRUCT_EXTENDED_TYPE(reg) \
 	{ \
 		STRUCT_EXTENDED_TYPE(reg) extended = STRUCT_EXTEND(reg); \
 		STRUCT_EXTRACT(extended, reg).name_in_reg(arg0, arg1); \
 		return extended; \
 	}
+#define STRUCT_FORWARD2(name, reg, name_in_reg) \
+	STRUCT_FORWARD2_EXPLICIT(name, reg, name_in_reg, \
+		(typename ense::mpl::nth_arg<0, decltype(ense::detail::select_memfn2(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type), \
+		(typename ense::mpl::nth_arg<1, decltype(ense::detail::select_memfn2(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type))
 
 #define STRUCT_BIT_R STRUCT_FORWARD0
 #define STRUCT_BIT_W STRUCT_FORWARD1
@@ -75,7 +80,9 @@
 	STRUCT_FORWARD1(name, reg, name_in_reg)
 #define STRUCT_ARRAY_W(name, index_type, reg, name_in_reg) \
 	STRUCT_FORWARD2(name, reg, name_in_reg) \
-	/* FIXME: find a way to fix this, or drop it altogether // STRUCT_FORWARD2(name ## _mask, reg, name_in_reg ## _mask)*/ \
+	STRUCT_FORWARD2_EXPLICIT(name ## _mask, reg, name_in_reg ## _mask, \
+		(typename ense::mpl::nth_arg<0, decltype(ense::detail::select_memfn2(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type), \
+		(typename ense::mpl::nth_arg<1, decltype(ense::detail::select_memfn2(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type)) \
 	STRUCT_FORWARD1_TMASK(name, index_type, reg, name_in_reg) \
 	STRUCT_FORWARD1_TRANGE(name, index_type, reg, name_in_reg)
 #define STRUCT_ARRAY_RW(name, index_type, reg, name_in_reg) \

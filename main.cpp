@@ -24,6 +24,34 @@ void __attribute__((__used__)) __aeabi_memset(void *dest, size_t n, int c)
 }
 
 struct X {
+	__attribute__((noinline))
+	static void configure_pll()
+	{
+		using namespace ense::platform::rcc;
+		clock_control.begin()
+			.hse_on(true)
+			.commit();
+		while (!clock_control.hse_ready())
+			;
+		pll_config.begin()
+			.pll_source(PLLSource::hse)
+			.n(84 * 2)
+			.m(8)
+			.p(PLLDivider::div_2)
+			.q(8)
+			.commit();
+		clock_control.begin()
+			.pll_on(true)
+			.commit();
+		while (!clock_control.pll_ready())
+			;
+		clock_config.begin()
+			.clock_source_switch(SystemClockSource::pll)
+			.mco1_source(ClockOutSource::pll)
+			.apb2_prescaler(APBPrescaler::div_1)
+			.commit();
+	}
+
 	static void foo()
 	{
 		// enable gpioA clock
@@ -53,33 +81,7 @@ struct X {
 		asm volatile ("nop");
 		asm volatile ("nop");
 
-		using namespace ense::platform::rcc;
-		clock_control.begin()
-			.hse_on(true)
-			.commit();
-		while (!clock_control.hse_ready())
-			;
-		pll_config.begin()
-			.pll_source(PLLSource::hse)
-			.n(84 * 2)
-			.m(8)
-			.p(PLLDivider::div_2)
-			.q(8)
-			.commit();
-		clock_control.begin()
-			.pll_on(true)
-			.commit();
-		while (!clock_control.pll_ready())
-			;
-		clock_config.begin()
-			.clock_source_switch(SystemClockSource::pll)
-			.mco1_source(ClockOutSource::pll)
-			.apb2_prescaler(APBPrescaler::div_1)
-			.commit();
-
-
-
-
+		configure_pll();
 
 		using namespace ense::platform::gpio;
 		gpioA.begin()
