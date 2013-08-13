@@ -64,20 +64,20 @@ using make_range = typename detail::make_range<T, std::integral_constant<T, End 
 
 namespace detail {
 
-	template<typename Fn, typename List>
+	template<template<typename In> class Fn, typename List>
 	struct map {
 		static_assert(std::is_same<List, list<>>::value, "");
 		typedef list<> type;
 	};
 
-	template<typename Fn, typename... Items>
+	template<template<typename In> class Fn, typename... Items>
 	struct map<Fn, list<Items...>> {
-		typedef list<typename Fn::template apply<Items>::type...> type;
+		typedef list<typename Fn<Items>::type...> type;
 	};
 
 }
 
-template<typename Fn, typename List>
+template<template<typename In> class Fn, typename List>
 using map = typename detail::map<Fn, List>::type;
 
 
@@ -85,20 +85,20 @@ using map = typename detail::map<Fn, List>::type;
 
 namespace detail {
 
-	template<typename Fn, typename Acc, typename List>
+	template<template<typename Seed, typename Val> class Fn, typename Acc, typename List>
 	struct fold_left {
 		static_assert(std::is_same<List, list<>>::value, "");
 		typedef Acc type;
 	};
 
-	template<typename Fn, typename Acc, typename Head, typename... Tail>
+	template<template<typename Seed, typename Val> class Fn, typename Acc, typename Head, typename... Tail>
 	struct fold_left<Fn, Acc, list<Head, Tail...>> {
-		typedef typename fold_left<Fn, typename Fn::template apply<Acc, Head>::type, list<Tail...>>::type type;
+		typedef typename fold_left<Fn, typename Fn<Acc, Head>::type, list<Tail...>>::type type;
 	};
 
 }
 
-template<typename Fn, typename Acc, typename List>
+template<template<typename Seed, typename Val> class Fn, typename Acc, typename List>
 using fold_left = typename detail::fold_left<Fn, Acc, List>::type;
 
 
@@ -106,16 +106,16 @@ using fold_left = typename detail::fold_left<Fn, Acc, List>::type;
 
 namespace detail {
 
-	template<typename Fn, typename List>
+	template<template<typename In> class Fn, typename List>
 	struct partition {
 		static_assert(std::is_same<List, list<>>::value, "");
 		typedef list<> left;
 		typedef list<> right;
 	};
 
-	template<typename Fn, typename Head, typename... Tail>
+	template<template<typename In> class Fn, typename Head, typename... Tail>
 	struct partition<Fn, list<Head, Tail...>> {
-		static constexpr bool is_left = Fn::template apply<Head>::value;
+		static constexpr bool is_left = Fn<Head>::value;
 
 		typedef partition<Fn, list<Tail...>> rest_part;
 		typedef typename std::conditional<
@@ -132,7 +132,7 @@ namespace detail {
 
 }
 
-template<typename Fn, typename List>
+template<template<typename In> class Fn, typename List>
 using partition = typename detail::partition<Fn, List>;
 
 }

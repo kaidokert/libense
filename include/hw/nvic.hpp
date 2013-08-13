@@ -44,18 +44,14 @@ class NVIC {
 			struct apply : std::integral_constant<bool, Arg::value < Idx * 32> {};
 		};
 
-		struct to_bit {
-			template<typename Acc, typename Arg>
-			struct apply :
-				std::integral_constant<
-					uint32_t,
-					Acc::value | (1U << (Arg::value & 0x1F))> {};
+		template<typename Acc, typename Arg>
+		struct to_bit : std::integral_constant<uint32_t, Acc::value | (1U << (Arg::value & 0x1F))> {
 		};
 
 		template<typename List>
 		static void assign(bitfield_t& target, std::integral_constant<size_t, 0>)
 		{
-			typedef typename mpl::partition<partition_match<0>, List>::right flags;
+			typedef typename mpl::partition<partition_match<0>::template apply, List>::right flags;
 			typedef mpl::fold_left<
 				to_bit,
 				std::integral_constant<uint32_t, 0>,
@@ -68,7 +64,7 @@ class NVIC {
 		template<typename List, size_t Idx>
 		static void assign(bitfield_t& target, std::integral_constant<size_t, Idx>)
 		{
-			typedef mpl::partition<partition_match<Idx>, List> parts;
+			typedef mpl::partition<partition_match<Idx>::template apply, List> parts;
 			typedef mpl::fold_left<
 				to_bit,
 				std::integral_constant<uint32_t, 0>,
