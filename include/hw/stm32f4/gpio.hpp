@@ -9,7 +9,7 @@ namespace ense {
 namespace platform {
 namespace gpio {
 
-enum class PortFunction : uint32_t {
+enum class Function : uint32_t {
 	input     = 0,
 	output    = 1,
 	alternate = 2,
@@ -17,27 +17,27 @@ enum class PortFunction : uint32_t {
 };
 
 template<bool Config = false>
-struct GPIO_MODER : ConfigurationRegister<void, Config, GPIO_MODER> {
-	REGISTER_SINGULAR_ARRAY_RW(PortFunction[16], detail::bit::range<0, 31>, detail::bit::width<2>)
+struct MODER : ConfigurationRegister<void, Config, MODER> {
+	REGISTER_SINGULAR_ARRAY_RW(Function[16], detail::bit::range<0, 31>, detail::bit::width<2>)
 };
 
-static_assert(traits::is_platform_register_valid<GPIO_MODER<>>(), "");
+static_assert(traits::is_platform_register_valid<MODER<>>(), "");
 
 
-enum class PortOutputType : uint32_t {
+enum class OutputType : uint32_t {
 	push_pull  = 0,
 	open_drain = 1
 };
 
 template<bool Config = false>
-struct GPIO_OTYPER : ConfigurationRegister<void, Config, GPIO_OTYPER> {
-	REGISTER_SINGULAR_ARRAY_RW(PortOutputType[16], detail::bit::range<0, 15>, detail::bit::width<1>)
+struct OTYPER : ConfigurationRegister<void, Config, OTYPER> {
+	REGISTER_SINGULAR_ARRAY_RW(OutputType[16], detail::bit::range<0, 15>, detail::bit::width<1>)
 };
 
-static_assert(traits::is_platform_register_valid<GPIO_OTYPER<>>(), "");
+static_assert(traits::is_platform_register_valid<OTYPER<>>(), "");
 
 
-enum class PortSpeed : uint32_t {
+enum class Speed : uint32_t {
 	low    = 0,
 	medium = 1,
 	fast   = 2,
@@ -45,29 +45,29 @@ enum class PortSpeed : uint32_t {
 };
 
 template<bool Config = false>
-struct GPIO_OSPEEDR : ConfigurationRegister<void, Config, GPIO_OSPEEDR> {
-	REGISTER_SINGULAR_ARRAY_RW(PortSpeed[16], detail::bit::range<0, 31>, detail::bit::width<2>)
+struct OSPEEDR : ConfigurationRegister<void, Config, OSPEEDR> {
+	REGISTER_SINGULAR_ARRAY_RW(Speed[16], detail::bit::range<0, 31>, detail::bit::width<2>)
 };
 
-static_assert(traits::is_platform_register_valid<GPIO_OSPEEDR<>>(), "");
+static_assert(traits::is_platform_register_valid<OSPEEDR<>>(), "");
 
 
-enum class PortPull : uint32_t {
+enum class Pull : uint32_t {
 	none = 0,
 	up   = 1,
 	down = 2
 };
 
 template<bool Config = false>
-struct GPIO_PUPDR : ConfigurationRegister<void, Config, GPIO_PUPDR> {
-	REGISTER_SINGULAR_ARRAY_RW(PortPull[16], detail::bit::range<0, 31>, detail::bit::width<2>)
+struct PUPDR : ConfigurationRegister<void, Config, PUPDR> {
+	REGISTER_SINGULAR_ARRAY_RW(Pull[16], detail::bit::range<0, 31>, detail::bit::width<2>)
 };
 
-static_assert(traits::is_platform_register_valid<GPIO_PUPDR<>>(), "");
+static_assert(traits::is_platform_register_valid<PUPDR<>>(), "");
 
 
 template<bool Config = false>
-struct GPIO_IDR : ConfigurationRegister<void, Config, GPIO_IDR> {
+struct IDR : ConfigurationRegister<void, Config, IDR> {
 	REGISTER_SINGULAR_ARRAY_R(bool[16], detail::bit::range<0, 15>, detail::bit::width<1>)
 	REGISTER_FIELD_R(uint16_t, raw, detail::bit::range<0, 15>)
 
@@ -77,11 +77,11 @@ struct GPIO_IDR : ConfigurationRegister<void, Config, GPIO_IDR> {
 	}
 };
 
-static_assert(traits::is_platform_register_valid<GPIO_IDR<>>(), "");
+static_assert(traits::is_platform_register_valid<IDR<>>(), "");
 
 
 template<bool Config = false>
-struct GPIO_ODR : ConfigurationRegister<void, Config, GPIO_ODR> {
+struct ODR : ConfigurationRegister<void, Config, ODR> {
 	REGISTER_SINGULAR_ARRAY_RW(bool[16], detail::bit::range<0, 15>, detail::bit::width<1>)
 	REGISTER_FIELD_RW(uint16_t, raw, detail::bit::range<0, 15>)
 
@@ -97,41 +97,41 @@ struct GPIO_ODR : ConfigurationRegister<void, Config, GPIO_ODR> {
 	}
 };
 
-static_assert(traits::is_platform_register_valid<GPIO_ODR<>>(), "");
+static_assert(traits::is_platform_register_valid<ODR<>>(), "");
 
 
 template<bool Config = false>
-struct GPIO_BSSR : ConfigurationRegister<void, Config, GPIO_BSSR> {
+struct BSSR : ConfigurationRegister<void, Config, BSSR> {
 	REGISTER_ARRAY_C(bool[16], set, detail::bit::range<0, 15>, detail::bit::width<1>)
 	REGISTER_ARRAY_C(bool[16], reset, detail::bit::range<16, 31>, detail::bit::width<1>)
 };
 
-static_assert(traits::is_platform_register_valid<GPIO_BSSR<>>(), "");
+static_assert(traits::is_platform_register_valid<BSSR<>>(), "");
 
 
 template<bool Config = false>
-struct GPIO_AFR : ConfigurationRegister<void, Config, GPIO_AFR> {
+struct AFR : ConfigurationRegister<void, Config, AFR> {
 	REGISTER_SINGULAR_ARRAY_RW(uint8_t[8], detail::bit::range<0, 31>, detail::bit::width<4>)
 };
 
-static_assert(traits::is_platform_register_valid<GPIO_AFR<>>(), "");
+static_assert(traits::is_platform_register_valid<AFR<>>(), "");
 
 
 
 
 namespace detail {
 
-	struct gpio_layout {
-		GPIO_MODER<> moder;
-		GPIO_OTYPER<> otyper;
-		GPIO_OSPEEDR<> ospeedr;
-		GPIO_PUPDR<> pupdr;
-		GPIO_IDR<> idr;
-		GPIO_ODR<> odr;
-		GPIO_BSSR<> bssr;
+	struct layout {
+		MODER<> moder;
+		OTYPER<> otyper;
+		OSPEEDR<> ospeedr;
+		PUPDR<> pupdr;
+		IDR<> idr;
+		ODR<> odr;
+		BSSR<> bssr;
 		volatile uint32_t lckr;
-		GPIO_AFR<> afrl;
-		GPIO_AFR<> afrh;
+		AFR<> afrl;
+		AFR<> afrh;
 	};
 
 }
@@ -143,25 +143,26 @@ struct AF {
 };
 
 template<typename Flight = void>
-struct GPIO : ConfigurationStruct<GPIO, detail::gpio_layout, Flight> {
+struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 	template<typename>
 	friend struct GPIO;
 
 	public:
-		typedef detail::gpio_layout struct_type;
+		typedef detail::layout struct_type;
 
 	private:
 		template<typename FlightType, uint32_t Offset>
 		struct afr_next {
-		   typedef typename ense::detail::extend_flight_type<ense::detail::ConfigurationStructFlightPart<Offset, GPIO_AFR<>::in_flight_type>, FlightType>::type type;
+		   typedef typename ense::detail::extend_flight_type<ense::detail::ConfigurationStructFlightPart<Offset, AFR<>::in_flight_type>, FlightType>::type type;
 		};
 		template<uint32_t Offset>
 		struct afr_next<void, Offset> {
 			typedef void type;
 		};
 
+		static constexpr bool is_config = !std::is_same<Flight, void>::value;
 		typedef typename std::conditional<
-			std::is_same<Flight, void>::value,
+			!is_config,
 			GPIO&,
 			GPIO<typename afr_next<typename afr_next<Flight, STRUCT_OFFSETOF(afrl)>::type, STRUCT_OFFSETOF(afrh)>::type>
 			>::type alternate_function_next_type;
@@ -178,7 +179,7 @@ struct GPIO : ConfigurationStruct<GPIO, detail::gpio_layout, Flight> {
 		}
 
 		template<uint32_t Idx, uint32_t Mask>
-		alternate_function_next_type apply_af(uint32_t fn, std::integral_constant<uint32_t, Mask>)
+		alternate_function_next_type apply_af(AF fn, std::integral_constant<uint32_t, Mask>)
 		{
 			if (Mask & 1) {
 				return alternate_function(Idx, fn).template apply_af<Idx + 1>(fn, std::integral_constant<uint32_t, (Mask >> 1)>());
@@ -187,7 +188,7 @@ struct GPIO : ConfigurationStruct<GPIO, detail::gpio_layout, Flight> {
 			}
 		}
 		template<uint32_t Idx>
-		alternate_function_next_type apply_af(uint32_t, std::integral_constant<uint32_t, 0>)
+		alternate_function_next_type apply_af(AF, std::integral_constant<uint32_t, 0>)
 		{
 			return begin_apply_af(*this);
 		}
@@ -217,10 +218,14 @@ struct GPIO : ConfigurationStruct<GPIO, detail::gpio_layout, Flight> {
 		auto alternate_function_mask(uint32_t mask, AF fn)
 			-> alternate_function_next_type
 		{
-			auto extended = begin_apply_af(*this);
+			alternate_function_next_type extended = begin_apply_af(*this);
 			for (uint32_t i = 0; i < 16; i++) {
 				if (mask & (1 << i)) {
-					extended = extended.alternate_function(i, fn);
+					if (is_config) {
+						extended = extended.alternate_function(i, fn);
+					} else {
+						alternate_function(i, fn);
+					}
 				}
 			}
 			return extended;
@@ -231,7 +236,7 @@ struct GPIO : ConfigurationStruct<GPIO, detail::gpio_layout, Flight> {
 			-> alternate_function_next_type
 		{
 			static_assert(Mask <= 0xFFFF, "Mask invalid");
-			return apply_af<0>(fn.af, std::integral_constant<uint32_t, Mask>());
+			return apply_af<0>(fn, std::integral_constant<uint32_t, Mask>());
 		}
 
 		template<uint32_t Bound1, uint32_t Bound2>
@@ -240,10 +245,10 @@ struct GPIO : ConfigurationStruct<GPIO, detail::gpio_layout, Flight> {
 		{
 			typedef ense::detail::bit::expand<ense::detail::bit::range<Bound1, Bound2>> range;
 			static_assert(range::end < 16, "Index out or range");
-			return alternate_function_mask<range::field_mask>(fn.af);
+			return alternate_function_mask<range::field_mask>(fn);
 		}
 
-#define GPIO_CONFIG_ONE(target) \
+#define CONFIG_ONE(target) \
 		auto configure(uint32_t pin, typename ense::mpl::nth_arg<1, decltype(ense::detail::select_memfn2(&GPIO::target))>::type arg) \
 			-> decltype(this->target(pin, arg)) \
 		{ \
@@ -261,12 +266,12 @@ struct GPIO : ConfigurationStruct<GPIO, detail::gpio_layout, Flight> {
 		{ \
 			return this->target ## _range<Bound1, Bound2>(arg); \
 		}
-		GPIO_CONFIG_ONE(mode)
-		GPIO_CONFIG_ONE(output_type)
-		GPIO_CONFIG_ONE(output_speed)
-		GPIO_CONFIG_ONE(pull)
-		GPIO_CONFIG_ONE(alternate_function)
-#undef GPIO_CONFIG_ONE
+		CONFIG_ONE(mode)
+		CONFIG_ONE(output_type)
+		CONFIG_ONE(output_speed)
+		CONFIG_ONE(pull)
+		CONFIG_ONE(alternate_function)
+#undef CONFIG_ONE
 
 		template<typename First, typename... Rest>
 		auto configure(uint32_t pin, First first, Rest... rest)

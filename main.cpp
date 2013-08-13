@@ -75,7 +75,7 @@ struct X {
 		asm volatile ("nop");
 		asm volatile ("nop");
 		ense::platform::gpio::gpioD.begin()
-			.mode_range<8, 15>(ense::platform::gpio::PortFunction::output)
+			.mode_range<8, 15>(ense::platform::gpio::Function::output)
 			.commit();
 		asm volatile ("nop");
 		asm volatile ("nop");
@@ -85,11 +85,11 @@ struct X {
 
 		using namespace ense::platform::gpio;
 		gpioA.begin()
-			.configure(8, PortFunction::alternate, PortOutputType::push_pull, PortSpeed::fast, AF(0))
+			.configure(8, Function::alternate, OutputType::push_pull, Speed::fast, AF(0))
 			.commit();
 
 		gpioB.begin()
-			.configure(6, PortFunction::alternate, PortOutputType::push_pull, PortSpeed::fast, AF(7))
+			.configure(6, Function::alternate, OutputType::push_pull, Speed::fast, AF(7))
 			.commit();
 
 		ense::platform::rcc::apb2_enable.usart1(true);
@@ -107,40 +107,40 @@ char y[] = "\001\002\003\004\005\006\007\010\011\012\013\014\015\016";
 
 static void print()
 {
-	int i = 0;
-	using namespace ense::platform::usart;
+//	int i = 0;
+//	using namespace ense::platform::usart;
 	using namespace ense::platform::gpio;
-	asm volatile ("nop");
-	asm volatile ("nop");
-	asm volatile ("nop");
-	asm volatile ("nop");
-	asm volatile ("nop");
-	asm volatile ("nop");
-	usart1.cr1()
-		.enable(true)
-		.oversample_by_8(true);
-	asm volatile ("nop");
-	asm volatile ("nop");
-	asm volatile ("nop");
-	asm volatile ("nop");
-	asm volatile ("nop");
-	asm volatile ("nop");
-	usart1.baudrate().begin()
-		.mantissa(1)
-		.fraction(0)
-		.commit();
-	usart1.cr1()
-		.transmit_enable(true);
-	usart1.cr2()
-		.clock_enabled(false);
-	for (;;) {
-		usart1.data().content(0x55);
-		while (!usart1.status().tx_complete())
-			;
-
-		for (int x = 0; x < 3000000; x++)
-			asm volatile ("nop");
-	}
+//	asm volatile ("nop");
+//	asm volatile ("nop");
+//	asm volatile ("nop");
+//	asm volatile ("nop");
+//	asm volatile ("nop");
+//	asm volatile ("nop");
+//	usart1.cr1()
+//		.enable(true)
+//		.oversample_by_8(true);
+//	asm volatile ("nop");
+//	asm volatile ("nop");
+//	asm volatile ("nop");
+//	asm volatile ("nop");
+//	asm volatile ("nop");
+//	asm volatile ("nop");
+//	usart1.baudrate().begin()
+//		.mantissa(1)
+//		.fraction(0)
+//		.commit();
+//	usart1.cr1()
+//		.transmit_enable(true);
+//	usart1.cr2()
+//		.clock_enabled(false);
+//	for (;;) {
+//		usart1.data().content(0x55);
+//		while (!usart1.status().tx_complete())
+//			;
+//
+//		for (int x = 0; x < 3000000; x++)
+//			asm volatile ("nop");
+//	}
 	ense::shcsr.usage_fault_enabled(true);
 //	const char foo[] = "brutzelbums";
 	for (unsigned char j = 0; ; j++) {
