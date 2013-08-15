@@ -17,26 +17,16 @@ class NVIC {
 
 	private:
 		bitfield_t iser;
-		bitfield_t __iser_padding;
+		bitfield_t __iser_padding __attribute__((unused));
 		bitfield_t icer;
-		bitfield_t __icer_padding;
+		bitfield_t __icer_padding __attribute__((unused));
 		bitfield_t ispr;
-		bitfield_t __ispr_padding;
+		bitfield_t __ispr_padding __attribute__((unused));
 		bitfield_t icpr;
-		bitfield_t __icpr_padding;
+		bitfield_t __icpr_padding __attribute__((unused));
 		const bitfield_t iabr;
-		bitfield_t __iabr_padding;
+		bitfield_t __iabr_padding __attribute__((unused));
 		volatile uint8_t ipr[496];
-
-		template<typename>
-		void silence_unused_warnings()
-		{
-			*__iser_padding = 0;
-			*__icer_padding = 0;
-			*__ispr_padding = 0;
-			*__icpr_padding = 0;
-			*__iabr_padding = 0;
-		}
 
 		template<size_t Idx>
 		struct partition_match {
