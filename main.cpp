@@ -107,40 +107,31 @@ char y[] = "\001\002\003\004\005\006\007\010\011\012\013\014\015\016";
 
 static void print()
 {
-//	int i = 0;
-//	using namespace ense::platform::usart;
+	using namespace ense::platform::usart;
 	using namespace ense::platform::gpio;
-//	asm volatile ("nop");
-//	asm volatile ("nop");
-//	asm volatile ("nop");
-//	asm volatile ("nop");
-//	asm volatile ("nop");
-//	asm volatile ("nop");
-//	usart1.cr1()
-//		.enable(true)
-//		.oversample_by_8(true);
-//	asm volatile ("nop");
-//	asm volatile ("nop");
-//	asm volatile ("nop");
-//	asm volatile ("nop");
-//	asm volatile ("nop");
-//	asm volatile ("nop");
-//	usart1.baudrate().begin()
-//		.mantissa(1)
-//		.fraction(0)
-//		.commit();
-//	usart1.cr1()
-//		.transmit_enable(true);
-//	usart1.cr2()
-//		.clock_enabled(false);
-//	for (;;) {
-//		usart1.data().content(0x55);
-//		while (!usart1.status().tx_complete())
-//			;
-//
-//		for (int x = 0; x < 3000000; x++)
-//			asm volatile ("nop");
-//	}
+	asm volatile ("nop");
+	asm volatile ("nop");
+	asm volatile ("nop");
+	asm volatile ("nop");
+	asm volatile ("nop");
+	asm volatile ("nop");
+	usart1.begin()
+		.enable(true)
+		.oversample_by_8(true)
+		.mantissa(1)
+		.fraction(0)
+		.transmit_enable(true)
+		.clock_enabled(false)
+		.commit();
+	for (uint8_t i = 0;; i++) {
+		usart1.data(i);
+		while (!usart1.tx_complete())
+			;
+		gpioD.odr.value(gpioD.odr.value() ^ (1 << 12));
+
+		for (int x = 0; x < 500000; x++)
+			asm volatile ("nop");
+	}
 	ense::shcsr.usage_fault_enabled(true);
 //	const char foo[] = "brutzelbums";
 	for (unsigned char j = 0; ; j++) {

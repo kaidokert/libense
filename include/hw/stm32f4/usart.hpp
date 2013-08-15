@@ -5,6 +5,8 @@
 
 #include <hw/config_register.hpp>
 #include <hw/platform_register_macros.hpp>
+#include <hw/config_struct.hpp>
+#include <hw/config_struct_macros.hpp>
 
 namespace ense {
 namespace platform {
@@ -190,44 +192,99 @@ static_assert(traits::is_platform_register_valid<CR3<>>(), "");
 
 
 
-class USART {
-	private:
-		Status<> _status;
-		Data<> _data;
-		BRR<> _brr;
-		CR1<> _cr1;
-		CR2<> _cr2;
-		CR3<> _cr3;
+namespace detail {
 
-	public:
-		Status<>& status() { return _status; }
+	struct layout {
+		Status<> status;
+		Data<> dr;
+		BRR<> brr;
+		CR1<> cr1;
+		CR2<> cr2;
+		CR3<> cr3;
+	};
 
-		Data<>& data() { return _data; }
+}
 
-		BRR<>& baudrate() { return _brr; }
+template<typename Flight = void>
+struct USART : ConfigurationStruct<USART, detail::layout, Flight> {
+	typedef detail::layout struct_type;
 
-		CR1<>& cr1() { return _cr1; }
+	STRUCT_BIT_RW(cts_toggled, status, cts_toggled)
+	STRUCT_BIT_RW(lin_break_detected, status, lin_break_detected)
+	STRUCT_BIT_R(tdr_empty, status, tdr_empty)
+	STRUCT_BIT_RW(tx_complete, status, tx_complete)
+	STRUCT_BIT_RW(rdr_not_empty, status, rdr_not_empty)
+	STRUCT_BIT_R(idle_detected, status, idle_detected)
+	STRUCT_BIT_R(overrun_error, status, overrun_error)
+	STRUCT_BIT_R(noise_error, status, noise_error)
+	STRUCT_BIT_R(framing_error, status, framing_error)
+	STRUCT_BIT_R(parity_error, status, parity_error)
 
-		CR2<>& cr2() { return _cr2; }
+	STRUCT_INT_RW(data, dr, content)
 
-		CR3<>& cr3() { return _cr3; }
+	STRUCT_INT_RW(mantissa, brr, mantissa)
+	STRUCT_INT_RW(fraction, brr, fraction)
+
+	STRUCT_BIT_RW(oversample_by_8, cr1, oversample_by_8)
+	STRUCT_BIT_RW(enable, cr1, enable)
+	STRUCT_BIT_RW(nine_bit_words, cr1, nine_bit_words)
+	STRUCT_BIT_RW(wakeup_on_address, cr1, wakeup_on_address)
+	STRUCT_BIT_RW(parity_enable, cr1, parity_enable)
+	STRUCT_BIT_RW(odd_parity, cr1, odd_parity)
+	STRUCT_BIT_RW(parity_interrupt, cr1, parity_interrupt)
+	STRUCT_BIT_RW(txe_interrupt, cr1, txe_interrupt)
+	STRUCT_BIT_RW(transmit_interrupt, cr1, transmit_interrupt)
+	STRUCT_BIT_RW(rxne_interrupt, cr1, rxne_interrupt)
+	STRUCT_BIT_RW(idle_interrupt, cr1, idle_interrupt)
+	STRUCT_BIT_RW(transmit_enable, cr1, transmit_enable)
+	STRUCT_BIT_RW(receive_enable, cr1, receive_enable)
+	STRUCT_BIT_RW(receiver_muted, cr1, receiver_muted)
+	STRUCT_BIT_C(send_break, cr1, send_break)
+
+	void send_idle()
+	{
+		transmit_enable(false);
+		transmit_enable(true);
+	}
+
+	STRUCT_BIT_RW(lin_enabled, cr2, lin_enabled)
+	STRUCT_FIELD_RW(stop_bits, cr2, stop_bits)
+	STRUCT_BIT_RW(clock_enabled, cr2, clock_enabled)
+	STRUCT_BIT_RW(clock_polarity, cr2, clock_polarity)
+	STRUCT_BIT_RW(clock_phase, cr2, clock_phase)
+	STRUCT_BIT_RW(last_bit_pulse, cr2, last_bit_pulse)
+	STRUCT_BIT_RW(lin_break_detect_interrupt, cr2, lin_break_detect_interrupt)
+	STRUCT_BIT_RW(lin_break_length, cr2, lin_break_length)
+	STRUCT_INT_RW(addr, cr2, addr)
+
+	STRUCT_BIT_RW(sample_one_bit, cr3, sample_one_bit)
+	STRUCT_BIT_RW(cts_interrupt, cr3, cts_interrupt)
+	STRUCT_BIT_RW(cts_enabled, cr3, cts_enabled)
+	STRUCT_BIT_RW(rts_enable, cr3, rts_enable)
+	STRUCT_BIT_RW(dma_transmit, cr3, dma_transmit)
+	STRUCT_BIT_RW(dma_receive, cr3, dma_receive)
+	STRUCT_BIT_RW(smartcard_mode, cr3, smartcard_mode)
+	STRUCT_BIT_RW(smartcard_nack, cr3, smartcard_nack)
+	STRUCT_BIT_RW(half_duplex, cr3, half_duplex)
+	STRUCT_BIT_RW(irda_low_power, cr3, irda_low_power)
+	STRUCT_BIT_RW(irda_mode, cr3, irda_mode)
+	STRUCT_BIT_RW(error_interrupt, cr3, error_interrupt)
 };
 
-static_assert(std::is_standard_layout<USART>(), "");
-
-extern USART usart1 __attribute__((__weak__, __alias__(".USART_USART1")));
-extern USART usart2 __attribute__((__weak__, __alias__(".USART_USART2")));
-extern USART usart3 __attribute__((__weak__, __alias__(".USART_USART3")));
-extern USART uart4 __attribute__((__weak__, __alias__(".UART_USART4")));
-extern USART uart5 __attribute__((__weak__, __alias__(".UART_USART5")));
-extern USART usart6 __attribute__((__weak__, __alias__(".USART_USART6")));
-extern USART usart7 __attribute__((__weak__, __alias__(".USART_USART7")));
-extern USART usart8 __attribute__((__weak__, __alias__(".USART_USART8")));
+extern linker_placed_struct<USART> usart1 __attribute__((__weak__, __alias__(".USART_USART1")));
+extern linker_placed_struct<USART> usart2 __attribute__((__weak__, __alias__(".USART_USART2")));
+extern linker_placed_struct<USART> usart3 __attribute__((__weak__, __alias__(".USART_USART3")));
+extern linker_placed_struct<USART> uart4 __attribute__((__weak__, __alias__(".UART_USART4")));
+extern linker_placed_struct<USART> uart5 __attribute__((__weak__, __alias__(".UART_USART5")));
+extern linker_placed_struct<USART> usart6 __attribute__((__weak__, __alias__(".USART_USART6")));
+extern linker_placed_struct<USART> usart7 __attribute__((__weak__, __alias__(".USART_USART7")));
+extern linker_placed_struct<USART> usart8 __attribute__((__weak__, __alias__(".USART_USART8")));
 
 }
 }
 }
 
 #include <hw/platform_register_macros_clear.hpp>
+#include <hw/config_struct_macros_clear.hpp>
 
 #endif /* INCLUDE_HW_STM32F4_USART__HPP_332391B11B521C28 */
