@@ -112,6 +112,25 @@ namespace detail {
 		return cs.template extract<Offset>(part);
 	}
 
+	template<typename>
+	struct result_type;
+
+	template<typename R, typename C, typename... Args>
+	struct result_type<R (C::*)(Args...) const> : result_type<R (C::*)(Args...)> {
+	};
+
+	template<typename R, typename C, typename... Args>
+	struct result_type<R (C::*)(Args...)> {
+		typedef R type;
+	};
+
+	template<typename Result, typename Class>
+	constexpr auto select_memfn0c(Result (Class::*fn)() const)
+		-> Result (Class::*)() const
+	{
+		return fn;
+	}
+
 	template<typename Result, typename Class, typename Arg1>
 	constexpr auto select_memfn1(Result (Class::*fn)(Arg1))
 		-> Result (Class::*)(Arg1)
@@ -120,7 +139,7 @@ namespace detail {
 	}
 
 	template<typename Result, typename Class, typename Arg1>
-	constexpr auto select_memfn1(Result (Class::*fn)(Arg1) const)
+	constexpr auto select_memfn1c(Result (Class::*fn)(Arg1) const)
 		-> Result (Class::*)(Arg1) const
 	{
 		return fn;
@@ -147,7 +166,7 @@ class ConfigurationStruct {
 		Derived<void>* _target;
 		Flight _flight;
 
-		Derived<void>* target()
+		Derived<void>* target() const
 		{
 			return _target;
 		}
@@ -185,7 +204,7 @@ class ConfigurationStruct<Derived, Struct, void> : public Struct {
 
 	protected:
 		template<size_t Offset, typename Next>
-		Derived<void>& extend(Next&)
+		Derived<void>& extend(Next&) const
 		{
 			return *target();
 		}
@@ -193,6 +212,11 @@ class ConfigurationStruct<Derived, Struct, void> : public Struct {
 		Derived<void>* target()
 		{
 			return static_cast<Derived<void>*>(this);
+		}
+
+		Derived<void>* target() const
+		{
+			return const_cast<Derived<void>*>(static_cast<const Derived<void>*>(this));
 		}
 
 		template<size_t Offset, typename Part>
