@@ -166,7 +166,7 @@ class ConfigurationStruct {
 		Derived<void>* _target;
 		Flight _flight;
 
-		Derived<void>* target() const
+		Derived<void>* target()
 		{
 			return _target;
 		}
@@ -203,27 +203,14 @@ class ConfigurationStruct<Derived, Struct, void> : public Struct {
 	friend auto detail::extract(CS& cs, Part& part) -> decltype(cs.template extract<Offset>(part));
 
 	protected:
-		template<size_t Offset, typename Next>
-		Derived<void>& extend(Next&) const
-		{
-			return *target();
-		}
+		template<size_t Offset, typename Next> Derived<void>&       extend(Next&)       { return *target(); }
+		template<size_t Offset, typename Next> Derived<void> const& extend(Next&) const { return *target(); }
 
-		Derived<void>* target()
-		{
-			return static_cast<Derived<void>*>(this);
-		}
+		Derived<void>*       target()       { return static_cast<Derived<void>*>(this); }
+		Derived<void> const* target() const { return static_cast<const Derived<void>*>(this); }
 
-		Derived<void>* target() const
-		{
-			return const_cast<Derived<void>*>(static_cast<const Derived<void>*>(this));
-		}
-
-		template<size_t Offset, typename Part>
-		Part& extract(Part& part)
-		{
-			return part;
-		}
+		template<size_t Offset, typename Part> Part&       extract(Part& part)       { return part; }
+		template<size_t Offset, typename Part> Part const& extract(Part& part) const { return part; }
 
 	public:
 		Derived<detail::ConfigurationStructFlight<>> begin()
