@@ -1,6 +1,6 @@
 SECTIONS
 {
-	.text : AT(ORIGIN(FLASH)) {
+	.text : AT(ORIGIN(RAM /* FLASH */)) {
 		LONG(ABSOLUTE(..stack));
 		KEEP(*(..isr_vectors))
 
@@ -14,7 +14,7 @@ SECTIONS
 		PROVIDE(_text_begin = .);
 		*(.text .text.*)
 		PROVIDE(_text_end = .);
-	} >FLASH
+	} >RAM /* FLASH */
 
 	.rodata : AT(ALIGN(_text_end, 4)) {
 		_ctors_array = .;
@@ -26,7 +26,7 @@ SECTIONS
 		PROVIDE(_rodata_begin = .);
 		*(.rodata .rodata.*)
 		PROVIDE(_rodata_end = .);
-	} >FLASH
+	} >RAM /* FLASH */
 
 	.data : AT(ALIGN(_rodata_end, 4)) {
 		PROVIDE(_data_begin = .);
