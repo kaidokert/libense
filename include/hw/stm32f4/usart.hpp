@@ -190,6 +190,16 @@ static_assert(traits::is_platform_register_valid<CR3<>>(), "");
 
 
 
+template<bool Config = false>
+struct GTPR : ConfigurationRegister<void, Config, GTPR> {
+	REGISTER_INT_RW(guard_time, detail::bit::range<15, 8>)
+	REGISTER_INT_RW(prescaler, detail::bit::range<7, 0>)
+};
+
+static_assert(traits::is_platform_register_valid<GTPR<>>(), "");
+
+
+
 
 
 namespace detail {
@@ -201,6 +211,7 @@ namespace detail {
 		CR1<> cr1;
 		CR2<> cr2;
 		CR3<> cr3;
+		GTPR<> gtpr;
 	};
 
 }
@@ -269,6 +280,9 @@ struct USART : ConfigurationStruct<USART, detail::layout, Flight> {
 	STRUCT_BIT_RW(irda_low_power, cr3, irda_low_power)
 	STRUCT_BIT_RW(irda_mode, cr3, irda_mode)
 	STRUCT_BIT_RW(error_interrupt, cr3, error_interrupt)
+
+	STRUCT_INT_RW(guard_time, gtpr, guard_time)
+	STRUCT_INT_RW(prescaler, gtpr, prescaler)
 };
 
 extern linker_placed_struct<USART> usart1 __attribute__((__weak__, __alias__(".USART_USART1")));
