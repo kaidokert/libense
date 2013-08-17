@@ -70,11 +70,6 @@ template<bool Config = false>
 struct IDR : ConfigurationRegister<void, Config, IDR> {
 	REGISTER_SINGULAR_ARRAY_R(bool[16], detail::bit::range<0, 15>, detail::bit::width<1>)
 	REGISTER_FIELD_R(uint16_t, raw, detail::bit::range<0, 15>)
-
-	operator uint16_t() const
-	{
-		return raw();
-	}
 };
 
 static_assert(traits::is_platform_register_valid<IDR<>>(), "");
@@ -85,16 +80,34 @@ struct ODR : ConfigurationRegister<void, Config, ODR> {
 	REGISTER_SINGULAR_ARRAY_RW(bool[16], detail::bit::range<0, 15>, detail::bit::width<1>)
 	REGISTER_FIELD_RW(uint16_t, raw, detail::bit::range<0, 15>)
 
-	uint16_t operator=(uint16_t value)
+	ODR& operator=(const ODR&) = default;
+
+	uint16_t operator=(uint16_t val)
 	{
-		raw(value);
-		return value;
+		raw(val);
+		return val;
 	}
 
-	operator uint16_t() const
-	{
-		return raw();
+	operator uint16_t() const { return raw(); }
+
+#define OP_EQ(op) \
+	uint16_t operator op ## =(uint16_t val) \
+	{ \
+		auto next = raw() op val; \
+		raw(next); \
+		return next; \
 	}
+	OP_EQ(+)
+	OP_EQ(-)
+	OP_EQ(*)
+	OP_EQ(/)
+	OP_EQ(%)
+	OP_EQ(^)
+	OP_EQ(&)
+	OP_EQ(|)
+	OP_EQ(>>)
+	OP_EQ(<<)
+#undef OP_EQ
 };
 
 static_assert(traits::is_platform_register_valid<ODR<>>(), "");
@@ -305,10 +318,11 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 			return *this;
 		}
 
-		uint32_t lock()
-		{
-			return this->lckr;
-		}
+		uint32_t lock() const { return this->lckr; }
+
+		uint16_t in() const { return this->idr.raw(); }
+
+		ODR<>& out() { return this->odr; }
 };
 
 extern linker_placed_struct<GPIO> gpioA [[gnu::weak, gnu::alias(".GPIO_PORTA")]];

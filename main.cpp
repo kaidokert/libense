@@ -114,13 +114,13 @@ static void print()
 		.clock_enabled(false)
 		.commit();
 	for (uint8_t i = 0;; i++) {
-		usart1.data(i);
-		while (!usart1.tx_complete())
+		usart1.data(i++);
+		while (!usart1.tdr_empty())
 			;
-		gpioD.odr.value(gpioD.odr.value() ^ (1 << 12));
+//		gpioD.out() ^= 1 << 12;
 
-		for (int x = 0; x < 500000; x++)
-			asm volatile ("nop");
+//		for (int x = 0; x < 500000; x++)
+//			asm volatile ("nop");
 	}
 	ense::shcsr.usage_fault_enabled(true);
 //	const char foo[] = "brutzelbums";
@@ -130,18 +130,18 @@ static void print()
 //		char c = j % sizeof(y); {
 //		for (char c : foo) {
 			for (int i = 0; i < 16; i++) {
-				gpioD.odr.value(((c & 1) << 12) | (1 << 13));
+				gpioD.out() = ((c & 1) << 12) | (1 << 13);
 				for (int i = 0; i < 400000; i++)
 					__asm__ __volatile__ ("nop");
-				gpioD.odr.value(0);
+				gpioD.out() = 0;
 				for (int i = 0; i < 400000; i++)
 					__asm__ __volatile__ ("nop");
 				c >>= 1;
 			}
-			gpioD.odr.value(1 << 14);
+			gpioD.out() = 1 << 14;
 			for (int i = 0; i < 400000; i++)
 				__asm__ __volatile__ ("nop");
-			gpioD.odr.value(0);
+			gpioD.out() = 0;
 			for (int i = 0; i < 1200000; i++)
 				__asm__ __volatile__ ("nop");
 		}
