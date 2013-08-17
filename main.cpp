@@ -13,18 +13,8 @@
 #include <hw/nvic.hpp>
 #include <hw/ivt.hpp>
 
-extern "C" {
-void __attribute__((__used__)) __aeabi_memset(void *dest, size_t n, int c)
-{
-	char* p = reinterpret_cast<char*>(dest);
-	while (n--) {
-		*p++ = c;
-	}
-}
-}
-
 struct X {
-	__attribute__((noinline))
+	[[gnu::noinline]]
 	static void configure_pll()
 	{
 		using namespace ense::platform::rcc;
@@ -101,7 +91,7 @@ struct X {
 	}
 };
 
-X __attribute__((section(".ccmdata"))) x;
+X x [[gnu::section(".ccmdata")]];
 
 char y[] = "\001\002\003\004\005\006\007\010\011\012\013\014\015\016";
 
@@ -169,7 +159,7 @@ void usage() { for (;;) ; }
 void bus() { for (;;) ; }
 void mem() { for (;;) ; }
 
-__attribute__((section("..isr_vectors"), used))
+[[gnu::section("..isr_vectors"), gnu::used]]
 constexpr ense::IVT<
 	ense::nmi_handler<nmi>,
 	ense::hard_fault_handler<hard>,

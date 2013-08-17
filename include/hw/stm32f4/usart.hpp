@@ -285,14 +285,14 @@ struct USART : ConfigurationStruct<USART, detail::layout, Flight> {
 	STRUCT_INT_RW(prescaler, gtpr, prescaler)
 };
 
-extern linker_placed_struct<USART> usart1 __attribute__((__weak__, __alias__(".USART_USART1")));
-extern linker_placed_struct<USART> usart2 __attribute__((__weak__, __alias__(".USART_USART2")));
-extern linker_placed_struct<USART> usart3 __attribute__((__weak__, __alias__(".USART_USART3")));
-extern linker_placed_struct<USART> uart4 __attribute__((__weak__, __alias__(".UART_USART4")));
-extern linker_placed_struct<USART> uart5 __attribute__((__weak__, __alias__(".UART_USART5")));
-extern linker_placed_struct<USART> usart6 __attribute__((__weak__, __alias__(".USART_USART6")));
-extern linker_placed_struct<USART> usart7 __attribute__((__weak__, __alias__(".USART_USART7")));
-extern linker_placed_struct<USART> usart8 __attribute__((__weak__, __alias__(".USART_USART8")));
+extern linker_placed_struct<USART> usart1 [[gnu::weak, gnu::alias(".USART_USART1")]];
+extern linker_placed_struct<USART> usart2 [[gnu::weak, gnu::alias(".USART_USART2")]];
+extern linker_placed_struct<USART> usart3 [[gnu::weak, gnu::alias(".USART_USART3")]];
+extern linker_placed_struct<USART> uart4 [[gnu::weak, gnu::alias(".UART_USART4")]];
+extern linker_placed_struct<USART> uart5 [[gnu::weak, gnu::alias(".UART_USART5")]];
+extern linker_placed_struct<USART> usart6 [[gnu::weak, gnu::alias(".USART_USART6")]];
+extern linker_placed_struct<USART> usart7 [[gnu::weak, gnu::alias(".USART_USART7")]];
+extern linker_placed_struct<USART> usart8 [[gnu::weak, gnu::alias(".USART_USART8")]];
 
 }
 }

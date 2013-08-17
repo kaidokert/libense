@@ -311,15 +311,15 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 		}
 };
 
-extern linker_placed_struct<GPIO> gpioA __attribute__((__weak__, __alias__(".GPIO_PORTA")));
-extern linker_placed_struct<GPIO> gpioB __attribute__((__weak__, __alias__(".GPIO_PORTB")));
-extern linker_placed_struct<GPIO> gpioC __attribute__((__weak__, __alias__(".GPIO_PORTC")));
-extern linker_placed_struct<GPIO> gpioD __attribute__((__weak__, __alias__(".GPIO_PORTD")));
-extern linker_placed_struct<GPIO> gpioE __attribute__((__weak__, __alias__(".GPIO_PORTE")));
-extern linker_placed_struct<GPIO> gpioF __attribute__((__weak__, __alias__(".GPIO_PORTF")));
-extern linker_placed_struct<GPIO> gpioG __attribute__((__weak__, __alias__(".GPIO_PORTG")));
-extern linker_placed_struct<GPIO> gpioH __attribute__((__weak__, __alias__(".GPIO_PORTH")));
-extern linker_placed_struct<GPIO> gpioI __attribute__((__weak__, __alias__(".GPIO_PORTI")));
+extern linker_placed_struct<GPIO> gpioA [[gnu::weak, gnu::alias(".GPIO_PORTA")]];
+extern linker_placed_struct<GPIO> gpioB [[gnu::weak, gnu::alias(".GPIO_PORTB")]];
+extern linker_placed_struct<GPIO> gpioC [[gnu::weak, gnu::alias(".GPIO_PORTC")]];
+extern linker_placed_struct<GPIO> gpioD [[gnu::weak, gnu::alias(".GPIO_PORTD")]];
+extern linker_placed_struct<GPIO> gpioE [[gnu::weak, gnu::alias(".GPIO_PORTE")]];
+extern linker_placed_struct<GPIO> gpioF [[gnu::weak, gnu::alias(".GPIO_PORTF")]];
+extern linker_placed_struct<GPIO> gpioG [[gnu::weak, gnu::alias(".GPIO_PORTG")]];
+extern linker_placed_struct<GPIO> gpioH [[gnu::weak, gnu::alias(".GPIO_PORTH")]];
+extern linker_placed_struct<GPIO> gpioI [[gnu::weak, gnu::alias(".GPIO_PORTI")]];
 
 }
 }

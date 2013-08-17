@@ -31,12 +31,12 @@ struct FPCCR : ConfigurationRegister<FPCCRFlags, Config, FPCCR> {
 	REGISTER_BIT_R(lazy_save_active)
 };
 
-extern linker_placed_register<FPCCR<>> fpccr __attribute__((__weak__, __alias__(".SCS_FPCCR")));
+extern linker_placed_register<FPCCR<>> fpccr [[gnu::weak, gnu::alias(".SCS_FPCCR")]];
 
 
 
 
-extern volatile void* const fpcar __attribute__((__weak__, __alias__(".SCS_FPCAR")));
+extern volatile void* const fpcar [[gnu::weak, gnu::alias(".SCS_FPCAR")]];
 
 
 
@@ -65,7 +65,7 @@ struct FPDSCR : ConfigurationRegister<FPDSCRFlags, Config, FPDSCR> {
 	REGISTER_FIELD_RW(RoundingMode, rounding_mode, detail::bit::range<23, 22>)
 };
 
-extern linker_placed_register<FPDSCR<>> fpdscr __attribute__((__weak__, __alias__(".SCS_FPDSCR")));
+extern linker_placed_register<FPDSCR<>> fpdscr [[gnu::weak, gnu::alias(".SCS_FPDSCR")]];
 
 enum class FPSCRFlags : uint32_t {
 	negative                 = 1U << 31,
@@ -119,7 +119,7 @@ struct FPSCR : ConfigurationRegister<FPSCRFlags, Config, FPSCR> {
 	REGISTER_BIT_R(invalid_operation_exc)
 };
 
-extern linker_placed_register<FPSCR<>> fpscr __attribute__((__weak__, __alias__(".SCS_FPSCR")));
+extern linker_placed_register<FPSCR<>> fpscr [[gnu::weak, gnu::alias(".SCS_FPSCR")]];
 
 }
 

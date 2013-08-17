@@ -14,19 +14,19 @@ struct ICTR : PlatformRegister<void, ICTR, volatile uint32_t> {
 	}
 };
 
-extern linker_placed_register<ICTR> ictr __attribute__((__weak__, __alias__(".SCS_ICTR")));
+extern linker_placed_register<ICTR> ictr [[gnu::weak, gnu::alias(".SCS_ICTR")]];
 
 
 
 
-extern volatile uint32_t actlr __attribute__((__weak__, __alias__(".SCS_ACTLR")));
+extern volatile uint32_t actlr [[gnu::weak, gnu::alias(".SCS_ACTLR")]];
 
 
 
 
 inline void trigger_interrupt(uint32_t num)
 {
-	extern volatile uint32_t stir __attribute__((__weak__, __alias__(".SCS_STIR")));
+	extern volatile uint32_t stir [[gnu::weak, gnu::alias(".SCS_STIR")]];
 	stir = num & 0x1FF;
 }
 
@@ -57,14 +57,14 @@ struct ICSR : WritablePlatformRegister<ICSRFlags, ICSR, volatile uint32_t> {
 	REGISTER_INT_R(vect_active,  detail::bit::range<8, 0>)
 };
 
-extern linker_placed_register<ICSR> icsr __attribute__((__weak__, __alias__(".SCS_ICSR")));
+extern linker_placed_register<ICSR> icsr [[gnu::weak, gnu::alias(".SCS_ICSR")]];
 
 
 
 
 typedef void (*InterruptHandler)();
 
-extern volatile InterruptHandler vtor[] __attribute__((__weak__, __alias__(".SCS_VTOR")));
+extern volatile InterruptHandler vtor [[gnu::weak, gnu::alias(".SCS_VTOR")]] [];
 
 
 
@@ -93,7 +93,7 @@ struct AIRCR : ConfigurationRegister<AIRCRFlags, Config, AIRCR> {
 	REGISTER_BIT_C(local_reset)
 };
 
-extern linker_placed_register<AIRCR<>> aircr __attribute__((__weak__, __alias__(".SCS_AIRCR")));
+extern linker_placed_register<AIRCR<>> aircr [[gnu::weak, gnu::alias(".SCS_AIRCR")]];
 
 
 
@@ -134,7 +134,7 @@ class SystemHandlerPriorities {
 		}
 };
 
-extern linker_placed_array<SystemHandlerPriorities> system_handler_priorities __attribute__((__weak__, __alias__(".SCS_SHP")));
+extern linker_placed_array<SystemHandlerPriorities> system_handler_priorities [[gnu::weak, gnu::alias(".SCS_SHP")]];
 
 
 
@@ -174,7 +174,7 @@ struct SHCSR : ConfigurationRegister<SHCSRFlags, Config, SHCSR> {
 	REGISTER_BIT_RW(mem_fault_active)
 };
 
-extern linker_placed_register<SHCSR<>> shcsr __attribute__((__weak__, __alias__(".SCS_SHCSR")));
+extern linker_placed_register<SHCSR<>> shcsr [[gnu::weak, gnu::alias(".SCS_SHCSR")]];
 
 
 
@@ -299,10 +299,10 @@ struct UFSR : WritablePlatformRegister<UFSRFlags, UFSR, volatile uint16_t> {
 	REGISTER_BIT_C(clear)
 };
 
-extern linker_placed_register<CFSR<>> cfsr __attribute__((__weak__, __alias__(".SCS_CFSR")));
-extern linker_placed_register<MMFSR> mmfsr __attribute__((__weak__, __alias__(".SCS_MMFSR")));
-extern linker_placed_register<BFSR> bfsr __attribute__((__weak__, __alias__(".SCS_BFSR")));
-extern linker_placed_register<UFSR> ufsr __attribute__((__weak__, __alias__(".SCS_UFSR")));
+extern linker_placed_register<CFSR<>> cfsr [[gnu::weak, gnu::alias(".SCS_CFSR")]];
+extern linker_placed_register<MMFSR> mmfsr [[gnu::weak, gnu::alias(".SCS_MMFSR")]];
+extern linker_placed_register<BFSR> bfsr [[gnu::weak, gnu::alias(".SCS_BFSR")]];
+extern linker_placed_register<UFSR> ufsr [[gnu::weak, gnu::alias(".SCS_UFSR")]];
 
 
 
@@ -322,22 +322,22 @@ struct HFSR : WritablePlatformRegister<HFSRFlags, HFSR, volatile uint32_t> {
 	REGISTER_BIT_C(clear)
 };
 
-extern linker_placed_register<HFSR> hfsr __attribute__((__weak__, __alias__(".SCS_HFSR")));
+extern linker_placed_register<HFSR> hfsr [[gnu::weak, gnu::alias(".SCS_HFSR")]];
 
 
 
 
-extern volatile void* const mmfar __attribute__((__weak__, __alias__(".SCS_MMFAR")));
+extern volatile void* const mmfar [[gnu::weak, gnu::alias(".SCS_MMFAR")]];
 
 
 
 
-extern volatile void* const bfar __attribute__((__weak__, __alias__(".SCS_BFAR")));
+extern volatile void* const bfar [[gnu::weak, gnu::alias(".SCS_BFAR")]];
 
 
 
 
-extern uint32_t afsr __attribute__((__weak__, __alias__(".SCS_AFSR")));
+extern uint32_t afsr [[gnu::weak, gnu::alias(".SCS_AFSR")]];
 
 
 

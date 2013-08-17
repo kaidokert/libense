@@ -17,15 +17,15 @@ class NVIC {
 
 	private:
 		bitfield_t iser;
-		bitfield_t __iser_padding __attribute__((unused));
+		bitfield_t __iser_padding [[gnu::unused]];
 		bitfield_t icer;
-		bitfield_t __icer_padding __attribute__((unused));
+		bitfield_t __icer_padding [[gnu::unused]];
 		bitfield_t ispr;
-		bitfield_t __ispr_padding __attribute__((unused));
+		bitfield_t __ispr_padding [[gnu::unused]];
 		bitfield_t icpr;
-		bitfield_t __icpr_padding __attribute__((unused));
+		bitfield_t __icpr_padding [[gnu::unused]];
 		const bitfield_t iabr;
-		bitfield_t __iabr_padding __attribute__((unused));
+		bitfield_t __iabr_padding [[gnu::unused]];
 		volatile uint8_t ipr[496];
 
 		template<size_t Idx>
@@ -152,7 +152,7 @@ class NVIC {
 		}
 };
 
-extern NVIC nvic __attribute__((__weak__, __alias__(".SCS_NVIC")));
+extern NVIC nvic [[gnu::weak, gnu::alias(".SCS_NVIC")]];
 
 }
 
