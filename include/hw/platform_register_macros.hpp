@@ -76,14 +76,19 @@
 		uint32_t mask = static_cast<uint32_t>(idx_mask) & bp::field_anchored_mask; \
 		uint32_t splice_mask = 0; \
 		uint32_t splice_value = 0; \
-		uint32_t offset = bp::width * bp::begin; \
-		while (mask) { \
-			splice_mask |= bp::array_anchored_mask << offset; \
-			splice_value |= static_cast<uint32_t>(value_val) << offset; \
-			offset += bp::width; \
-			mask >>= 1; \
+		if (bp::width == 1) { \
+			splice_mask = bp::field_anchored_mask << bp::begin; \
+			splice_value = (static_cast<uint32_t>(value_val) * mask) << bp::begin; \
+		} else { \
+			uint32_t offset = bp::width * bp::begin; \
+			while (mask) { \
+				splice_mask |= bp::array_anchored_mask << offset; \
+				splice_value |= static_cast<uint32_t>(value_val) << offset; \
+				offset += bp::width; \
+				mask >>= 1; \
+			} \
 		} \
-		this->value((this->value() & ~splice_mask) | splice_value); \
+		this->value((this->value() & ~splice_mask) | (splice_value & splice_mask)); \
 		return *this; \
 	} \
 	template<detail::bit::index_type<__VA_ARGS__> Mask> \

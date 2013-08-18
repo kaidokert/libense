@@ -114,7 +114,7 @@ static void print()
 		.clock_enabled(false)
 		.commit();
 	for (uint8_t i = 0;; i++) {
-		usart1.data(i++);
+		usart1.data(i);
 		while (!usart1.tdr_empty())
 			;
 //		gpioD.out() ^= 1 << 12;
