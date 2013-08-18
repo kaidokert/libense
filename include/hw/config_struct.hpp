@@ -8,6 +8,8 @@
 #include <mpl/list.hpp>
 #include <mpl/any.hpp>
 #include <mpl/nth_arg.hpp>
+#include <mpl/result_type.hpp>
+#include <mpl/select_memfn.hpp>
 
 namespace ense {
 
@@ -110,46 +112,6 @@ namespace detail {
 		-> decltype(cs.template extract<Offset>(part))
 	{
 		return cs.template extract<Offset>(part);
-	}
-
-	template<typename>
-	struct result_type;
-
-	template<typename R, typename C, typename... Args>
-	struct result_type<R (C::*)(Args...) const> : result_type<R (C::*)(Args...)> {
-	};
-
-	template<typename R, typename C, typename... Args>
-	struct result_type<R (C::*)(Args...)> {
-		typedef R type;
-	};
-
-	template<typename Result, typename Class>
-	constexpr auto select_memfn0c(Result (Class::*fn)() const)
-		-> Result (Class::*)() const
-	{
-		return fn;
-	}
-
-	template<typename Result, typename Class, typename Arg1>
-	constexpr auto select_memfn1(Result (Class::*fn)(Arg1))
-		-> Result (Class::*)(Arg1)
-	{
-		return fn;
-	}
-
-	template<typename Result, typename Class, typename Arg1>
-	constexpr auto select_memfn1c(Result (Class::*fn)(Arg1) const)
-		-> Result (Class::*)(Arg1) const
-	{
-		return fn;
-	}
-
-	template<typename Result, typename Class, typename Arg1, typename Arg2>
-	constexpr auto select_memfn2(Result (Class::*fn)(Arg1, Arg2))
-		-> Result (Class::*)(Arg1, Arg2)
-	{
-		return fn;
 	}
 
 }

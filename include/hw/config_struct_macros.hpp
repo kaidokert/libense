@@ -7,7 +7,7 @@
 
 #define STRUCT_FORWARD_R(name, reg, name_in_reg, selector, params, args) \
 	auto name(STRUCT_UNPACK params) const \
-		-> typename ense::detail::result_type<decltype(ense::detail::select_memfn ## selector(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type \
+		-> typename ense::mpl::result_type<decltype(ense::mpl::select_memfn ## selector(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type \
 	{ \
 		STRUCT_EXTENDED_TYPE(reg) extended = STRUCT_EXTEND(reg); \
 		return STRUCT_EXTRACT(extended, reg).name_in_reg(STRUCT_UNPACK args); \
@@ -46,25 +46,25 @@
 
 #define STRUCT_FORWARD1_R(name, reg, name_in_reg) \
 	STRUCT_FORWARD_R(name, reg, name_in_reg, 1c, \
-		(typename ense::mpl::nth_arg<0, decltype(ense::detail::select_memfn1c(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type arg), \
+		(typename ense::mpl::nth_arg<0, decltype(ense::mpl::select_memfn1c(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type arg), \
 		(arg))
 #define STRUCT_FORWARD1_W(name, reg, name_in_reg) \
 	STRUCT_FORWARD_W(name, reg, name_in_reg, \
-		(typename ense::mpl::nth_arg<0, decltype(ense::detail::select_memfn1(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type arg), \
+		(typename ense::mpl::nth_arg<0, decltype(ense::mpl::select_memfn1(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type arg), \
 		(arg))
 #define STRUCT_FORWARD1_TMASK(name, index_type, reg, name_in_reg) \
 	STRUCT_FORWARD_TMASK(name, index_type, reg, name_in_reg, \
-		(typename ense::mpl::nth_arg<0, decltype(ense::detail::select_memfn1(&decltype(std::declval<struct_type>().reg)::name_in_reg ## _mask<Mask>))>::type arg), \
+		(typename ense::mpl::nth_arg<0, decltype(ense::mpl::select_memfn1(&decltype(std::declval<struct_type>().reg)::name_in_reg ## _mask<Mask>))>::type arg), \
 		(arg))
 #define STRUCT_FORWARD1_TRANGE(name, index_type, reg, name_in_reg) \
 	STRUCT_FORWARD_TRANGE(name, index_type, reg, name_in_reg, \
-		(typename ense::mpl::nth_arg<0, decltype(ense::detail::select_memfn1(&decltype(std::declval<struct_type>().reg)::name_in_reg ## _range<Bound1, Bound2>))>::type arg), \
+		(typename ense::mpl::nth_arg<0, decltype(ense::mpl::select_memfn1(&decltype(std::declval<struct_type>().reg)::name_in_reg ## _range<Bound1, Bound2>))>::type arg), \
 		(arg))
 
 #define STRUCT_FORWARD2_W(name, reg, name_in_reg) \
 	STRUCT_FORWARD_W(name, reg, name_in_reg, \
-		(typename ense::mpl::nth_arg<0, decltype(ense::detail::select_memfn2(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type arg0, \
-		 typename ense::mpl::nth_arg<1, decltype(ense::detail::select_memfn2(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type arg1), \
+		(typename ense::mpl::nth_arg<0, decltype(ense::mpl::select_memfn2(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type arg0, \
+		 typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type arg1), \
 		(arg0, arg1))
 
 #define STRUCT_BIT_R STRUCT_FORWARD0_R
@@ -100,8 +100,8 @@
 #define STRUCT_ARRAY_W(name, index_type, reg, name_in_reg) \
 	STRUCT_FORWARD2_W(name, reg, name_in_reg) \
 	STRUCT_FORWARD_W(name ## _mask, reg, name_in_reg ## _mask, \
-		(typename ense::mpl::nth_arg<0, decltype(ense::detail::select_memfn2(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type arg0, \
-		 typename ense::mpl::nth_arg<1, decltype(ense::detail::select_memfn2(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type arg1), \
+		(typename ense::mpl::nth_arg<0, decltype(ense::mpl::select_memfn2(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type arg0, \
+		 typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type arg1), \
 		(arg0, arg1)) \
 	STRUCT_FORWARD1_TMASK(name, index_type, reg, name_in_reg) \
 	STRUCT_FORWARD1_TRANGE(name, index_type, reg, name_in_reg)

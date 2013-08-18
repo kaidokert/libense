@@ -4,6 +4,7 @@
 #include <hw/config_struct.hpp>
 #include <hw/platform_register_macros.hpp>
 #include <hw/config_struct_macros.hpp>
+#include <mpl/select_memfn.hpp>
 
 namespace ense {
 namespace platform {
@@ -262,19 +263,19 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 		}
 
 #define CONFIG_ONE(target) \
-		auto configure(uint32_t pin, typename ense::mpl::nth_arg<1, decltype(ense::detail::select_memfn2(&GPIO::target))>::type arg) \
+		auto configure(uint32_t pin, typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&GPIO::target))>::type arg) \
 			-> decltype(this->target(pin, arg)) \
 		{ \
 			return this->target(pin, arg); \
 		} \
 		template<uint32_t Mask> \
-		auto configure_mask(typename ense::mpl::nth_arg<1, decltype(ense::detail::select_memfn2(&GPIO::target))>::type arg) \
+		auto configure_mask(typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&GPIO::target))>::type arg) \
 			-> decltype(this->target ## _mask<Mask>(arg)) \
 		{ \
 			return this->target ## _mask<Mask>(arg); \
 		} \
 		template<uint32_t Bound1, uint32_t Bound2> \
-		auto configure_range(typename ense::mpl::nth_arg<1, decltype(ense::detail::select_memfn2(&GPIO::target))>::type arg) \
+		auto configure_range(typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&GPIO::target))>::type arg) \
 			-> decltype(this->target ## _range<Bound1, Bound2>(arg)) \
 		{ \
 			return this->target ## _range<Bound1, Bound2>(arg); \
