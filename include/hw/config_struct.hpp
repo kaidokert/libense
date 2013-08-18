@@ -60,51 +60,74 @@ namespace detail {
 		}
 	};
 
-	template<typename NextPart, typename... Parts>
-	struct extended_flight {
-		static constexpr bool extend_is_id = ense::mpl::any(std::is_same<Parts, NextPart>::value...);
 
-		struct extend_id {
-			static ConfigurationStructFlight<Parts...> extend(ConfigurationStructFlight<Parts...>& csf, const NextPart&)
-			{
-				return csf;
-			}
-		};
 
-		struct extend_add {
-			static ConfigurationStructFlight<Parts..., NextPart> extend(ConfigurationStructFlight<Parts...>& csf, const NextPart& next)
-			{
-				return ConfigurationStructFlight<Parts..., NextPart>(static_cast<Parts&>(csf)..., next);
-			}
-		};
+	template<typename Flight, typename... Extension>
+	struct extend_flight;
 
-		typedef typename std::conditional<
-			extend_is_id,
-			ConfigurationStructFlight<Parts...>,
-			ConfigurationStructFlight<Parts..., NextPart>
-			>::type type;
+	template<typename... Parts, size_t... Offsets>
+	struct extend_flight<void, ConfigurationStructFlightPart<Offsets, Parts>...> {
+		typedef void type;
+	};
 
-		static type extend(ConfigurationStructFlight<Parts...>& csf, const NextPart& next)
-		{
-			return std::conditional<
+	template<size_t... Offsets, typename... Registers>
+	struct extend_flight<ConfigurationStructFlight<ConfigurationStructFlightPart<Offsets, Registers>...>> {
+		typedef ConfigurationStructFlight<ConfigurationStructFlightPart<Offsets, Registers>...> type;
+	};
+
+	template<
+		typename... Parts,
+		size_t Offset, typename Register,
+		typename... Rest>
+	struct extend_flight<
+		ConfigurationStructFlight<Parts...>,
+		ConfigurationStructFlightPart<Offset, Register>,
+		Rest...> {
+
+		private:
+			typedef ConfigurationStructFlightPart<Offset, Register> next_part;
+
+			static constexpr bool extend_is_id = ense::mpl::any(std::is_same<Parts, next_part>::value...);
+
+			struct extend_id {
+				static ConfigurationStructFlight<Parts...> extend(ConfigurationStructFlight<Parts...>& csf, const next_part&)
+				{
+					return csf;
+				}
+			};
+
+			struct extend_add {
+				static ConfigurationStructFlight<Parts..., next_part> extend(ConfigurationStructFlight<Parts...>& csf, const next_part& next)
+				{
+					return ConfigurationStructFlight<Parts..., next_part>(static_cast<Parts&>(csf)..., next);
+				}
+			};
+
+			typedef typename std::conditional<
 				extend_is_id,
-				extend_id,
-				extend_add>::type::extend(csf, next);
-		}
+				ConfigurationStructFlight<Parts...>,
+				ConfigurationStructFlight<Parts..., next_part>
+				>::type single_extended_type;
+
+		public:
+			typedef typename extend_flight<single_extended_type, Rest...>::type type;
+
+			static type extend(ConfigurationStructFlight<Parts...>& csf, const next_part& next)
+			{
+				return std::conditional<
+					extend_is_id,
+					extend_id,
+					extend_add>::type::extend(csf, next);
+			}
 	};
 
-	template<typename NextPart, typename Flight>
-	struct extend_flight_type;
-	template<typename NextPart, typename... Parts>
-	struct extend_flight_type<NextPart, ConfigurationStructFlight<Parts...>> {
-		typedef typename extended_flight<NextPart, Parts...>::type type;
-	};
+
 
 	template<typename NextPart, typename... Parts>
 	auto extend(ConfigurationStructFlight<Parts...>& flight, const NextPart& next)
-		-> typename extended_flight<NextPart, Parts...>::type
+		-> typename extend_flight<ConfigurationStructFlight<Parts...>, NextPart>::type
 	{
-		return extended_flight<NextPart, Parts...>::extend(flight, next);
+		return extend_flight<ConfigurationStructFlight<Parts...>, NextPart>::extend(flight, next);
 	}
 
 	template<size_t Offset, typename CS, typename Part>

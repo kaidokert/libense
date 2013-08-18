@@ -165,21 +165,11 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 		typedef detail::layout struct_type;
 
 	private:
-		template<typename FlightType, uint32_t Offset>
-		struct afr_next {
-		   typedef typename ense::detail::extend_flight_type<ense::detail::ConfigurationStructFlightPart<Offset, AFR<>::in_flight_type>, FlightType>::type type;
-		};
-		template<uint32_t Offset>
-		struct afr_next<void, Offset> {
-			typedef void type;
-		};
-
 		static constexpr bool is_config = !std::is_same<Flight, void>::value;
-		typedef typename std::conditional<
-			!is_config,
-			GPIO&,
-			GPIO<typename afr_next<typename afr_next<Flight, STRUCT_OFFSETOF(afrl)>::type, STRUCT_OFFSETOF(afrh)>::type>
-			>::type alternate_function_next_type;
+
+		typedef GPIO<typename ense::detail::extend_flight<Flight,
+				ense::detail::ConfigurationStructFlightPart<STRUCT_OFFSETOF(afrl), AFR<>::in_flight_type>,
+				ense::detail::ConfigurationStructFlightPart<STRUCT_OFFSETOF(afrh), AFR<>::in_flight_type>>::type> alternate_function_next_type;
 
 		template<typename T>
 		static alternate_function_next_type begin_apply_af(T& self)
@@ -245,11 +235,10 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 			return extended;
 		}
 
-		template<uint32_t Mask>
+		template<uint16_t Mask>
 		auto alternate_function_mask(AF fn)
 			-> alternate_function_next_type
 		{
-			static_assert(Mask <= 0xFFFF, "Mask invalid");
 			return apply_af<0>(fn, std::integral_constant<uint32_t, Mask>());
 		}
 
