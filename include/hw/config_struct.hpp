@@ -73,6 +73,11 @@ namespace detail {
 	template<size_t... Offsets, typename... Registers>
 	struct extend_flight<ConfigurationStructFlight<ConfigurationStructFlightPart<Offsets, Registers>...>> {
 		typedef ConfigurationStructFlight<ConfigurationStructFlightPart<Offsets, Registers>...> type;
+
+		static type extend(type& csf)
+		{
+			return csf;
+		}
 	};
 
 	template<
@@ -112,22 +117,23 @@ namespace detail {
 		public:
 			typedef typename extend_flight<single_extended_type, Rest...>::type type;
 
-			static type extend(ConfigurationStructFlight<Parts...>& csf, const next_part& next)
+			static type extend(ConfigurationStructFlight<Parts...>& csf, const next_part& next, const Rest&... rest)
 			{
-				return std::conditional<
+				single_extended_type single = std::conditional<
 					extend_is_id,
 					extend_id,
 					extend_add>::type::extend(csf, next);
+				return extend_flight<single_extended_type, Rest...>::extend(single, rest...);
 			}
 	};
 
 
 
-	template<typename NextPart, typename... Parts>
-	auto extend(ConfigurationStructFlight<Parts...>& flight, const NextPart& next)
-		-> typename extend_flight<ConfigurationStructFlight<Parts...>, NextPart>::type
+	template<typename... Parts, typename... NextParts>
+	auto extend(ConfigurationStructFlight<Parts...>& flight, const NextParts&... next)
+		-> typename extend_flight<ConfigurationStructFlight<Parts...>, NextParts...>::type
 	{
-		return extend_flight<ConfigurationStructFlight<Parts...>, NextPart>::extend(flight, next);
+		return extend_flight<ConfigurationStructFlight<Parts...>, NextParts...>::extend(flight, next...);
 	}
 
 	template<size_t Offset, typename CS, typename Part>
@@ -147,6 +153,25 @@ class ConfigurationStruct {
 	template<size_t Offset, typename CS, typename Part>
 	friend auto detail::extract(CS& cs, Part& part) -> decltype(cs.template extract<Offset>(part));
 
+	private:
+		template<size_t FirstOffset, typename NextPart>
+		auto extend_step(NextPart&, std::true_type)
+			-> Derived<Flight>&
+		{
+			return static_cast<Derived<Flight>&>(*this);
+		}
+
+		template<size_t FirstOffset, typename NextPart>
+		auto extend_step(NextPart& next, std::false_type)
+			-> Derived<typename detail::extend_flight<Flight, detail::ConfigurationStructFlightPart<FirstOffset, typename NextPart::in_flight_type>>::type>
+		{
+			auto single_extended = detail::extend(_flight, detail::ConfigurationStructFlightPart<FirstOffset, typename NextPart::in_flight_type>{ next.begin() });
+			Derived<decltype(single_extended)> result;
+			result._target = _target;
+			result._flight = single_extended;
+			return result;
+		}
+
 	protected:
 		Derived<void>* _target;
 		Flight _flight;
@@ -156,15 +181,27 @@ class ConfigurationStruct {
 			return _target;
 		}
 
-		template<size_t Offset, typename Next>
-		auto extend(Next& next)
-			-> Derived<decltype(detail::extend(_flight, detail::ConfigurationStructFlightPart<Offset, typename Next::in_flight_type>{ next.begin() }))>
+		template<size_t FirstOffset, typename NextPart>
+		auto extend(NextPart& next)
+			-> Derived<typename detail::extend_flight<Flight, detail::ConfigurationStructFlightPart<FirstOffset, typename NextPart::in_flight_type>>::type>
 		{
-			auto next_flight = detail::extend(_flight, detail::ConfigurationStructFlightPart<Offset, typename Next::in_flight_type>{ next.begin() });
-			Derived<decltype(next_flight)> result;
-			result._target = _target;
-			result._flight = next_flight;
-			return result;
+			typedef std::integral_constant<
+				bool,
+				std::is_base_of<
+					detail::ConfigurationStructFlightPart<FirstOffset, typename NextPart::in_flight_type>,
+					Flight>::value> already_extended;
+
+			return extend_step<FirstOffset>(next, already_extended());
+		}
+
+		template<size_t FirstOffset, size_t... RestOffsets, typename NextPart, typename... RestParts>
+		auto extend(NextPart& next, RestParts&... rest)
+			-> Derived<typename detail::extend_flight<
+					Flight,
+					detail::ConfigurationStructFlightPart<FirstOffset, typename NextPart::in_flight_type>,
+					detail::ConfigurationStructFlightPart<RestOffsets, typename RestParts::in_flight_type>...>::type>
+		{
+			return extend<FirstOffset>(next).template extend<RestOffsets...>(rest...);
 		}
 
 		template<size_t Offset, typename Part>
@@ -188,8 +225,8 @@ class ConfigurationStruct<Derived, Struct, void> : public Struct {
 	friend auto detail::extract(CS& cs, Part& part) -> decltype(cs.template extract<Offset>(part));
 
 	protected:
-		template<size_t Offset, typename Next> Derived<void>&       extend(Next&)       { return *target(); }
-		template<size_t Offset, typename Next> Derived<void> const& extend(Next&) const { return *target(); }
+		template<size_t... Offsets, typename... NextParts> Derived<void>&       extend(NextParts&...)       { return *target(); }
+		template<size_t... Offsets, typename... NextParts> Derived<void> const& extend(NextParts&...) const { return *target(); }
 
 		Derived<void>*       target()       { return static_cast<Derived<void>*>(this); }
 		Derived<void> const* target() const { return static_cast<const Derived<void>*>(this); }

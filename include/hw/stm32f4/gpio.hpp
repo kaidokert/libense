@@ -174,8 +174,7 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 		template<typename T>
 		static alternate_function_next_type begin_apply_af(T& self)
 		{
-			return self.template extend<STRUCT_OFFSETOF(afrl)>(self.target()->afrl)
-				.template extend<STRUCT_OFFSETOF(afrh)>(self.target()->afrh);
+			return self.template extend<STRUCT_OFFSETOF(afrl), STRUCT_OFFSETOF(afrh)>(self.target()->afrl, self.target()->afrh);
 		}
 		static alternate_function_next_type begin_apply_af(alternate_function_next_type& self)
 		{
