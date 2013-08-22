@@ -127,6 +127,10 @@ namespace detail {
 			}
 	};
 
+	template<typename Flight, typename Register, size_t... Offsets>
+	struct extend_flight_multipart : extend_flight<Flight, ConfigurationStructFlightPart<Offsets, Register>...> {
+	};
+
 
 
 	template<typename... Parts, typename... NextParts>

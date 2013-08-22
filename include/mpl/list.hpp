@@ -36,6 +36,28 @@ using cons = concat<list<Head>, List>;
 
 namespace detail {
 
+	template<typename List, size_t Idx>
+	struct nth;
+
+	template<typename First, typename... Rest, size_t Idx>
+	struct nth<list<First, Rest...>, Idx> : nth<list<Rest...>, Idx - 1> {
+	};
+
+	template<typename First, typename... Rest>
+	struct nth<list<First, Rest...>, 0> {
+		typedef First type;
+	};
+
+}
+
+template<typename List, size_t Idx>
+using nth = typename detail::nth<List, Idx>::type;
+
+
+
+
+namespace detail {
+
 	template<typename T, typename Length, T Offset>
 	struct make_range {
 		typedef mpl::concat<

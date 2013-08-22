@@ -1,7 +1,8 @@
 #define STRUCT_OFFSETOF(reg) offsetof(struct_type, reg)
 #define STRUCT_EXTEND(reg) this->template extend<STRUCT_OFFSETOF(reg)>(this->target()->reg)
 #define STRUCT_EXTENDED_TYPE(reg) decltype(STRUCT_EXTEND(reg))
-#define STRUCT_EXTRACT(extended, reg) ense::detail::extract<STRUCT_OFFSETOF(reg)>(extended, this->target()->reg)
+#define STRUCT_EXTRACT_SPECIFIC(extended, offset, reg) ense::detail::extract<offset>(extended, reg)
+#define STRUCT_EXTRACT(extended, reg) STRUCT_EXTRACT_SPECIFIC(extended, STRUCT_OFFSETOF(reg), this->target()->reg)
 
 #define STRUCT_UNPACK(...) __VA_ARGS__
 

@@ -5,6 +5,7 @@
 #include <hw/platform_register_macros.hpp>
 #include <hw/config_struct_macros.hpp>
 #include <mpl/select_memfn.hpp>
+#include <tuple>
 
 namespace ense {
 namespace platform {
@@ -123,9 +124,17 @@ struct BSSR : ConfigurationRegister<void, Config, BSSR> {
 static_assert(traits::is_platform_register_valid<BSSR<>>(), "");
 
 
+struct AF {
+	const uint32_t af;
+
+	constexpr explicit AF(uint32_t af) : af(af) {}
+
+	explicit operator uint32_t() { return af; }
+};
+
 template<bool Config = false>
 struct AFR : ConfigurationRegister<void, Config, AFR> {
-	REGISTER_SINGULAR_ARRAY_RW(uint8_t[8], detail::bit::range<0, 31>, detail::bit::width<4>)
+	REGISTER_SINGULAR_ARRAY_RW(AF[8], detail::bit::range<0, 31>, detail::bit::width<4>)
 };
 
 static_assert(traits::is_platform_register_valid<AFR<>>(), "");
@@ -150,12 +159,6 @@ namespace detail {
 
 }
 
-struct AF {
-	const uint32_t af;
-
-	constexpr explicit AF(uint32_t af) : af(af) {}
-};
-
 template<typename Flight = void>
 struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 	template<typename>
@@ -163,38 +166,10 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 
 	public:
 		typedef detail::layout struct_type;
-
 	private:
-		static constexpr bool is_config = !std::is_same<Flight, void>::value;
-
-		typedef GPIO<typename ense::detail::extend_flight<Flight,
-				ense::detail::ConfigurationStructFlightPart<STRUCT_OFFSETOF(afrl), AFR<>::in_flight_type>,
-				ense::detail::ConfigurationStructFlightPart<STRUCT_OFFSETOF(afrh), AFR<>::in_flight_type>>::type> alternate_function_next_type;
-
-		template<typename T>
-		static alternate_function_next_type begin_apply_af(T& self)
-		{
-			return self.template extend<STRUCT_OFFSETOF(afrl), STRUCT_OFFSETOF(afrh)>(self.target()->afrl, self.target()->afrh);
-		}
-		static alternate_function_next_type begin_apply_af(alternate_function_next_type& self)
-		{
-			return self;
-		}
-
-		template<uint32_t Idx, uint32_t Mask>
-		alternate_function_next_type apply_af(AF fn, std::integral_constant<uint32_t, Mask>)
-		{
-			if (Mask & 1) {
-				return alternate_function(Idx, fn).template apply_af<Idx + 1>(fn, std::integral_constant<uint32_t, (Mask >> 1)>());
-			} else {
-				return apply_af<Idx + 1>(fn, std::integral_constant<uint32_t, (Mask >> 1)>());
-			}
-		}
-		template<uint32_t Idx>
-		alternate_function_next_type apply_af(AF, std::integral_constant<uint32_t, 0>)
-		{
-			return begin_apply_af(*this);
-		}
+		typedef GPIO this_type;
+		template<typename Next>
+		using next_flight = GPIO<Next>;
 
 	public:
 		STRUCT_SINGULAR_ARRAY_RW(mode, uint32_t, moder)
@@ -206,49 +181,101 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 		STRUCT_ARRAY_C(set, uint32_t, bssr, set)
 		STRUCT_ARRAY_C(reset, uint32_t, bssr, reset)
 
-		auto alternate_function(uint32_t idx, AF fn)
-			-> alternate_function_next_type
-		{
-			alternate_function_next_type extended = begin_apply_af(*this);
-			if (idx > 7) {
-				STRUCT_EXTRACT(extended, afrh).set(idx - 8, fn.af);
-			} else {
-				STRUCT_EXTRACT(extended, afrl).set(idx, fn.af);
-			}
-			return extended;
+#define STRUCT_MULTIARRAY_IMPL(name, regtype, setter, SNAME, STYPE, offsets) \
+	private: \
+		template<size_t... Offsets> \
+		struct SNAME { \
+			static constexpr bool is_config = !std::is_same<Flight, void>::value; \
+			\
+			typedef next_flight<typename ense::detail::extend_flight_multipart<Flight, typename regtype::in_flight_type, Offsets...>::type> next_type; \
+			typedef typename std::conditional<is_config, next_type, next_flight<void>&>::type extended_type; \
+			typedef typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&regtype::setter))>::type arg_type; \
+			\
+			template<size_t Offset> \
+			static regtype& reg_at_offset(this_type& self) \
+			{ \
+				return *reinterpret_cast<regtype*>(reinterpret_cast<uint8_t*>(self.target()) + Offset); \
+			} \
+			\
+			template<typename T> \
+			static extended_type begin_apply(T& self) \
+			{ \
+				return self.template extend<Offsets...>(reg_at_offset<Offsets>(self)...); \
+			} \
+			static extended_type begin_apply(extended_type& self) \
+			{ \
+				return self; \
+			} \
+			\
+			template<uint32_t Idx, uint32_t Mask> \
+			static extended_type& apply(extended_type& self, arg_type arg, std::integral_constant<uint32_t, Mask>) \
+			{ \
+				if (Mask & 1) { \
+					return apply<Idx + 1>(self.name(Idx, arg), arg, std::integral_constant<uint32_t, (Mask >> 1)>()); \
+				} else { \
+					return apply<Idx + 1>(self, arg, std::integral_constant<uint32_t, (Mask >> 1)>()); \
+				} \
+			} \
+			template<uint32_t Idx> \
+			static extended_type& apply(extended_type& self, arg_type arg, std::integral_constant<uint32_t, 0>) \
+			{ \
+				return self.name(Idx, arg); \
+			} \
+			\
+			static auto make_tuple(this_type& self) -> \
+				decltype(std::make_tuple(std::ref(reg_at_offset<Offsets>(self))...)) \
+			{ \
+				return std::make_tuple(std::ref(reg_at_offset<Offsets>(self))...); \
+			} \
+			\
+			template<size_t Idx> \
+			using nth_offset = ense::mpl::nth<ense::mpl::list<std::integral_constant<uint32_t, Offsets>...>, Idx>; \
+		}; \
+	public: \
+		auto name(uint32_t idx, typename STYPE::arg_type arg) -> \
+			typename STYPE::extended_type \
+		{ \
+			typename STYPE::extended_type extended = STYPE::begin_apply(*this); \
+			auto targets = STYPE::make_tuple(*this); \
+			if (idx > 7) { \
+				STRUCT_EXTRACT_SPECIFIC(extended, (STYPE::template nth_offset<1>::value), std::get<1>(targets)).setter(idx - 8, arg); \
+			} else { \
+				STRUCT_EXTRACT_SPECIFIC(extended, (STYPE::template nth_offset<0>::value), std::get<0>(targets)).setter(idx, arg); \
+			} \
+			return extended; \
+		} \
+		auto name ## _mask(uint32_t mask, typename STYPE::arg_type arg) -> \
+			typename STYPE::extended_type \
+		{ \
+			typename STYPE::extended_type extended = STYPE::begin_apply(*this); \
+			for (uint32_t i = 0; i < 16 /* TODO: bits */; i++) { \
+				if (mask & (1ULL << i)) { \
+					extended.name(i, arg); \
+				} \
+			} \
+			return extended; \
+		} \
+		template<uint16_t /* TODO: bits */ Mask> \
+		auto name ## _mask(typename STYPE::arg_type arg) -> \
+			typename STYPE::extended_type \
+		{ \
+			typename STYPE::extended_type extended = STYPE::begin_apply(*this); \
+			return STYPE::apply(extended, arg, std::integral_constant<uint32_t, Mask>()); \
+		} \
+		template<uint32_t /* TODO: bits */ Bound1, uint32_t /* TODO: bits */ Bound2> \
+		auto name ## _range(typename STYPE::arg_type arg) -> \
+			typename STYPE::extended_type \
+		{ \
+			typedef ense::detail::bit::expand<ense::detail::bit::range<Bound1, Bound2>> range; \
+			static_assert(range::end < 16 /* TODO: bits */, "Index out or range"); \
+			return name ## _mask<range::field_mask>(arg); \
 		}
 
-		auto alternate_function_mask(uint32_t mask, AF fn)
-			-> alternate_function_next_type
-		{
-			alternate_function_next_type extended = begin_apply_af(*this);
-			for (uint32_t i = 0; i < 16; i++) {
-				if (mask & (1 << i)) {
-					if (is_config) {
-						extended = extended.alternate_function(i, fn);
-					} else {
-						alternate_function(i, fn);
-					}
-				}
-			}
-			return extended;
-		}
-
-		template<uint16_t Mask>
-		auto alternate_function_mask(AF fn)
-			-> alternate_function_next_type
-		{
-			return apply_af<0>(fn, std::integral_constant<uint32_t, Mask>());
-		}
-
-		template<uint32_t Bound1, uint32_t Bound2>
-		auto alternate_function_range(AF fn)
-			-> alternate_function_next_type
-		{
-			typedef ense::detail::bit::expand<ense::detail::bit::range<Bound1, Bound2>> range;
-			static_assert(range::end < 16, "Index out or range");
-			return alternate_function_mask<range::field_mask>(fn);
-		}
+#define STRUCT_MULTIARRAY_IMPL1(name, regtype, setter, SNAME, offsets) \
+		STRUCT_MULTIARRAY_IMPL(name, regtype, setter, SNAME, SNAME<STRUCT_UNPACK offsets>, offsets)
+#define STRUCT_MULTIARRAY(name, regtype, setter, offsets) \
+	STRUCT_MULTIARRAY_IMPL1(name, regtype, setter, _apply_ ## name ## _impl, offsets)
+		STRUCT_MULTIARRAY(alternate_function, AFR<>, set, (STRUCT_OFFSETOF(afrl), STRUCT_OFFSETOF(afrh)))
 
 #define CONFIG_ONE(target) \
 		auto configure(uint32_t pin, typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&GPIO::target))>::type arg) \
