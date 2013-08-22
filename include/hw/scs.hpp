@@ -71,7 +71,9 @@ enum class CoprocessorAccess {
 template<bool Config = false>
 struct CPACR : ConfigurationRegister<void, Config, CPACR> {
 	REGISTER_SINGULAR_ARRAY_RW(CoprocessorAccess[16], detail::bit::index<Coprocessor>, detail::bit::range<0, 31>, detail::bit::width<2>)
-	REGISTER_SINGULAR_ARRAY_RW(CoprocessorAccess[16], detail::bit::range<0, 31>, detail::bit::width<2>)
+	REGISTER_ARRAY_R_SILENT(CoprocessorAccess[16], get, detail::bit::range<0, 31>, detail::bit::width<2>)
+	REGISTER_ARRAY_R_SILENT(CoprocessorAccess[16], operator[], detail::bit::range<0, 31>, detail::bit::width<2>)
+	REGISTER_SINGULAR_ARRAY_W(CoprocessorAccess[16], detail::bit::range<0, 31>, detail::bit::width<2>)
 };
 
 extern linker_placed_register<CPACR<>> cpacr [[gnu::weak, gnu::alias(".SCS_CPACR")]];

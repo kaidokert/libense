@@ -181,7 +181,7 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 		STRUCT_ARRAY_C(set, uint32_t, bssr, set)
 		STRUCT_ARRAY_C(reset, uint32_t, bssr, reset)
 
-#define STRUCT_MULTIARRAY_IMPL(name, regtype, setter, SNAME, STYPE, offsets) \
+#define STRUCT_MULTIARRAY_IMPL(name, regtype, getter, setter, SNAME, STYPE, offsets) \
 	private: \
 		template<size_t... Offsets> \
 		struct SNAME { \
@@ -208,16 +208,17 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 			} \
 			\
 			template<uint32_t Idx, uint32_t Mask> \
-			static extended_type& apply(extended_type& self, arg_type arg, std::integral_constant<uint32_t, Mask>) \
+			static extended_type apply(extended_type& self, arg_type arg, std::integral_constant<uint32_t, Mask>) \
 			{ \
 				if (Mask & 1) { \
-					return apply<Idx + 1>(self.name(Idx, arg), arg, std::integral_constant<uint32_t, (Mask >> 1)>()); \
+					extended_type next = self.name(Idx, arg); \
+					return apply<Idx + 1>(next, arg, std::integral_constant<uint32_t, (Mask >> 1)>()); \
 				} else { \
 					return apply<Idx + 1>(self, arg, std::integral_constant<uint32_t, (Mask >> 1)>()); \
 				} \
 			} \
 			template<uint32_t Idx> \
-			static extended_type& apply(extended_type& self, arg_type arg, std::integral_constant<uint32_t, 0>) \
+			static extended_type apply(extended_type& self, arg_type arg, std::integral_constant<uint32_t, 0>) \
 			{ \
 				return self.name(Idx, arg); \
 			} \
@@ -230,52 +231,73 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 			\
 			template<size_t Idx> \
 			using nth_offset = ense::mpl::nth<ense::mpl::list<std::integral_constant<uint32_t, Offsets>...>, Idx>; \
+			\
+			static constexpr size_t part_extent = regtype::getter ## _extent; \
+			static constexpr size_t extent = sizeof...(Offsets) * regtype::getter ## _extent; \
 		}; \
+		template<uint32_t Element, typename Tuple> \
+		auto apply_ ## name ## _step(uint32_t idx, typename STYPE::arg_type arg, const Tuple& targets, std::integral_constant<uint32_t, Element>) -> \
+			typename STYPE::extended_type \
+		{ \
+			if (idx >= Element * STYPE::part_extent) { \
+				static constexpr uint32_t offset = Element * STYPE::part_extent; \
+				STRUCT_EXTRACT_SPECIFIC(*this, (STYPE::template nth_offset<Element>::value), std::get<Element>(targets)).setter(idx - offset, arg); \
+				return *this; \
+			} else { \
+				return apply_ ## name ## _step(idx, arg, targets, std::integral_constant<uint32_t, Element - 1>()); \
+			} \
+		} \
+		template<typename Tuple> \
+		auto apply_ ## name ## _step(uint32_t idx, typename STYPE::arg_type arg, const Tuple& targets, std::integral_constant<uint32_t, 0>) -> \
+			typename STYPE::extended_type \
+		{ \
+			STRUCT_EXTRACT_SPECIFIC(*this, (STYPE::template nth_offset<0>::value), std::get<0>(targets)).setter(idx, arg); \
+			return *this; \
+		} \
 	public: \
 		auto name(uint32_t idx, typename STYPE::arg_type arg) -> \
 			typename STYPE::extended_type \
 		{ \
 			typename STYPE::extended_type extended = STYPE::begin_apply(*this); \
 			auto targets = STYPE::make_tuple(*this); \
-			if (idx > 7) { \
-				STRUCT_EXTRACT_SPECIFIC(extended, (STYPE::template nth_offset<1>::value), std::get<1>(targets)).setter(idx - 8, arg); \
-			} else { \
-				STRUCT_EXTRACT_SPECIFIC(extended, (STYPE::template nth_offset<0>::value), std::get<0>(targets)).setter(idx, arg); \
-			} \
+			extended.apply_ ## name ## _step(idx, arg, targets, std::integral_constant<uint32_t, std::tuple_size<decltype(targets)>::value - 1>()); \
 			return extended; \
 		} \
 		auto name ## _mask(uint32_t mask, typename STYPE::arg_type arg) -> \
 			typename STYPE::extended_type \
 		{ \
 			typename STYPE::extended_type extended = STYPE::begin_apply(*this); \
-			for (uint32_t i = 0; i < 16 /* TODO: bits */; i++) { \
+			for (uint32_t i = 0; i < STYPE::extent; i++) { \
 				if (mask & (1ULL << i)) { \
 					extended.name(i, arg); \
 				} \
 			} \
 			return extended; \
 		} \
-		template<uint16_t /* TODO: bits */ Mask> \
+		template<uint32_t Mask> \
 		auto name ## _mask(typename STYPE::arg_type arg) -> \
 			typename STYPE::extended_type \
 		{ \
+			static_assert(Mask <= (1ULL << STYPE::extent), "Mask too large"); \
 			typename STYPE::extended_type extended = STYPE::begin_apply(*this); \
-			return STYPE::apply(extended, arg, std::integral_constant<uint32_t, Mask>()); \
+			return STYPE::template apply<0>(extended, arg, std::integral_constant<uint32_t, Mask>()); \
 		} \
-		template<uint32_t /* TODO: bits */ Bound1, uint32_t /* TODO: bits */ Bound2> \
+		template<uint32_t Bound1, uint32_t Bound2> \
 		auto name ## _range(typename STYPE::arg_type arg) -> \
 			typename STYPE::extended_type \
 		{ \
 			typedef ense::detail::bit::expand<ense::detail::bit::range<Bound1, Bound2>> range; \
-			static_assert(range::end < 16 /* TODO: bits */, "Index out or range"); \
+			static_assert(range::end < STYPE::extent, "Index out or range"); \
 			return name ## _mask<range::field_mask>(arg); \
 		}
 
-#define STRUCT_MULTIARRAY_IMPL1(name, regtype, setter, SNAME, offsets) \
-		STRUCT_MULTIARRAY_IMPL(name, regtype, setter, SNAME, SNAME<STRUCT_UNPACK offsets>, offsets)
-#define STRUCT_MULTIARRAY(name, regtype, setter, offsets) \
-	STRUCT_MULTIARRAY_IMPL1(name, regtype, setter, _apply_ ## name ## _impl, offsets)
-		STRUCT_MULTIARRAY(alternate_function, AFR<>, set, (STRUCT_OFFSETOF(afrl), STRUCT_OFFSETOF(afrh)))
+#define STRUCT_MULTIARRAY_IMPL1(name, regtype, getter, setter, SNAME, offsets) \
+		STRUCT_MULTIARRAY_IMPL(name, regtype, getter, setter, SNAME, SNAME<STRUCT_UNPACK offsets>, offsets)
+#define STRUCT_MULTIARRAY(name, regtype, getter, setter, offsets) \
+	STRUCT_MULTIARRAY_IMPL1(name, regtype, getter, setter, _apply_ ## name ## _impl, offsets)
+#define STRUCT_SINGULAR_MULTIARRAY(name, regtype, offsets) \
+		STRUCT_MULTIARRAY(name, regtype, get, set, offsets)
+		STRUCT_SINGULAR_MULTIARRAY(alternate_function, AFR<>, (STRUCT_OFFSETOF(afrl), STRUCT_OFFSETOF(afrh)))
 
 #define CONFIG_ONE(target) \
 		auto configure(uint32_t pin, typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&GPIO::target))>::type arg) \

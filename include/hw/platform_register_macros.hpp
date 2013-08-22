@@ -46,7 +46,7 @@
 	REGISTER_FIELD_R(type, name, __VA_ARGS__) \
 	REGISTER_FIELD_W(type, name, __VA_ARGS__)
 
-#define REGISTER_ARRAY_R(array_type, name, ...) \
+#define REGISTER_ARRAY_R_SILENT(array_type, name, ...) \
 	std::remove_all_extents<array_type>::type name(detail::bit::index_type<__VA_ARGS__> idx) const \
 	{ \
 		typedef std::remove_all_extents<array_type>::type value_type; \
@@ -119,6 +119,9 @@
 		return *this; \
 	}
 #define REGISTER_COMMA ,
+#define REGISTER_ARRAY_R(array_type, name, ...) \
+	static constexpr size_t name ## _extent = std::extent<array_type>::value; \
+	REGISTER_ARRAY_R_SILENT(array_type, name, __VA_ARGS__)
 #define REGISTER_ARRAY_W(array_type, name, ...) \
 	REGISTER_ARRAY_W_INNER(array_type, name, REGISTER_COMMA, std::remove_all_extents<array_type>::type value, value, __VA_ARGS__)
 #define REGISTER_ARRAY_C(array_type, name, ...) \
@@ -129,7 +132,7 @@
 
 #define REGISTER_SINGULAR_ARRAY_R(array_type, ...) \
 	REGISTER_ARRAY_R(array_type, get, __VA_ARGS__) \
-	REGISTER_ARRAY_R(array_type, operator[], __VA_ARGS__)
+	REGISTER_ARRAY_R_SILENT(array_type, operator[], __VA_ARGS__)
 #define REGISTER_SINGULAR_ARRAY_W(array_type, ...) \
 	REGISTER_ARRAY_W(array_type, set, __VA_ARGS__) \
 	auto operator[](detail::bit::index_type<__VA_ARGS__> idx) \
