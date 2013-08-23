@@ -173,14 +173,14 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 		using this_template = GPIO<Next>;
 
 	public:
-		STRUCT_SINGULAR_ARRAY_RW(mode, uint32_t, moder)
-		STRUCT_SINGULAR_ARRAY_RW(output_type, uint32_t, otyper)
-		STRUCT_SINGULAR_ARRAY_RW(output_speed, uint32_t, ospeedr)
-		STRUCT_SINGULAR_ARRAY_RW(pull, uint32_t, pupdr)
-		STRUCT_SINGULAR_ARRAY_R(input, uint32_t, idr)
-		STRUCT_SINGULAR_ARRAY_RW(output, uint32_t, odr)
-		STRUCT_ARRAY_C(set, uint32_t, bssr, set)
-		STRUCT_ARRAY_C(reset, uint32_t, bssr, reset)
+		STRUCT_SINGULAR_ARRAY_RW(mode, moder)
+		STRUCT_SINGULAR_ARRAY_RW(output_type, otyper)
+		STRUCT_SINGULAR_ARRAY_RW(output_speed, ospeedr)
+		STRUCT_SINGULAR_ARRAY_RW(pull, pupdr)
+		STRUCT_SINGULAR_ARRAY_R(input, idr)
+		STRUCT_SINGULAR_ARRAY_RW(output, odr)
+		STRUCT_ARRAY_C(set, bssr, set)
+		STRUCT_ARRAY_C(reset, bssr, reset)
 		STRUCT_SINGULAR_MULTIARRAY(alternate_function, AFR<>, STRUCT_OFFSETOF(afrl), STRUCT_OFFSETOF(afrh))
 
 		STRUCT_CONFIGURE_MANY(
