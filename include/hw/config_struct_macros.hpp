@@ -157,7 +157,9 @@
 			template<uint32_t Idx> \
 			static void apply(extended_type& self, arg_type arg, std::integral_constant<uint32_t, 0>) \
 			{ \
-				self.name(Idx, arg); \
+				if (Idx < extent) { \
+					self.name(Idx, arg); \
+				} \
 			} \
 			\
 			static auto make_tuple(this_type& self) -> \
@@ -211,14 +213,30 @@
 			} \
 			return extended; \
 		} \
+	private: \
+		template<uint32_t Mask> \
+		auto name ## _mask(typename STYPE::arg_type arg, std::true_type) -> \
+			typename STYPE::extended_type \
+		{ \
+			typename STYPE::extended_type extended = STYPE::begin_apply(*this); \
+			STYPE::template apply<0>(extended, arg, std::integral_constant<uint32_t, Mask>()); \
+			return extended; \
+		} \
+		template<uint32_t Mask> \
+		auto name ## _mask(typename STYPE::arg_type arg, std::false_type) -> \
+			typename STYPE::extended_type \
+		{ \
+			return this->begin() \
+				.template name ## _mask<Mask>(arg, std::true_type()) \
+				.commit(); \
+		} \
+	public: \
 		template<uint32_t Mask> \
 		auto name ## _mask(typename STYPE::arg_type arg) -> \
 			typename STYPE::extended_type \
 		{ \
 			static_assert(Mask <= (1ULL << STYPE::extent), "Mask too large"); \
-			typename STYPE::extended_type extended = STYPE::begin_apply(*this); \
-			STYPE::template apply<0>(extended, arg, std::integral_constant<uint32_t, Mask>()); \
-			return extended; \
+			return name ## _mask<Mask>(arg, std::integral_constant<bool, STYPE::is_config>()); \
 		} \
 		template<uint32_t Bound1, uint32_t Bound2> \
 		auto name ## _range(typename STYPE::arg_type arg) -> \
