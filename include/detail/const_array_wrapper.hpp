@@ -4,14 +4,14 @@
 namespace ense {
 namespace detail {
 
-template<typename Target, typename Index, typename Value>
+template<typename Target, typename Value>
 class const_array_wrapper {
 	protected:
 		Target* target;
-		Index idx;
+		uint32_t idx;
 
 	public:
-		const_array_wrapper(Target* target, Index idx)
+		const_array_wrapper(Target* target, uint32_t idx)
 			: target(target), idx(idx)
 		{
 		}

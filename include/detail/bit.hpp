@@ -27,15 +27,6 @@ struct range :
 
 
 
-struct has_index_tag {};
-
-template<typename Idx>
-struct index : has_index_tag {
-	typedef Idx index_t;
-};
-
-
-
 template<typename... Args>
 struct expand : expand<Args>... {};
 
@@ -62,19 +53,6 @@ struct expand<width<Width>> {
 	static constexpr uint32_t width = Width;
 	static constexpr uint32_t array_anchored_mask = (1U << width) - 1;
 };
-
-template<typename Idx>
-struct expand<index<Idx>> : index<Idx> {};
-
-
-
-template<typename... Args>
-using index_type = typename std::conditional<
-	std::is_base_of<has_index_tag, expand<Args...>>::value,
-	expand<Args...>,
-	index<uint32_t>
-	>::type::index_t;
-
 
 
 

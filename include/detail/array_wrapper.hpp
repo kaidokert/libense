@@ -6,11 +6,11 @@
 namespace ense {
 namespace detail {
 
-template<typename Target, typename Index, typename Value>
-class array_wrapper : public const_array_wrapper<Target, Index, Value> {
+template<typename Target, typename Value>
+class array_wrapper : public const_array_wrapper<Target, Value> {
 	public:
-		array_wrapper(Target* target, Index idx)
-			: const_array_wrapper<Target, Index, Value>(target, idx)
+		array_wrapper(Target* target, uint32_t idx)
+			: const_array_wrapper<Target, Value>(target, idx)
 		{
 		}
 
