@@ -169,7 +169,7 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 	private:
 		typedef GPIO this_type;
 		template<typename Next>
-		using next_flight = GPIO<Next>;
+		using this_template = GPIO<Next>;
 
 	public:
 		STRUCT_SINGULAR_ARRAY_RW(mode, uint32_t, moder)
@@ -180,168 +180,15 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 		STRUCT_SINGULAR_ARRAY_RW(output, uint32_t, odr)
 		STRUCT_ARRAY_C(set, uint32_t, bssr, set)
 		STRUCT_ARRAY_C(reset, uint32_t, bssr, reset)
+		STRUCT_SINGULAR_MULTIARRAY(alternate_function, AFR<>, STRUCT_OFFSETOF(afrl), STRUCT_OFFSETOF(afrh))
 
-#define STRUCT_MULTIARRAY_IMPL(name, regtype, getter, setter, SNAME, STYPE, offsets) \
-	private: \
-		template<size_t... Offsets> \
-		struct SNAME { \
-			static constexpr bool is_config = !std::is_same<Flight, void>::value; \
-			\
-			typedef next_flight<typename ense::detail::extend_flight_multipart<Flight, typename regtype::in_flight_type, Offsets...>::type> next_type; \
-			typedef typename std::conditional<is_config, next_type, next_flight<void>&>::type extended_type; \
-			typedef typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&regtype::setter))>::type arg_type; \
-			\
-			template<size_t Offset> \
-			static regtype& reg_at_offset(this_type& self) \
-			{ \
-				return *reinterpret_cast<regtype*>(reinterpret_cast<uint8_t*>(self.target()) + Offset); \
-			} \
-			\
-			template<typename T> \
-			static extended_type begin_apply(T& self) \
-			{ \
-				return self.template extend<Offsets...>(reg_at_offset<Offsets>(self)...); \
-			} \
-			static extended_type begin_apply(extended_type& self) \
-			{ \
-				return self; \
-			} \
-			\
-			template<uint32_t Idx, uint32_t Mask> \
-			static extended_type apply(extended_type& self, arg_type arg, std::integral_constant<uint32_t, Mask>) \
-			{ \
-				if (Mask & 1) { \
-					extended_type next = self.name(Idx, arg); \
-					return apply<Idx + 1>(next, arg, std::integral_constant<uint32_t, (Mask >> 1)>()); \
-				} else { \
-					return apply<Idx + 1>(self, arg, std::integral_constant<uint32_t, (Mask >> 1)>()); \
-				} \
-			} \
-			template<uint32_t Idx> \
-			static extended_type apply(extended_type& self, arg_type arg, std::integral_constant<uint32_t, 0>) \
-			{ \
-				return self.name(Idx, arg); \
-			} \
-			\
-			static auto make_tuple(this_type& self) -> \
-				decltype(std::make_tuple(std::ref(reg_at_offset<Offsets>(self))...)) \
-			{ \
-				return std::make_tuple(std::ref(reg_at_offset<Offsets>(self))...); \
-			} \
-			\
-			template<size_t Idx> \
-			using nth_offset = ense::mpl::nth<ense::mpl::list<std::integral_constant<uint32_t, Offsets>...>, Idx>; \
-			\
-			static constexpr size_t part_extent = regtype::getter ## _extent; \
-			static constexpr size_t extent = sizeof...(Offsets) * regtype::getter ## _extent; \
-		}; \
-		template<uint32_t Element, typename Tuple> \
-		auto apply_ ## name ## _step(uint32_t idx, typename STYPE::arg_type arg, const Tuple& targets, std::integral_constant<uint32_t, Element>) -> \
-			typename STYPE::extended_type \
-		{ \
-			if (idx >= Element * STYPE::part_extent) { \
-				static constexpr uint32_t offset = Element * STYPE::part_extent; \
-				STRUCT_EXTRACT_SPECIFIC(*this, (STYPE::template nth_offset<Element>::value), std::get<Element>(targets)).setter(idx - offset, arg); \
-				return *this; \
-			} else { \
-				return apply_ ## name ## _step(idx, arg, targets, std::integral_constant<uint32_t, Element - 1>()); \
-			} \
-		} \
-		template<typename Tuple> \
-		auto apply_ ## name ## _step(uint32_t idx, typename STYPE::arg_type arg, const Tuple& targets, std::integral_constant<uint32_t, 0>) -> \
-			typename STYPE::extended_type \
-		{ \
-			STRUCT_EXTRACT_SPECIFIC(*this, (STYPE::template nth_offset<0>::value), std::get<0>(targets)).setter(idx, arg); \
-			return *this; \
-		} \
-	public: \
-		auto name(uint32_t idx, typename STYPE::arg_type arg) -> \
-			typename STYPE::extended_type \
-		{ \
-			typename STYPE::extended_type extended = STYPE::begin_apply(*this); \
-			auto targets = STYPE::make_tuple(*this); \
-			extended.apply_ ## name ## _step(idx, arg, targets, std::integral_constant<uint32_t, std::tuple_size<decltype(targets)>::value - 1>()); \
-			return extended; \
-		} \
-		auto name ## _mask(uint32_t mask, typename STYPE::arg_type arg) -> \
-			typename STYPE::extended_type \
-		{ \
-			typename STYPE::extended_type extended = STYPE::begin_apply(*this); \
-			for (uint32_t i = 0; i < STYPE::extent; i++) { \
-				if (mask & (1ULL << i)) { \
-					extended.name(i, arg); \
-				} \
-			} \
-			return extended; \
-		} \
-		template<uint32_t Mask> \
-		auto name ## _mask(typename STYPE::arg_type arg) -> \
-			typename STYPE::extended_type \
-		{ \
-			static_assert(Mask <= (1ULL << STYPE::extent), "Mask too large"); \
-			typename STYPE::extended_type extended = STYPE::begin_apply(*this); \
-			return STYPE::template apply<0>(extended, arg, std::integral_constant<uint32_t, Mask>()); \
-		} \
-		template<uint32_t Bound1, uint32_t Bound2> \
-		auto name ## _range(typename STYPE::arg_type arg) -> \
-			typename STYPE::extended_type \
-		{ \
-			typedef ense::detail::bit::expand<ense::detail::bit::range<Bound1, Bound2>> range; \
-			static_assert(range::end < STYPE::extent, "Index out or range"); \
-			return name ## _mask<range::field_mask>(arg); \
-		}
-
-#define STRUCT_MULTIARRAY_IMPL1(name, regtype, getter, setter, SNAME, offsets) \
-		STRUCT_MULTIARRAY_IMPL(name, regtype, getter, setter, SNAME, SNAME<STRUCT_UNPACK offsets>, offsets)
-#define STRUCT_MULTIARRAY(name, regtype, getter, setter, offsets) \
-	STRUCT_MULTIARRAY_IMPL1(name, regtype, getter, setter, _apply_ ## name ## _impl, offsets)
-#define STRUCT_SINGULAR_MULTIARRAY(name, regtype, offsets) \
-		STRUCT_MULTIARRAY(name, regtype, get, set, offsets)
-		STRUCT_SINGULAR_MULTIARRAY(alternate_function, AFR<>, (STRUCT_OFFSETOF(afrl), STRUCT_OFFSETOF(afrh)))
-
-#define CONFIG_ONE(target) \
-		auto configure(uint32_t pin, typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&GPIO::target))>::type arg) \
-			-> decltype(this->target(pin, arg)) \
-		{ \
-			return this->target(pin, arg); \
-		} \
-		template<uint32_t Mask> \
-		auto configure_mask(typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&GPIO::target))>::type arg) \
-			-> decltype(this->target ## _mask<Mask>(arg)) \
-		{ \
-			return this->target ## _mask<Mask>(arg); \
-		} \
-		template<uint32_t Bound1, uint32_t Bound2> \
-		auto configure_range(typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&GPIO::target))>::type arg) \
-			-> decltype(this->target ## _range<Bound1, Bound2>(arg)) \
-		{ \
-			return this->target ## _range<Bound1, Bound2>(arg); \
-		}
-		CONFIG_ONE(mode)
-		CONFIG_ONE(output_type)
-		CONFIG_ONE(output_speed)
-		CONFIG_ONE(pull)
-		CONFIG_ONE(alternate_function)
-#undef CONFIG_ONE
-
-		template<typename First, typename... Rest>
-		auto configure(uint32_t pin, First first, Rest... rest)
-			-> decltype(this->configure(pin, first).configure(pin, rest...))
-		{
-			return this->configure(pin, first).configure(pin, rest...);
-		}
-		template<uint32_t Mask, typename First, typename... Rest>
-		auto configure_mask(First first, Rest... rest)
-			-> decltype(this->configure_mask<Mask>(first).template configure_mask<Mask>(rest...))
-		{
-			return this->configure_mask<Mask>(first).template configure_mask<Mask>(rest...);
-		}
-		template<uint32_t Bound1, uint32_t Bound2, typename First, typename... Rest>
-		auto configure_range(First first, Rest... rest)
-			-> decltype(this->configure_range<Bound1, Bound2>(first).template configure_range<Bound1, Bound2>(rest...))
-		{
-			return this->configure_range<Bound1, Bound2>(first).template configure_range<Bound1, Bound2>(rest...);
-		}
+		STRUCT_CONFIGURE_MANY(
+			STRUCT_CONFIGURE_SINGLE(mode)
+			STRUCT_CONFIGURE_SINGLE(output_type)
+			STRUCT_CONFIGURE_SINGLE(output_speed)
+			STRUCT_CONFIGURE_SINGLE(pull)
+			STRUCT_CONFIGURE_SINGLE(alternate_function)
+		)
 
 		template<typename = void>
 		GPIO& lock(uint16_t bits)

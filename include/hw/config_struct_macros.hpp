@@ -119,3 +119,158 @@
 #define STRUCT_SINGULAR_ARRAY_RW(name, index_type, reg) \
 	STRUCT_SINGULAR_ARRAY_R(name, index_type, reg) \
 	STRUCT_SINGULAR_ARRAY_W(name, index_type, reg)
+
+#define STRUCT_MULTIARRAY_IMPL(name, regtype, getter, setter, SNAME, STYPE) \
+	private: \
+		template<size_t... Offsets> \
+		struct SNAME { \
+			static constexpr bool is_config = !std::is_same<Flight, void>::value; \
+			\
+			typedef this_template<typename ense::detail::extend_flight_multipart<Flight, typename regtype::in_flight_type, Offsets...>::type> next_type; \
+			typedef typename std::conditional<is_config, next_type, this_template<void>&>::type extended_type; \
+			typedef typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&regtype::setter))>::type arg_type; \
+			\
+			template<size_t Offset> \
+			static regtype& reg_at_offset(this_type& self) \
+			{ \
+				return *reinterpret_cast<regtype*>(reinterpret_cast<uint8_t*>(self.target()) + Offset); \
+			} \
+			\
+			template<typename T> \
+			static extended_type begin_apply(T& self) \
+			{ \
+				return self.template extend<Offsets...>(reg_at_offset<Offsets>(self)...); \
+			} \
+			static extended_type& begin_apply(extended_type& self) \
+			{ \
+				return self; \
+			} \
+			\
+			template<uint32_t Idx, uint32_t Mask> \
+			static void apply(extended_type& self, arg_type arg, std::integral_constant<uint32_t, Mask>) \
+			{ \
+				if (Mask & 1) { \
+					self.name(Idx, arg); \
+				} \
+				apply<Idx + 1>(self, arg, std::integral_constant<uint32_t, (Mask >> 1)>()); \
+			} \
+			template<uint32_t Idx> \
+			static void apply(extended_type& self, arg_type arg, std::integral_constant<uint32_t, 0>) \
+			{ \
+				self.name(Idx, arg); \
+			} \
+			\
+			static auto make_tuple(this_type& self) -> \
+				decltype(std::make_tuple(std::ref(reg_at_offset<Offsets>(self))...)) \
+			{ \
+				return std::make_tuple(std::ref(reg_at_offset<Offsets>(self))...); \
+			} \
+			\
+			template<size_t Idx> \
+			using nth_offset = ense::mpl::nth<ense::mpl::list<std::integral_constant<uint32_t, Offsets>...>, Idx>; \
+			\
+			static constexpr size_t part_extent = regtype::getter ## _extent; \
+			static constexpr size_t extent = sizeof...(Offsets) * regtype::getter ## _extent; \
+		}; \
+		template<uint32_t Element, typename Tuple> \
+		auto apply_ ## name ## _step(uint32_t idx, typename STYPE::arg_type arg, const Tuple& targets, std::integral_constant<uint32_t, Element>) -> \
+			typename STYPE::extended_type \
+		{ \
+			if (idx >= Element * STYPE::part_extent) { \
+				static constexpr uint32_t offset = Element * STYPE::part_extent; \
+				STRUCT_EXTRACT_SPECIFIC(*this, (STYPE::template nth_offset<Element>::value), std::get<Element>(targets)).setter(idx - offset, arg); \
+			} else { \
+				apply_ ## name ## _step(idx, arg, targets, std::integral_constant<uint32_t, Element - 1>()); \
+			} \
+			return *this; \
+		} \
+		template<typename Tuple> \
+		auto apply_ ## name ## _step(uint32_t idx, typename STYPE::arg_type arg, const Tuple& targets, std::integral_constant<uint32_t, 0>) -> \
+			typename STYPE::extended_type \
+		{ \
+			STRUCT_EXTRACT_SPECIFIC(*this, (STYPE::template nth_offset<0>::value), std::get<0>(targets)).setter(idx, arg); \
+			return *this; \
+		} \
+	public: \
+		auto name(uint32_t idx, typename STYPE::arg_type arg) -> \
+			typename STYPE::extended_type \
+		{ \
+			auto&& extended = STYPE::begin_apply(*this); \
+			auto targets = STYPE::make_tuple(*this); \
+			extended.apply_ ## name ## _step(idx, arg, targets, std::integral_constant<uint32_t, std::tuple_size<decltype(targets)>::value - 1>()); \
+			return extended; \
+		} \
+		auto name ## _mask(uint32_t mask, typename STYPE::arg_type arg) -> \
+			typename STYPE::extended_type \
+		{ \
+			auto&& extended = STYPE::begin_apply(*this); \
+			for (uint32_t i = 0; i < STYPE::extent; i++) { \
+				if (mask & (1ULL << i)) { \
+					extended.name(i, arg); \
+				} \
+			} \
+			return extended; \
+		} \
+		template<uint32_t Mask> \
+		auto name ## _mask(typename STYPE::arg_type arg) -> \
+			typename STYPE::extended_type \
+		{ \
+			static_assert(Mask <= (1ULL << STYPE::extent), "Mask too large"); \
+			typename STYPE::extended_type extended = STYPE::begin_apply(*this); \
+			STYPE::template apply<0>(extended, arg, std::integral_constant<uint32_t, Mask>()); \
+			return extended; \
+		} \
+		template<uint32_t Bound1, uint32_t Bound2> \
+		auto name ## _range(typename STYPE::arg_type arg) -> \
+			typename STYPE::extended_type \
+		{ \
+			typedef ense::detail::bit::expand<ense::detail::bit::range<Bound1, Bound2>> range; \
+			static_assert(range::end < STYPE::extent, "Index out or range"); \
+			return name ## _mask<range::field_mask>(arg); \
+		}
+
+#define STRUCT_MULTIARRAY_IMPL1(name, regtype, getter, setter, SNAME, ...) \
+		STRUCT_MULTIARRAY_IMPL(name, regtype, getter, setter, SNAME, SNAME<STRUCT_UNPACK(__VA_ARGS__)>)
+#define STRUCT_MULTIARRAY(name, regtype, getter, setter, ...) \
+	STRUCT_MULTIARRAY_IMPL1(name, regtype, getter, setter, _apply_ ## name ## _impl, __VA_ARGS__)
+#define STRUCT_SINGULAR_MULTIARRAY(name, regtype, ...) \
+		STRUCT_MULTIARRAY(name, regtype, get, set, __VA_ARGS__)
+
+#define STRUCT_CONFIGURE_SINGLE(target) \
+		auto configure(uint32_t pin, typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&this_type::target))>::type arg) \
+			-> decltype(this->target(pin, arg)) \
+		{ \
+			return this->target(pin, arg); \
+		} \
+		template<uint32_t Mask> \
+		auto configure_mask(typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&this_type::target))>::type arg) \
+			-> decltype(this->target ## _mask<Mask>(arg)) \
+		{ \
+			return this->target ## _mask<Mask>(arg); \
+		} \
+		template<uint32_t Bound1, uint32_t Bound2> \
+		auto configure_range(typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&this_type::target))>::type arg) \
+			-> decltype(this->target ## _range<Bound1, Bound2>(arg)) \
+		{ \
+			return this->target ## _range<Bound1, Bound2>(arg); \
+		}
+#define STRUCT_CONFIGURE_MANY(...) \
+		__VA_ARGS__ \
+		template<typename First, typename... Rest> \
+		auto configure(uint32_t pin, First first, Rest... rest) \
+			-> decltype(this->configure(pin, first).configure(pin, rest...)) \
+		{ \
+			return this->configure(pin, first).configure(pin, rest...); \
+		} \
+		template<uint32_t Mask, typename First, typename... Rest> \
+		auto configure_mask(First first, Rest... rest) \
+			-> decltype(this->configure_mask<Mask>(first).template configure_mask<Mask>(rest...)) \
+		{ \
+			return this->configure_mask<Mask>(first).template configure_mask<Mask>(rest...); \
+		} \
+		template<uint32_t Bound1, uint32_t Bound2, typename First, typename... Rest> \
+		auto configure_range(First first, Rest... rest) \
+			-> decltype(this->configure_range<Bound1, Bound2>(first).template configure_range<Bound1, Bound2>(rest...)) \
+		{ \
+			return this->configure_range<Bound1, Bound2>(first).template configure_range<Bound1, Bound2>(rest...); \
+		}
