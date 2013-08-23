@@ -98,8 +98,8 @@
 		typedef detail::bit::expand<__VA_ARGS__> bp; \
 		static_assert((static_cast<uint32_t>(Mask) & bp::field_anchored_mask) == static_cast<uint32_t>(Mask), "Mask invalid"); \
 		constexpr uint32_t splice_factor = detail::bit::splice_factor(0, bp::width, static_cast<uint32_t>(Mask)); \
-		constexpr uint32_t splice_mask = detail::bit::splice_mask(0, bp::width, static_cast<uint32_t>(Mask)); \
-		uint32_t splice_value = splice_factor * static_cast<uint32_t>(value_val); \
+		constexpr uint32_t splice_mask = detail::bit::splice_mask(0, bp::width, static_cast<uint32_t>(Mask)) << bp::begin; \
+		uint32_t splice_value = (splice_factor * static_cast<uint32_t>(value_val)) << bp::begin; \
 		this->value((this->value() & ~splice_mask) | splice_value); \
 		return *this; \
 	} \
