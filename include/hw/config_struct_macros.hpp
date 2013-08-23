@@ -124,9 +124,9 @@
 	private: \
 		template<size_t... Offsets> \
 		struct SNAME { \
-			static constexpr bool is_config = !std::is_same<Flight, void>::value; \
+			static constexpr bool is_config = !std::is_same<flight_type, void>::value; \
 			\
-			typedef this_template<typename ense::detail::extend_flight_multipart<Flight, typename regtype::in_flight_type, Offsets...>::type> next_type; \
+			typedef this_template<typename ense::detail::extend_flight_multipart<flight_type, typename regtype::in_flight_type, Offsets...>::type> next_type; \
 			typedef typename std::conditional<is_config, next_type, this_template<void>&>::type extended_type; \
 			typedef typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&regtype::setter))>::type arg_type; \
 			\
@@ -237,10 +237,10 @@
 		STRUCT_MULTIARRAY(name, regtype, get, set, __VA_ARGS__)
 
 #define STRUCT_CONFIGURE_SINGLE(target) \
-		auto configure(uint32_t pin, typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&this_type::target))>::type arg) \
-			-> decltype(this->target(pin, arg)) \
+		auto configure(uint32_t idx, typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&this_type::target))>::type arg) \
+			-> decltype(this->target(idx, arg)) \
 		{ \
-			return this->target(pin, arg); \
+			return this->target(idx, arg); \
 		} \
 		template<uint32_t Mask> \
 		auto configure_mask(typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&this_type::target))>::type arg) \
@@ -257,10 +257,10 @@
 #define STRUCT_CONFIGURE_MANY(...) \
 		__VA_ARGS__ \
 		template<typename First, typename... Rest> \
-		auto configure(uint32_t pin, First first, Rest... rest) \
-			-> decltype(this->configure(pin, first).configure(pin, rest...)) \
+		auto configure(uint32_t idx, First first, Rest... rest) \
+			-> decltype(this->configure(idx, first).configure(idx, rest...)) \
 		{ \
-			return this->configure(pin, first).configure(pin, rest...); \
+			return this->configure(idx, first).configure(idx, rest...); \
 		} \
 		template<uint32_t Mask, typename First, typename... Rest> \
 		auto configure_mask(First first, Rest... rest) \
