@@ -1,6 +1,8 @@
 #ifndef INCLUDE_DETAIL_BIT__HPP_D397B4F8F926519E
 #define INCLUDE_DETAIL_BIT__HPP_D397B4F8F926519E
 
+#include <mpl/list.hpp>
+
 namespace ense {
 namespace detail {
 namespace bit {
@@ -24,6 +26,15 @@ template<size_t Bound1, size_t Bound2>
 struct range :
 	std::conditional<Bound1 < Bound2, begin<Bound1>, begin<Bound2>>::type,
 	std::conditional<Bound1 < Bound2, end<Bound2>, end<Bound1>>::type {};
+
+
+
+struct has_element_offsets {};
+
+template<size_t... Offsets>
+struct element_offsets : has_element_offsets {
+	typedef ense::mpl::list<std::integral_constant<size_t, Offsets>...> offsets_t;
+};
 
 
 
@@ -54,20 +65,69 @@ struct expand<width<Width>> {
 	static constexpr uint32_t array_anchored_mask = (1U << width) - 1;
 };
 
+template<size_t... Offsets>
+struct expand<element_offsets<Offsets...>> : element_offsets<Offsets...> {
+	typedef typename expand::element_offsets::offsets_t offsets;
+};
 
 
-constexpr uint32_t splice_factor(uint32_t first_bit, uint32_t bit_width, uint32_t mask)
+
+namespace detail {
+
+	template<typename Bits>
+	struct element_offset {
+		template<size_t Width>
+		struct element_offset_trivial {
+			static constexpr size_t map(size_t idx)
+			{
+				return idx * Width;
+			}
+		};
+
+		template<typename Offsets>
+		struct element_offset_specified : element_offset_specified<typename Offsets::offsets_t> {
+		};
+		template<size_t... Offsets>
+		struct element_offset_specified<ense::mpl::list<std::integral_constant<size_t, Offsets>...>> {
+			static const size_t offsets[];
+
+			static constexpr size_t map(size_t idx)
+			{
+				return offsets[idx];
+			}
+		};
+
+		typedef typename std::conditional<
+			std::is_base_of<has_element_offsets, Bits>::value,
+			element_offset_specified<Bits>,
+			element_offset_trivial<Bits::width>>::type type;
+	};
+	template<typename Bits>
+	template<size_t... Offsets>
+	const size_t element_offset<Bits>::element_offset_specified<ense::mpl::list<std::integral_constant<size_t, Offsets>...>>::offsets[] = { Offsets... };
+
+}
+
+template<typename Bits>
+constexpr size_t element_offset(size_t index)
+{
+	return Bits::begin + detail::element_offset<Bits>::type::map(index);
+}
+
+
+
+template<typename Bits>
+constexpr size_t splice_factor(size_t from_index, uint32_t mask)
 {
 	return mask
-		? ((mask & 1) << first_bit) | splice_factor(first_bit + bit_width, bit_width, mask >> 1)
+		? ((mask & 1) << element_offset<Bits>(from_index)) | splice_factor<Bits>(from_index + 1, mask >> 1)
 		: 0;
 }
 
-constexpr uint32_t splice_mask(uint32_t first_bit, uint32_t bit_width, uint32_t mask)
+template<typename Bits>
+constexpr size_t splice_mask(size_t from_index, uint32_t mask)
 {
-	return mask
-		? ((mask & 1 ? (1U << bit_width) - 1 : 0) << first_bit) | splice_mask(first_bit + bit_width, bit_width, mask >> 1)
-		: 0;
+	return splice_factor<Bits>(from_index, mask) * Bits::array_anchored_mask;
 }
 
 }

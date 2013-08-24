@@ -74,7 +74,8 @@
 
 #define ENSE_REGISTER_ARRAY_STATIC_ASSERT_IMPL(_TYPE, ...) \
 	static_assert(std::rank<_TYPE>::value == 1, "type must be one-dimensional"); \
-	static_assert(__VA_ARGS__::range == std::extent<_TYPE>::value * __VA_ARGS__::width, "type does not fit range");
+	static_assert(std::is_base_of<detail::bit::has_element_offsets, __VA_ARGS__>::value \
+			|| __VA_ARGS__::range == std::extent<_TYPE>::value * __VA_ARGS__::width, "type does not fit range");
 #define ENSE_REGISTER_ARRAY_STATIC_ASSERT(_TYPE, ...) \
 	ENSE_REGISTER_ARRAY_STATIC_ASSERT_IMPL(_TYPE, detail::bit::expand<__VA_ARGS__>)
 #define ENSE_REGISTER_ARRAY_R(_TYPE, _NAME, ...) \
@@ -83,7 +84,7 @@
 	{ \
 		typedef std::remove_all_extents<_TYPE>::type value_type; \
 		typedef detail::bit::expand<__VA_ARGS__> bp; \
-		uint32_t pos = bp::begin + idx * bp::width; \
+		uint32_t pos = detail::bit::element_offset<bp>(idx); \
 		return static_cast<value_type>((this->value() >> pos) & bp::array_anchored_mask); \
 	}
 #define ENSE_REGISTER_ARRAY_W(_TYPE, _NAME, _VALUE_DECL, _VALUE, ...) \
@@ -93,7 +94,7 @@
 	{ \
 		typedef std::remove_all_extents<_TYPE>::type value_type; \
 		typedef detail::bit::expand<__VA_ARGS__> bp; \
-		uint32_t pos = bp::begin + idx * bp::width; \
+		uint32_t pos = detail::bit::element_offset<bp>(idx); \
 		uint32_t mask = bp::array_anchored_mask << pos; \
 		this->value((this->value() & ~mask) | (static_cast<uint32_t>(_VALUE) << pos)); \
 		return *this; \
@@ -105,17 +106,18 @@
 		uint32_t mask = idx_mask; \
 		uint32_t splice_mask = 0; \
 		uint32_t splice_value = 0; \
-		if (bp::width == 1) { \
+		if (bp::width == 1 && std::is_base_of<detail::bit::has_element_offsets, bp>::value) { \
 			splice_mask = bp::field_anchored_mask << bp::begin; \
 			splice_value = (static_cast<uint32_t>(_VALUE) * mask) << bp::begin; \
 		} else { \
-			uint32_t offset = bp::begin; \
+			uint32_t idx = 0; \
 			while (mask) { \
 				if (mask & 1) { \
+					uint32_t offset = detail::bit::element_offset<bp>(idx); \
 					splice_mask |= bp::array_anchored_mask << offset; \
 					splice_value |= static_cast<uint32_t>(_VALUE) << offset; \
 				} \
-				offset += bp::width; \
+				idx++; \
 				mask >>= 1; \
 			} \
 		} \
@@ -130,9 +132,9 @@
 	{ \
 		typedef detail::bit::expand<__VA_ARGS__> bp; \
 		static_assert(Mask >> std::extent<_TYPE>::value == 0, "Mask invalid"); \
-		constexpr uint32_t splice_factor = detail::bit::splice_factor(0, bp::width, Mask); \
-		constexpr uint32_t splice_mask = detail::bit::splice_mask(0, bp::width, Mask) << bp::begin; \
-		uint32_t splice_value = (splice_factor * static_cast<uint32_t>(_VALUE)) << bp::begin; \
+		constexpr uint32_t splice_factor = detail::bit::splice_factor<bp>(0, Mask); \
+		constexpr uint32_t splice_mask = detail::bit::splice_mask<bp>(0, Mask); \
+		uint32_t splice_value = (splice_factor * static_cast<uint32_t>(_VALUE)); \
 		this->value((this->value() & ~splice_mask) | splice_value); \
 		return *this; \
 	} \
