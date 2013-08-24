@@ -48,20 +48,6 @@ extern linker_placed_register<CCR<>> ccr [[gnu::weak, gnu::alias(".SCS_CCR")]];
 
 
 
-enum class Coprocessor {
-	CP0  = 0,
-	CP1  = 1,
-	CP2  = 2,
-	CP3  = 3,
-	CP4  = 4,
-	CP5  = 5,
-	CP6  = 6,
-	CP7  = 7,
-
-	CP10 = 10,
-	CP11 = 11
-};
-
 enum class CoprocessorAccess {
 	none       = 0,
 	supervisor = 1,
