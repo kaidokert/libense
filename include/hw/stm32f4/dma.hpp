@@ -20,11 +20,7 @@ enum class DMAInterruptFlags : uint32_t {
 
 template<bool Config = false>
 struct LISR : ConfigurationRegister<DMAInterruptFlags, Config, LISR> {
-	REGISTER_BIT_R(transfer_complete)
-	REGISTER_BIT_R(half_transfer)
-	REGISTER_BIT_R(transfer_error)
-	REGISTER_BIT_R(direct_mode_error)
-	REGISTER_BIT_R(fifo_error)
+	REGISTER_SINGULAR_ARRAY_R(DMAInterruptFlags[4], detail::bit::width<6>, detail::bit::range<0, 31>, detail::bit::element_offsets<0, 6, 16, 22>)
 };
 
 static_assert(traits::is_platform_register_valid<LISR<>>(), "");
@@ -33,11 +29,7 @@ static_assert(traits::is_platform_register_valid<LISR<>>(), "");
 
 template<bool Config = false>
 struct LIFCR : ConfigurationRegister<DMAInterruptFlags, Config, LIFCR> {
-	REGISTER_BIT_C(transfer_complete)
-	REGISTER_BIT_C(half_transfer)
-	REGISTER_BIT_C(transfer_error)
-	REGISTER_BIT_C(direct_mode_error)
-	REGISTER_BIT_C(fifo_error)
+	REGISTER_SINGULAR_ARRAY_C(DMAInterruptFlags[4], detail::bit::width<6>, detail::bit::range<0, 31>, detail::bit::element_offsets<0, 6, 16, 22>)
 };
 
 static_assert(traits::is_platform_register_valid<LIFCR<>>(), "");
@@ -107,6 +99,50 @@ struct SxCR : ConfigurationRegister<DMAConfigFlags, Config, SxCR> {
 	REGISTER_BIT_RW(direct_error_interrupt)
 	REGISTER_BIT_RW(fifo_error_interrupt)
 };
+
+static_assert(traits::is_platform_register_valid<SxCR<>>(), "");
+
+
+
+template<bool Config = false>
+struct SxNDTR : ConfigurationRegister<void, Config, SxNDTR> {
+	REGISTER_INT_RW(count, detail::bit::range<15, 0>)
+};
+
+static_assert(traits::is_platform_register_valid<SxNDTR<>>(), "");
+
+
+
+enum class SxFCRFlags : uint32_t {
+	error_interrupt_enable = 1U << 7,
+	direct_mode_disable    = 1U << 2
+};
+
+enum class FIFOStatus : uint32_t {
+	lt_25pct       = 0,
+	lt_50pct       = 1,
+	lt_75pct       = 2,
+	lt_100pct      = 3,
+	at_100pct      = 4,
+	at_0pct        = 5,
+};
+
+enum class FIFOThreshold : uint32_t {
+	quarter        = 0,
+	half           = 1,
+	three_quarters = 2,
+	full           = 3
+};
+
+template<bool Config = false>
+struct SxFCR : ConfigurationRegister<SxFCRFlags, Config, SxFCR> {
+	REGISTER_BIT_RW(error_interrupt_enable)
+	REGISTER_FIELD_R(FIFOStatus, fifo_status, detail::bit::range<5, 3>)
+	REGISTER_BIT_RW(direct_mode_disable)
+	REGISTER_FIELD_RW(FIFOThreshold, fifo_threshold, detail::bit::range<1, 0>)
+};
+
+static_assert(traits::is_platform_register_valid<SxFCR<>>(), "");
 
 }
 }

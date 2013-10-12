@@ -4,6 +4,7 @@
 #include <hw/stm32f4/rcc.hpp>
 #include <hw/stm32f4/gpio.hpp>
 #include <hw/stm32f4/usart.hpp>
+#include <hw/stm32f4/dma.hpp>
 
 #include <hw/cpuid.hpp>
 #include <hw/interrupt.hpp>
