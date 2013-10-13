@@ -181,7 +181,7 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 		STRUCT_SINGULAR_ARRAY_RW(output, odr)
 		STRUCT_ARRAY_C(set, bssr, set)
 		STRUCT_ARRAY_C(reset, bssr, reset)
-		STRUCT_SINGULAR_MULTIARRAY(alternate_function, AFR<>, STRUCT_OFFSETOF(afrl), STRUCT_OFFSETOF(afrh))
+		STRUCT_SINGULAR_MULTIARRAY_RW(alternate_function, AFR<>, STRUCT_OFFSETOF(afrl), STRUCT_OFFSETOF(afrh))
 
 		STRUCT_CONFIGURE_MANY(
 			STRUCT_CONFIGURE_SINGLE(mode)

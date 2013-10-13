@@ -19,20 +19,20 @@ enum class DMAInterruptFlags : uint32_t {
 };
 
 template<bool Config = false>
-struct LISR : ConfigurationRegister<DMAInterruptFlags, Config, LISR> {
+struct ISR : ConfigurationRegister<DMAInterruptFlags, Config, ISR> {
 	REGISTER_SINGULAR_ARRAY_R(DMAInterruptFlags[4], detail::bit::width<6>, detail::bit::range<0, 31>, detail::bit::element_offsets<0, 6, 16, 22>)
 };
 
-static_assert(traits::is_platform_register_valid<LISR<>>(), "");
+static_assert(traits::is_platform_register_valid<ISR<>>(), "");
 
 
 
 template<bool Config = false>
-struct LIFCR : ConfigurationRegister<DMAInterruptFlags, Config, LIFCR> {
-	REGISTER_SINGULAR_ARRAY_C(DMAInterruptFlags[4], detail::bit::width<6>, detail::bit::range<0, 31>, detail::bit::element_offsets<0, 6, 16, 22>)
+struct IFCR : ConfigurationRegister<DMAInterruptFlags, Config, IFCR> {
+	REGISTER_SINGULAR_ARRAY_W(DMAInterruptFlags[4], detail::bit::width<6>, detail::bit::range<0, 31>, detail::bit::element_offsets<0, 6, 16, 22>)
 };
 
-static_assert(traits::is_platform_register_valid<LIFCR<>>(), "");
+static_assert(traits::is_platform_register_valid<IFCR<>>(), "");
 
 
 
@@ -143,6 +143,37 @@ struct SxFCR : ConfigurationRegister<SxFCRFlags, Config, SxFCR> {
 };
 
 static_assert(traits::is_platform_register_valid<SxFCR<>>(), "");
+
+
+
+namespace detail {
+
+	struct layout_interrupts {
+		ISR<> lisr;
+		ISR<> hisr;
+		IFCR<> lifcr;
+		IFCR<> hifcr;
+	};
+
+}
+
+template<typename Flight = void>
+struct DMAInterrupts : ConfigurationStruct<DMAInterrupts, detail::layout_interrupts, Flight> {
+	template<typename>
+	friend struct DMAInterrupts;
+
+	public:
+		typedef detail::layout_interrupts struct_type;
+	private:
+		typedef DMAInterrupts this_type;
+		typedef Flight flight_type;
+		template<typename Next>
+		using this_template = DMAInterrupts<Next>;
+
+	public:
+		STRUCT_SINGULAR_MULTIARRAY_R(status, ISR<>, STRUCT_OFFSETOF(lisr), STRUCT_OFFSETOF(hisr))
+		STRUCT_SINGULAR_MULTIARRAY_W(clear, IFCR<>, STRUCT_OFFSETOF(lifcr), STRUCT_OFFSETOF(hifcr))
+};
 
 }
 }

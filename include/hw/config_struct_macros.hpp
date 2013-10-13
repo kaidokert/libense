@@ -120,7 +120,7 @@
 	STRUCT_SINGULAR_ARRAY_R(name, reg) \
 	STRUCT_SINGULAR_ARRAY_W(name, reg)
 
-#define STRUCT_MULTIARRAY_IMPL(name, regtype, getter, setter, SNAME, STYPE) \
+#define STRUCT_MULTIARRAY_IMPL_CLASS(name, regtype, getter, setter, arg_type_tpl, SNAME, STYPE) \
 	private: \
 		template<size_t... Offsets> \
 		struct SNAME { \
@@ -128,7 +128,7 @@
 			\
 			typedef this_template<typename ense::detail::extend_flight_multipart<flight_type, typename regtype::in_flight_type, Offsets...>::type> next_type; \
 			typedef typename std::conditional<is_config, next_type, this_template<void>&>::type extended_type; \
-			typedef typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&regtype::setter))>::type arg_type; \
+			typedef STRUCT_UNPACK arg_type_tpl arg_type; \
 			\
 			template<size_t Offset> \
 			static regtype& reg_at_offset(this_type& self) \
@@ -175,6 +175,23 @@
 			static constexpr size_t extent = sizeof...(Offsets) * regtype::getter ## _extent; \
 		}; \
 		template<uint32_t Element, typename Tuple> \
+		auto get_ ## name ## _step(uint32_t idx, const Tuple& targets, std::integral_constant<uint32_t, Element>) -> \
+			typename STYPE::arg_type \
+		{ \
+			if (idx >= Element * STYPE::part_extent) { \
+				static constexpr uint32_t offset = Element * STYPE::part_extent; \
+				return STRUCT_EXTRACT_SPECIFIC(*this, (STYPE::template nth_offset<Element>::value), std::get<Element>(targets)).getter(idx - offset); \
+			} else { \
+				return get_ ## name ## _step(idx, targets, std::integral_constant<uint32_t, Element - 1>()); \
+			} \
+		} \
+		template<typename Tuple> \
+		auto get_ ## name ## _step(uint32_t idx, const Tuple& targets, std::integral_constant<uint32_t, 0>) -> \
+			typename STYPE::arg_type \
+		{ \
+			return STRUCT_EXTRACT_SPECIFIC(*this, (STYPE::template nth_offset<0>::value), std::get<0>(targets)).getter(idx); \
+		} \
+		template<uint32_t Element, typename Tuple> \
 		auto apply_ ## name ## _step(uint32_t idx, typename STYPE::arg_type arg, const Tuple& targets, std::integral_constant<uint32_t, Element>) -> \
 			typename STYPE::extended_type \
 		{ \
@@ -192,7 +209,20 @@
 		{ \
 			STRUCT_EXTRACT_SPECIFIC(*this, (STYPE::template nth_offset<0>::value), std::get<0>(targets)).setter(idx, arg); \
 			return *this; \
-		} \
+		}
+#define STRUCT_MULTIARRAY_IMPL_GETTERS(name, STYPE) \
+	public: \
+		auto name(uint32_t idx) -> \
+			decltype(STYPE::begin_apply(*this).get_ ## name ## _step( \
+				idx, \
+				STYPE::make_tuple(*this), \
+				std::integral_constant<uint32_t, std::tuple_size<decltype(STYPE::make_tuple(*this))>::value - 1>())) \
+		{ \
+			auto&& extended = STYPE::begin_apply(*this); \
+			auto targets = STYPE::make_tuple(*this); \
+			return extended.get_ ## name ## _step(idx, targets, std::integral_constant<uint32_t, std::tuple_size<decltype(targets)>::value - 1>()); \
+		}
+#define STRUCT_MULTIARRAY_IMPL_SETTERS(name, STYPE) \
 	public: \
 		auto name(uint32_t idx, typename STYPE::arg_type arg) -> \
 			typename STYPE::extended_type \
@@ -247,12 +277,46 @@
 			return name ## _mask<range::field_mask>(arg); \
 		}
 
-#define STRUCT_MULTIARRAY_IMPL1(name, regtype, getter, setter, SNAME, ...) \
-		STRUCT_MULTIARRAY_IMPL(name, regtype, getter, setter, SNAME, SNAME<STRUCT_UNPACK(__VA_ARGS__)>)
-#define STRUCT_MULTIARRAY(name, regtype, getter, setter, ...) \
-	STRUCT_MULTIARRAY_IMPL1(name, regtype, getter, setter, _apply_ ## name ## _impl, __VA_ARGS__)
-#define STRUCT_SINGULAR_MULTIARRAY(name, regtype, ...) \
-		STRUCT_MULTIARRAY(name, regtype, get, set, __VA_ARGS__)
+#define STRUCT_MULTIARRAY_IMPL1_R(name, regtype, getter, setter, SNAME, ...) \
+	STRUCT_MULTIARRAY_IMPL_CLASS(name, \
+		regtype, \
+		getter, \
+		setter, \
+		(typename ense::mpl::result_type<decltype(&regtype::getter)>::type), \
+		SNAME, \
+		SNAME<STRUCT_UNPACK(__VA_ARGS__)>) \
+	STRUCT_MULTIARRAY_IMPL_GETTERS(name, SNAME<STRUCT_UNPACK(__VA_ARGS__)>)
+#define STRUCT_MULTIARRAY_IMPL1_W(name, regtype, getter, setter, SNAME, ...) \
+	STRUCT_MULTIARRAY_IMPL_CLASS(name, \
+		regtype, \
+		getter, \
+		setter, \
+		(typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&regtype::setter))>::type), \
+		SNAME, \
+		SNAME<STRUCT_UNPACK(__VA_ARGS__)>) \
+	STRUCT_MULTIARRAY_IMPL_SETTERS(name, SNAME<STRUCT_UNPACK(__VA_ARGS__)>)
+#define STRUCT_MULTIARRAY_IMPL1_RW(name, regtype, getter, setter, SNAME, ...) \
+	STRUCT_MULTIARRAY_IMPL_CLASS(name, \
+		regtype, \
+		getter, \
+		setter, \
+		(typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&regtype::setter))>::type), \
+		SNAME, \
+		SNAME<STRUCT_UNPACK(__VA_ARGS__)>) \
+	STRUCT_MULTIARRAY_IMPL_GETTERS(name, SNAME<STRUCT_UNPACK(__VA_ARGS__)>) \
+	STRUCT_MULTIARRAY_IMPL_SETTERS(name, SNAME<STRUCT_UNPACK(__VA_ARGS__)>)
+#define STRUCT_MULTIARRAY_R(name, regtype, getter, setter, ...) \
+	STRUCT_MULTIARRAY_IMPL1_R(name, regtype, getter, setter, ense_apply_ ## name ## _impl, __VA_ARGS__)
+#define STRUCT_MULTIARRAY_W(name, regtype, getter, setter, ...) \
+	STRUCT_MULTIARRAY_IMPL1_W(name, regtype, getter, setter, ense_apply_ ## name ## _impl, __VA_ARGS__)
+#define STRUCT_MULTIARRAY_RW(name, regtype, getter, setter, ...) \
+	STRUCT_MULTIARRAY_IMPL1_RW(name, regtype, getter, setter, ense_apply_ ## name ## _impl, __VA_ARGS__)
+#define STRUCT_SINGULAR_MULTIARRAY_R(name, regtype, ...) \
+	STRUCT_MULTIARRAY_R(name, regtype, get, set, __VA_ARGS__)
+#define STRUCT_SINGULAR_MULTIARRAY_W(name, regtype, ...) \
+	STRUCT_MULTIARRAY_W(name, regtype, set, set, __VA_ARGS__)
+#define STRUCT_SINGULAR_MULTIARRAY_RW(name, regtype, ...) \
+	STRUCT_MULTIARRAY_RW(name, regtype, get, set, __VA_ARGS__)
 
 #define STRUCT_CONFIGURE_SINGLE(target) \
 		auto configure(uint32_t idx, typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&this_type::target))>::type arg) \
