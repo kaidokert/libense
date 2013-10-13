@@ -10,7 +10,7 @@ namespace ense {
 namespace platform {
 namespace dma {
 
-enum class DMAInterruptFlags : uint32_t {
+enum class InterruptFlags : uint32_t {
 	transfer_complete = 1 << 5,
 	half_transfer     = 1 << 4,
 	transfer_error    = 1 << 3,
@@ -19,8 +19,8 @@ enum class DMAInterruptFlags : uint32_t {
 };
 
 template<bool Config = false>
-struct ISR : ConfigurationRegister<DMAInterruptFlags, Config, ISR> {
-	REGISTER_SINGULAR_ARRAY_R(DMAInterruptFlags[4], detail::bit::width<6>, detail::bit::range<0, 31>, detail::bit::element_offsets<0, 6, 16, 22>)
+struct ISR : ConfigurationRegister<InterruptFlags, Config, ISR> {
+	REGISTER_SINGULAR_ARRAY_R(InterruptFlags[4], detail::bit::width<6>, detail::bit::range<0, 31>, detail::bit::element_offsets<0, 6, 16, 22>)
 };
 
 static_assert(traits::is_platform_register_valid<ISR<>>(), "");
@@ -28,8 +28,8 @@ static_assert(traits::is_platform_register_valid<ISR<>>(), "");
 
 
 template<bool Config = false>
-struct IFCR : ConfigurationRegister<DMAInterruptFlags, Config, IFCR> {
-	REGISTER_SINGULAR_ARRAY_W(DMAInterruptFlags[4], detail::bit::width<6>, detail::bit::range<0, 31>, detail::bit::element_offsets<0, 6, 16, 22>)
+struct IFCR : ConfigurationRegister<InterruptFlags, Config, IFCR> {
+	REGISTER_SINGULAR_ARRAY_W(InterruptFlags[4], detail::bit::width<6>, detail::bit::range<0, 31>, detail::bit::element_offsets<0, 6, 16, 22>)
 };
 
 static_assert(traits::is_platform_register_valid<IFCR<>>(), "");
@@ -62,7 +62,7 @@ enum class Direction : uint32_t {
 	memory_to_memory     = 2
 };
 
-enum class DMAConfigFlags : uint32_t {
+enum class ConfigFlags : uint32_t {
 	double_buffered              = 1 << 18,
 	peripheral_increment_by_four = 1 << 15,
 	memory_increment             = 1 << 10,
@@ -78,7 +78,7 @@ enum class DMAConfigFlags : uint32_t {
 };
 
 template<bool Config = false>
-struct SxCR : ConfigurationRegister<DMAConfigFlags, Config, SxCR> {
+struct SxCR : ConfigurationRegister<ConfigFlags, Config, SxCR> {
 	REGISTER_INT_RW(channel, detail::bit::range<27, 25>)
 	REGISTER_FIELD_RW(BurstSize, memory_burst_size, detail::bit::range<24, 23>)
 	REGISTER_FIELD_RW(BurstSize, peripheral_burst_size, detail::bit::range<22, 21>)
@@ -158,17 +158,17 @@ namespace detail {
 }
 
 template<typename Flight = void>
-struct DMAInterrupts : ConfigurationStruct<DMAInterrupts, detail::layout_interrupts, Flight> {
+struct Interrupts : ConfigurationStruct<Interrupts, detail::layout_interrupts, Flight> {
 	template<typename>
-	friend struct DMAInterrupts;
+	friend struct Interrupts;
 
 	public:
 		typedef detail::layout_interrupts struct_type;
 	private:
-		typedef DMAInterrupts this_type;
+		typedef Interrupts this_type;
 		typedef Flight flight_type;
 		template<typename Next>
-		using this_template = DMAInterrupts<Next>;
+		using this_template = Interrupts<Next>;
 
 	public:
 		STRUCT_SINGULAR_MULTIARRAY_R(status, ISR<>, STRUCT_OFFSETOF(lisr), STRUCT_OFFSETOF(hisr))
