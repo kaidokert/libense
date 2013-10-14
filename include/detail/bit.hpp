@@ -89,11 +89,23 @@ namespace detail {
 		};
 		template<size_t... Offsets>
 		struct element_offset_specified<ense::mpl::list<std::integral_constant<size_t, Offsets>...>> {
-			static const size_t offsets[];
+			template<size_t First, size_t... Rest, size_t ArgCount>
+			static constexpr size_t nth(size_t idx, std::integral_constant<size_t, ArgCount>)
+			{
+				return idx == 0
+					? First
+					: nth<Rest...>(idx - 1, std::integral_constant<size_t, sizeof...(Rest)>());
+			}
+
+			template<size_t First>
+			static constexpr size_t nth(size_t, std::integral_constant<size_t, 1>)
+			{
+				return First;
+			}
 
 			static constexpr size_t map(size_t idx)
 			{
-				return offsets[idx];
+				return nth<Offsets...>(idx, std::integral_constant<size_t, sizeof...(Offsets)>());
 			}
 		};
 
@@ -102,9 +114,6 @@ namespace detail {
 			element_offset_specified<Bits>,
 			element_offset_trivial<Bits::width>>::type type;
 	};
-	template<typename Bits>
-	template<size_t... Offsets>
-	const size_t element_offset<Bits>::element_offset_specified<ense::mpl::list<std::integral_constant<size_t, Offsets>...>>::offsets[] = { Offsets... };
 
 }
 
