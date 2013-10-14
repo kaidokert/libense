@@ -78,7 +78,7 @@ enum class ConfigFlags : uint32_t {
 };
 
 template<bool Config = false>
-struct SxCR : ConfigurationRegister<ConfigFlags, Config, SxCR> {
+struct SCR : ConfigurationRegister<ConfigFlags, Config, SCR> {
 	REGISTER_INT_RW(channel, detail::bit::range<27, 25>)
 	REGISTER_FIELD_RW(BurstSize, memory_burst_size, detail::bit::range<24, 23>)
 	REGISTER_FIELD_RW(BurstSize, peripheral_burst_size, detail::bit::range<22, 21>)
@@ -100,20 +100,39 @@ struct SxCR : ConfigurationRegister<ConfigFlags, Config, SxCR> {
 	REGISTER_BIT_RW(fifo_error_interrupt)
 };
 
-static_assert(traits::is_platform_register_valid<SxCR<>>(), "");
+static_assert(traits::is_platform_register_valid<SCR<>>(), "");
 
 
 
 template<bool Config = false>
-struct SxNDTR : ConfigurationRegister<void, Config, SxNDTR> {
+struct SNDTR : ConfigurationRegister<void, Config, SNDTR> {
 	REGISTER_INT_RW(count, detail::bit::range<15, 0>)
 };
 
-static_assert(traits::is_platform_register_valid<SxNDTR<>>(), "");
+static_assert(traits::is_platform_register_valid<SNDTR<>>(), "");
 
 
 
-enum class SxFCRFlags : uint32_t {
+template<bool Config = false>
+struct SAR : ConfigurationRegister<void, Config, SAR> {
+	const void* address() const
+	{
+		static_assert(sizeof(void*) == sizeof(this->value()), "");
+		return reinterpret_cast<const void*>(this->value());
+	}
+
+	SAR& address(void* val)
+	{
+		static_assert(sizeof(void*) == sizeof(this->value()), "");
+		return this->value(reinterpret_cast<uint32_t>(val));
+	}
+};
+
+static_assert(traits::is_platform_register_valid<SAR<>>(), "");
+
+
+
+enum class SFCRFlags : uint32_t {
 	error_interrupt_enable = 1U << 7,
 	direct_mode_disable    = 1U << 2
 };
@@ -135,14 +154,14 @@ enum class FIFOThreshold : uint32_t {
 };
 
 template<bool Config = false>
-struct SxFCR : ConfigurationRegister<SxFCRFlags, Config, SxFCR> {
+struct SFCR : ConfigurationRegister<SFCRFlags, Config, SFCR> {
 	REGISTER_BIT_RW(error_interrupt_enable)
 	REGISTER_FIELD_R(FIFOStatus, fifo_status, detail::bit::range<5, 3>)
 	REGISTER_BIT_RW(direct_mode_disable)
 	REGISTER_FIELD_RW(FIFOThreshold, fifo_threshold, detail::bit::range<1, 0>)
 };
 
-static_assert(traits::is_platform_register_valid<SxFCR<>>(), "");
+static_assert(traits::is_platform_register_valid<SFCR<>>(), "");
 
 
 
@@ -174,6 +193,86 @@ struct Interrupts : ConfigurationStruct<Interrupts, detail::layout_interrupts, F
 		STRUCT_SINGULAR_MULTIARRAY_R(status, ISR<>, STRUCT_OFFSETOF(lisr), STRUCT_OFFSETOF(hisr))
 		STRUCT_SINGULAR_MULTIARRAY_W(clear, IFCR<>, STRUCT_OFFSETOF(lifcr), STRUCT_OFFSETOF(hifcr))
 };
+
+static_assert(traits::is_config_struct_valid<Interrupts>(), "");
+
+
+
+namespace detail {
+
+	struct layout_stream {
+		SCR<> scr;
+		SNDTR<> sndtr;
+		SAR<> spar;
+		SAR<> m0ar;
+		SAR<> m1ar;
+		SFCR<> sfcr;
+	};
+
+}
+
+template<typename Flight = void>
+struct Stream : ConfigurationStruct<Stream, detail::layout_stream, Flight> {
+	template<typename>
+	friend struct Stream;
+
+	public:
+		typedef detail::layout_stream struct_type;
+	private:
+		typedef Stream this_type;
+		typedef Flight flight_type;
+		template<typename Next>
+		using this_template = Stream<Next>;
+
+	public:
+		STRUCT_INT_RW(channel, scr, channel)
+		STRUCT_FIELD_RW(memory_burst_size, scr, memory_burst_size)
+		STRUCT_FIELD_RW(peripheral_burst_size, scr, peripheral_burst_size)
+		STRUCT_INT_RW(current_target, scr, current_target)
+		STRUCT_BIT_RW(double_buffered, scr, double_buffered)
+		STRUCT_FIELD_RW(priority, scr, priority)
+		STRUCT_BIT_RW(peripheral_increment_by_four, scr, peripheral_increment_by_four)
+		STRUCT_FIELD_RW(memory_size, scr, memory_size)
+		STRUCT_FIELD_RW(peripheral_size, scr, peripheral_size)
+		STRUCT_BIT_RW(memory_increment, scr, memory_increment)
+		STRUCT_BIT_RW(peripheral_increment, scr, peripheral_increment)
+		STRUCT_BIT_RW(circular, scr, circular)
+		STRUCT_FIELD_RW(direction, scr, direction)
+		STRUCT_BIT_RW(peripheral_flow_control, scr, peripheral_flow_control)
+		STRUCT_BIT_RW(transfer_complete_interrupt, scr, transfer_complete_interrupt)
+		STRUCT_BIT_RW(half_transfer_interrupt, scr, half_transfer_interrupt)
+		STRUCT_BIT_RW(transfer_error_interrupt, scr, transfer_error_interrupt)
+		STRUCT_BIT_RW(direct_error_interrupt, scr, direct_error_interrupt)
+		STRUCT_BIT_RW(fifo_error_interrupt, scr, fifo_error_interrupt)
+
+		STRUCT_INT_RW(count, sndtr, count)
+
+		STRUCT_FIELD_RW(peripheral_address, spar, address)
+
+		STRUCT_FIELD_RW(memory_address_0, m0ar, address)
+
+		STRUCT_FIELD_RW(memory_address_1, m1ar, address)
+
+		STRUCT_BIT_RW(error_interrupt_enable, sfcr, error_interrupt_enable)
+		STRUCT_FIELD_R(fifo_status, sfcr, fifo_status)
+		STRUCT_BIT_RW(direct_mode_disable, sfcr, direct_mode_disable)
+		STRUCT_FIELD_RW(fifo_threshold, sfcr, fifo_threshold)
+};
+
+static_assert(traits::is_config_struct_valid<Stream>(), "");
+
+
+
+struct DMA {
+	Interrupts<> interrupts;
+	Stream<> stream[8];
+};
+
+static_assert(std::is_standard_layout<DMA>::value, "");
+static_assert(sizeof(DMA) == sizeof(Interrupts<>::struct_type) + sizeof(Stream<>::struct_type[8]), "");
+
+extern DMA dma1 [[gnu::weak, gnu::alias(".DMA_DMA1")]];
+extern DMA dma2 [[gnu::weak, gnu::alias(".DMA_DMA2")]];
 
 }
 }

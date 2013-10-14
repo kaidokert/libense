@@ -212,7 +212,7 @@
 		}
 #define STRUCT_MULTIARRAY_IMPL_GETTERS(name, STYPE) \
 	public: \
-		auto name(uint32_t idx) -> \
+		auto name(uint32_t idx) const -> \
 			decltype(STYPE::begin_apply(*this).get_ ## name ## _step( \
 				idx, \
 				STYPE::make_tuple(*this), \
