@@ -2,6 +2,10 @@
 TARGETS := main
 PARTICLES := ense
 
+CPU := cortex-m4
+FLOAT_ABI := hard
+FPU := vfp
+
 # default compiler/linker flags
 override CPPFLAGS += -I include
 override CPPFLAGS += -I ../libcxx/include
@@ -14,12 +18,13 @@ ASFLAGS_DEBUG := -g
 
 #CCFLAGS += -Werror
 CCFLAGS += -Wall -Wextra -pedantic -mstrict-align
-CCFLAGS += -mcpu=cortex-m4 -mthumb -mfloat-abi=hard
+CCFLAGS += -mcpu=$(CPU) -mthumb -mfloat-abi=$(FLOAT_ABI)
 CCFLAGS += -ffreestanding -nostdlib -nostdlibinc
 CCFLAGS += -fno-exceptions -fno-rtti -fno-stack-protector
 #CCFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += $(CCFLAGS) -std=c99
 CXXFLAGS += $(CCFLAGS) -std=c++11
+ASFLAGS := -mcpu=$(CPU) -mthumb -mfloat-abi=$(FLOAT_ABI) -mfpu=$(FPU) -meabi=5
 
 LDFLAGS += -L/usr/lib/gcc/arm-elf/4.7.2/thumb/ -lgcc -T ldscripts/stm32f4/f4.ld
 
