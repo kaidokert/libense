@@ -211,15 +211,15 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 		ODR<>& out() { return this->odr; }
 };
 
-extern linker_placed_struct<GPIO> gpioA [[gnu::weak, gnu::alias(".GPIO_PORTA")]];
-extern linker_placed_struct<GPIO> gpioB [[gnu::weak, gnu::alias(".GPIO_PORTB")]];
-extern linker_placed_struct<GPIO> gpioC [[gnu::weak, gnu::alias(".GPIO_PORTC")]];
-extern linker_placed_struct<GPIO> gpioD [[gnu::weak, gnu::alias(".GPIO_PORTD")]];
-extern linker_placed_struct<GPIO> gpioE [[gnu::weak, gnu::alias(".GPIO_PORTE")]];
-extern linker_placed_struct<GPIO> gpioF [[gnu::weak, gnu::alias(".GPIO_PORTF")]];
-extern linker_placed_struct<GPIO> gpioG [[gnu::weak, gnu::alias(".GPIO_PORTG")]];
-extern linker_placed_struct<GPIO> gpioH [[gnu::weak, gnu::alias(".GPIO_PORTH")]];
-extern linker_placed_struct<GPIO> gpioI [[gnu::weak, gnu::alias(".GPIO_PORTI")]];
+static linker_placed_struct<GPIO> gpioA [[gnu::weakref(".GPIO_PORTA")]];
+static linker_placed_struct<GPIO> gpioB [[gnu::weakref(".GPIO_PORTB")]];
+static linker_placed_struct<GPIO> gpioC [[gnu::weakref(".GPIO_PORTC")]];
+static linker_placed_struct<GPIO> gpioD [[gnu::weakref(".GPIO_PORTD")]];
+static linker_placed_struct<GPIO> gpioE [[gnu::weakref(".GPIO_PORTE")]];
+static linker_placed_struct<GPIO> gpioF [[gnu::weakref(".GPIO_PORTF")]];
+static linker_placed_struct<GPIO> gpioG [[gnu::weakref(".GPIO_PORTG")]];
+static linker_placed_struct<GPIO> gpioH [[gnu::weakref(".GPIO_PORTH")]];
+static linker_placed_struct<GPIO> gpioI [[gnu::weakref(".GPIO_PORTI")]];
 
 }
 }

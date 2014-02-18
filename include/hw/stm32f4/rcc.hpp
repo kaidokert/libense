@@ -39,7 +39,7 @@ struct ClockControl : ConfigurationRegister<ClockControlFlags, Config, ClockCont
 	REGISTER_BIT_RW(hsi_on)
 };
 
-extern linker_placed_register<ClockControl<>> clock_control [[gnu::weak, gnu::alias(".RCC_CR")]];
+static linker_placed_register<ClockControl<>> clock_control [[gnu::weakref(".RCC_CR")]];
 
 
 
@@ -65,7 +65,7 @@ struct PLLConfig : ConfigurationRegister<void, Config, PLLConfig> {
 	REGISTER_INT_RW(m, detail::bit::range<5, 0>)
 };
 
-extern linker_placed_register<PLLConfig<>> pll_config [[gnu::weak, gnu::alias(".RCC_PLLCFGR")]];
+static linker_placed_register<PLLConfig<>> pll_config [[gnu::weakref(".RCC_PLLCFGR")]];
 
 
 
@@ -131,7 +131,7 @@ struct ClockConfig : ConfigurationRegister<void, Config, ClockConfig> {
 	REGISTER_FIELD_RW(SystemClockSource, clock_source_switch, detail::bit::range<1, 0>)
 };
 
-extern linker_placed_register<ClockConfig<>> clock_config [[gnu::weak, gnu::alias(".RCC_CFGR")]];
+static linker_placed_register<ClockConfig<>> clock_config [[gnu::weakref(".RCC_CFGR")]];
 
 
 
@@ -187,7 +187,7 @@ struct ClockInterrupt : ConfigurationRegister<ClockInterruptFlags, Config, Clock
 	REGISTER_BIT_R(lsi_ready)
 };
 
-extern linker_placed_register<ClockInterrupt<>> clockinterrupt [[gnu::weak, gnu::alias(".RCC_CIR")]];
+static linker_placed_register<ClockInterrupt<>> clockinterrupt [[gnu::weakref(".RCC_CIR")]];
 
 
 
@@ -265,9 +265,9 @@ struct AHB1Enable : AHB1Clock<Config, AHB1Enable> {};
 template<bool Config = false>
 struct AHB1LPEnable : AHB1Clock<Config, AHB1LPEnable> {};
 
-extern linker_placed_register<AHB1Reset<>> ahb1_reset [[gnu::weak, gnu::alias(".RCC_AHB1RSTR")]];
-extern linker_placed_register<AHB1Enable<>> ahb1_enable [[gnu::weak, gnu::alias(".RCC_AHB1ENR")]];
-extern linker_placed_register<AHB1Enable<>> ahb1_lp_enable [[gnu::weak, gnu::alias(".RCC_AHB1LPENR")]];
+static linker_placed_register<AHB1Reset<>> ahb1_reset [[gnu::weakref(".RCC_AHB1RSTR")]];
+static linker_placed_register<AHB1Enable<>> ahb1_enable [[gnu::weakref(".RCC_AHB1ENR")]];
+static linker_placed_register<AHB1Enable<>> ahb1_lp_enable [[gnu::weakref(".RCC_AHB1LPENR")]];
 
 
 
@@ -304,9 +304,9 @@ struct AHB2Enable : AHB2Clock<Config, AHB2Enable> {};
 template<bool Config = false>
 struct AHB2LPEnable : AHB2Clock<Config, AHB2LPEnable> {};
 
-extern linker_placed_register<AHB2Reset<>> ahb2_reset [[gnu::weak, gnu::alias(".RCC_AHB2RSTR")]];
-extern linker_placed_register<AHB2Enable<>> ahb2_enable [[gnu::weak, gnu::alias(".RCC_AHB2ENR")]];
-extern linker_placed_register<AHB2LPEnable<>> ahb2_lp_enable [[gnu::weak, gnu::alias(".RCC_AHB2LPENR")]];
+static linker_placed_register<AHB2Reset<>> ahb2_reset [[gnu::weakref(".RCC_AHB2RSTR")]];
+static linker_placed_register<AHB2Enable<>> ahb2_enable [[gnu::weakref(".RCC_AHB2ENR")]];
+static linker_placed_register<AHB2LPEnable<>> ahb2_lp_enable [[gnu::weakref(".RCC_AHB2LPENR")]];
 
 
 
@@ -331,9 +331,9 @@ struct AHB3Enable : AHB3Clock<Config, AHB3Enable> {};
 template<bool Config = false>
 struct AHB3LPEnable : AHB3Clock<Config, AHB3LPEnable> {};
 
-extern linker_placed_register<AHB3Reset<>> ahb3_reset [[gnu::weak, gnu::alias(".RCC_AHB3RSTR")]];
-extern linker_placed_register<AHB3Enable<>> ahb3_enable [[gnu::weak, gnu::alias(".RCC_AHB3ENR")]];
-extern linker_placed_register<AHB3LPEnable<>> ahb3_lp_enable [[gnu::weak, gnu::alias(".RCC_AHB3LPENR")]];
+static linker_placed_register<AHB3Reset<>> ahb3_reset [[gnu::weakref(".RCC_AHB3RSTR")]];
+static linker_placed_register<AHB3Enable<>> ahb3_enable [[gnu::weakref(".RCC_AHB3ENR")]];
+static linker_placed_register<AHB3LPEnable<>> ahb3_lp_enable [[gnu::weakref(".RCC_AHB3LPENR")]];
 
 
 
@@ -430,9 +430,9 @@ struct APB1Enable : APB1Clock<Config, APB1Enable> {};
 template<bool Config = false>
 struct APB1LPEnable : APB1Clock<Config, APB1LPEnable> {};
 
-extern linker_placed_register<APB1Reset<>> apb1_reset [[gnu::weak, gnu::alias(".RCC_APB1RSTR")]];
-extern linker_placed_register<APB1Enable<>> apb1_enable [[gnu::weak, gnu::alias(".RCC_APB1ENR")]];
-extern linker_placed_register<APB1LPEnable<>> apb1_lp_enable [[gnu::weak, gnu::alias(".RCC_APB1LPENR")]];
+static linker_placed_register<APB1Reset<>> apb1_reset [[gnu::weakref(".RCC_APB1RSTR")]];
+static linker_placed_register<APB1Enable<>> apb1_enable [[gnu::weakref(".RCC_APB1ENR")]];
+static linker_placed_register<APB1LPEnable<>> apb1_lp_enable [[gnu::weakref(".RCC_APB1LPENR")]];
 
 
 
@@ -500,9 +500,9 @@ struct APB2Enable : APB2Clock<Config, APB2Enable> {};
 template<bool Config = false>
 struct APB2LPEnable : APB2Clock<Config, APB2LPEnable> {};
 
-extern linker_placed_register<APB2Reset<>> apb2_reset [[gnu::weak, gnu::alias(".RCC_APB2RSTR")]];
-extern linker_placed_register<APB2Enable<>> apb2_enable [[gnu::weak, gnu::alias(".RCC_APB2ENR")]];
-extern linker_placed_register<APB2LPEnable<>> apb2_lp_enable [[gnu::weak, gnu::alias(".RCC_APB2LPENR")]];
+static linker_placed_register<APB2Reset<>> apb2_reset [[gnu::weakref(".RCC_APB2RSTR")]];
+static linker_placed_register<APB2Enable<>> apb2_enable [[gnu::weakref(".RCC_APB2ENR")]];
+static linker_placed_register<APB2LPEnable<>> apb2_lp_enable [[gnu::weakref(".RCC_APB2LPENR")]];
 
 
 
@@ -533,7 +533,7 @@ struct BackupDomain : ConfigurationRegister<BackupDomainFlags, Config, BackupDom
 	REGISTER_BIT_RW(lse_enabled)
 };
 
-extern linker_placed_register<BackupDomain<>> backup_domain [[gnu::weak, gnu::alias(".RCC_BDCR")]];
+static linker_placed_register<BackupDomain<>> backup_domain [[gnu::weakref(".RCC_BDCR")]];
 
 
 
@@ -566,7 +566,7 @@ struct ClockStatus : ConfigurationRegister<ClockStatusFlags, Config, ClockStatus
 	REGISTER_BIT_RW(lsi_on)
 };
 
-extern linker_placed_register<ClockStatus<>> clock_status [[gnu::weak, gnu::alias(".RCC_CSR")]];
+static linker_placed_register<ClockStatus<>> clock_status [[gnu::weakref(".RCC_CSR")]];
 
 
 
@@ -584,7 +584,7 @@ struct SpreadSpectrumClock : ConfigurationRegister<void, Config, SpreadSpectrumC
 	REGISTER_INT_RW(period, detail::bit::range<12, 0>)
 };
 
-extern linker_placed_register<SpreadSpectrumClock<>> spread_spectrum_clock [[gnu::weak, gnu::alias(".RCC_SSCGR")]];
+static linker_placed_register<SpreadSpectrumClock<>> spread_spectrum_clock [[gnu::weakref(".RCC_SSCGR")]];
 
 
 
@@ -595,7 +595,7 @@ struct PLLI2S : ConfigurationRegister<void, Config, PLLI2S> {
 	REGISTER_INT_RW(n, detail::bit::range<14, 6>)
 };
 
-extern linker_placed_register<PLLI2S<>> plli2s [[gnu::weak, gnu::alias(".RCC_PLLI2SCFGR")]];
+static linker_placed_register<PLLI2S<>> plli2s [[gnu::weakref(".RCC_PLLI2SCFGR")]];
 
 
 
@@ -605,7 +605,7 @@ struct DedicatedClockConfig : ConfigurationRegister<void, Config, DedicatedClock
 	REGISTER_FIELD_RW(bool, timpre, detail::bit::range<24, 24>)
 };
 
-extern linker_placed_register<DedicatedClockConfig<>> dedicated_clock_config [[gnu::weak, gnu::alias(".RCC_DCKCFGR")]];
+static linker_placed_register<DedicatedClockConfig<>> dedicated_clock_config [[gnu::weakref(".RCC_DCKCFGR")]];
 
 }
 }

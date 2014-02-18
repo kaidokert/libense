@@ -24,7 +24,7 @@ class NVIC {
 		bitfield_t __ispr_padding [[gnu::unused]];
 		bitfield_t icpr;
 		bitfield_t __icpr_padding [[gnu::unused]];
-		const bitfield_t iabr;
+		bitfield_t iabr;
 		bitfield_t __iabr_padding [[gnu::unused]];
 		volatile uint8_t ipr[496];
 
@@ -152,7 +152,7 @@ class NVIC {
 		}
 };
 
-extern NVIC nvic [[gnu::weak, gnu::alias(".SCS_NVIC")]];
+static NVIC nvic [[gnu::weakref(".SCS_NVIC")]];
 
 }
 

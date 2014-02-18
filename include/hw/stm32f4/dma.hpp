@@ -271,8 +271,8 @@ struct DMA {
 static_assert(std::is_standard_layout<DMA>::value, "");
 static_assert(sizeof(DMA) == sizeof(Interrupts<>::struct_type) + sizeof(Stream<>::struct_type[8]), "");
 
-extern DMA dma1 [[gnu::weak, gnu::alias(".DMA_DMA1")]];
-extern DMA dma2 [[gnu::weak, gnu::alias(".DMA_DMA2")]];
+static DMA dma1 [[gnu::weakref(".DMA_DMA1")]];
+static DMA dma2 [[gnu::weakref(".DMA_DMA2")]];
 
 }
 }

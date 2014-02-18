@@ -14,7 +14,7 @@ struct CPUID : PlatformRegister<void, CPUID, volatile uint32_t> {
 	REGISTER_INT_R(revision,     detail::bit::range<3, 0>)
 };
 
-extern linker_placed_register<CPUID> cpuid [[gnu::weak, gnu::alias(".SCS_CPUID")]];
+static linker_placed_register<CPUID> cpuid [[gnu::weakref(".SCS_CPUID")]];
 
 }
 

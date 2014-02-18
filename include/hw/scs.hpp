@@ -19,7 +19,7 @@ struct SCR : ConfigurationRegister<SCRFlags, Config, SCR> {
 	REGISTER_BIT_RW(sleep_on_exit)
 };
 
-extern linker_placed_register<SCR<>> scr [[gnu::weak, gnu::alias(".SCS_SCR")]];
+static linker_placed_register<SCR<>> scr [[gnu::weakref(".SCS_SCR")]];
 
 
 
@@ -43,7 +43,7 @@ struct CCR : ConfigurationRegister<CCRFlags, Config, CCR> {
 	REGISTER_BIT_RW(non_base_thread_enable)
 };
 
-extern linker_placed_register<CCR<>> ccr [[gnu::weak, gnu::alias(".SCS_CCR")]];
+static linker_placed_register<CCR<>> ccr [[gnu::weakref(".SCS_CCR")]];
 
 
 
@@ -59,7 +59,7 @@ struct CPACR : ConfigurationRegister<void, Config, CPACR> {
 	REGISTER_SINGULAR_ARRAY_RW(CoprocessorAccess[16], detail::bit::range<0, 31>, detail::bit::width<2>)
 };
 
-extern linker_placed_register<CPACR<>> cpacr [[gnu::weak, gnu::alias(".SCS_CPACR")]];
+static linker_placed_register<CPACR<>> cpacr [[gnu::weakref(".SCS_CPACR")]];
 
 }
 
