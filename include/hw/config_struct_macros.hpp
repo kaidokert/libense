@@ -10,14 +10,14 @@
 	auto name(STRUCT_UNPACK params) const \
 		-> typename ense::mpl::result_type<decltype(ense::mpl::select_memfn ## selector(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type \
 	{ \
-		STRUCT_EXTENDED_TYPE(reg) extended = STRUCT_EXTEND(reg); \
+		auto&& extended = STRUCT_EXTEND(reg); \
 		return STRUCT_EXTRACT(extended, reg).name_in_reg(STRUCT_UNPACK args); \
 	}
 #define STRUCT_FORWARD_W(name, reg, name_in_reg, params, args) \
 	auto name(STRUCT_UNPACK params) \
 		-> STRUCT_EXTENDED_TYPE(reg) \
 	{ \
-		STRUCT_EXTENDED_TYPE(reg) extended = STRUCT_EXTEND(reg); \
+		auto&& extended = STRUCT_EXTEND(reg); \
 		STRUCT_EXTRACT(extended, reg).name_in_reg(STRUCT_UNPACK args); \
 		return extended; \
 	}
@@ -26,7 +26,7 @@
 	auto name ## _mask(STRUCT_UNPACK params) \
 		-> STRUCT_EXTENDED_TYPE(reg) \
 	{ \
-		STRUCT_EXTENDED_TYPE(reg) extended = STRUCT_EXTEND(reg); \
+		auto&& extended = STRUCT_EXTEND(reg); \
 		STRUCT_EXTRACT(extended, reg).template name_in_reg ## _mask<Mask>(STRUCT_UNPACK args); \
 		return extended; \
 	}
@@ -35,7 +35,7 @@
 	auto name ## _range(STRUCT_UNPACK params) \
 		-> STRUCT_EXTENDED_TYPE(reg) \
 	{ \
-		STRUCT_EXTENDED_TYPE(reg) extended = STRUCT_EXTEND(reg); \
+		auto&& extended = STRUCT_EXTEND(reg); \
 		STRUCT_EXTRACT(extended, reg).template name_in_reg ## _range<Bound1, Bound2>(STRUCT_UNPACK args); \
 		return extended; \
 	}
@@ -213,13 +213,13 @@
 #define STRUCT_MULTIARRAY_IMPL_GETTERS(name, STYPE) \
 	public: \
 		auto name(uint32_t idx) const -> \
-			decltype(STYPE::begin_apply(*this).get_ ## name ## _step( \
+			decltype(STYPE::begin_apply(const_cast<this_type&>(*this)).get_ ## name ## _step( \
 				idx, \
-				STYPE::make_tuple(*this), \
-				std::integral_constant<uint32_t, std::tuple_size<decltype(STYPE::make_tuple(*this))>::value - 1>())) \
+				STYPE::make_tuple(const_cast<this_type&>(*this)), \
+				std::integral_constant<uint32_t, std::tuple_size<decltype(STYPE::make_tuple(const_cast<this_type&>(*this)))>::value - 1>())) \
 		{ \
-			auto&& extended = STYPE::begin_apply(*this); \
-			auto targets = STYPE::make_tuple(*this); \
+			auto&& extended = STYPE::begin_apply(const_cast<this_type&>(*this)); \
+			auto targets = STYPE::make_tuple(const_cast<this_type&>(*this)); \
 			return extended.get_ ## name ## _step(idx, targets, std::integral_constant<uint32_t, std::tuple_size<decltype(targets)>::value - 1>()); \
 		}
 #define STRUCT_MULTIARRAY_IMPL_SETTERS(name, STYPE) \
