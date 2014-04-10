@@ -6,7 +6,7 @@
 
 namespace ense {
 
-struct ICTR : PlatformRegister<void, ICTR, volatile uint32_t> {
+struct ICTR : PlatformRegister<ICTR, volatile uint32_t> {
 	uint32_t lines() const
 	{
 		uint32_t line_code = _value & 0xF;
@@ -45,7 +45,7 @@ enum class ICSRFlags : uint32_t {
 	ret_to_base     = 1U << 11
 };
 
-struct ICSR : WritablePlatformRegister<ICSRFlags, ICSR, volatile uint32_t> {
+struct ICSR : WritablePlatformRegister<ICSR, volatile ICSRFlags> {
 	REGISTER_BIT_RW(nmi_pending)
 	REGISTER_BIT_RW(pendsv_pending)
 	REGISTER_BIT_C(pendsv_clear)
@@ -181,7 +181,7 @@ static linker_placed_register<SHCSR<>> shcsr [[gnu::weakref(".SCS_SHCSR")]];
 
 
 
-enum class MMFSRFlags : uint8_t {
+enum class MMFSRFlags : uint32_t {
 	mmar_valid     = 1U << 7,
 	mlsp_err       = 1U << 5,
 	mstack_err     = 1U << 4,
@@ -192,7 +192,7 @@ enum class MMFSRFlags : uint8_t {
 	clear = 1
 };
 
-enum class BFSRFlags : uint8_t {
+enum class BFSRFlags : uint32_t {
 	bfar_valid    = 1U << 7,
 	lsp_err       = 1U << 5,
 	stack_err     = 1U << 4,
@@ -204,7 +204,7 @@ enum class BFSRFlags : uint8_t {
 	clear = 1
 };
 
-enum class UFSRFlags : uint16_t {
+enum class UFSRFlags : uint32_t {
 	div_by_zero           = 1U << 9,
 	unaligned             = 1U << 8,
 	no_coprocessor        = 1U << 3,
@@ -270,7 +270,7 @@ struct CFSR : ConfigurationRegister<CFSRFlags, Config, CFSR> {
 	REGISTER_BIT_C(clear_mmfsr)
 };
 
-struct MMFSR : WritablePlatformRegister<MMFSRFlags, MMFSR, volatile uint8_t> {
+struct MMFSR : WritablePlatformRegister<MMFSR, volatile MMFSRFlags> {
 	REGISTER_BIT_R(mmar_valid)
 	REGISTER_BIT_R(mlsp_err)
 	REGISTER_BIT_R(mstack_err)
@@ -280,7 +280,7 @@ struct MMFSR : WritablePlatformRegister<MMFSRFlags, MMFSR, volatile uint8_t> {
 	REGISTER_BIT_C(clear)
 };
 
-struct BFSR : WritablePlatformRegister<BFSRFlags, BFSR, volatile uint8_t> {
+struct BFSR : WritablePlatformRegister<BFSR, volatile BFSRFlags> {
 	REGISTER_BIT_R(bfar_valid)
 	REGISTER_BIT_R(lsp_err)
 	REGISTER_BIT_R(stack_err)
@@ -291,7 +291,7 @@ struct BFSR : WritablePlatformRegister<BFSRFlags, BFSR, volatile uint8_t> {
 	REGISTER_BIT_C(clear)
 };
 
-struct UFSR : WritablePlatformRegister<UFSRFlags, UFSR, volatile uint16_t> {
+struct UFSR : WritablePlatformRegister<UFSR, volatile UFSRFlags> {
 	REGISTER_BIT_R(div_by_zero)
 	REGISTER_BIT_R(unaligned)
 	REGISTER_BIT_R(no_coprocessor)
@@ -317,7 +317,7 @@ enum class HFSRFlags : uint32_t {
 	clear = 1 << 1
 };
 
-struct HFSR : WritablePlatformRegister<HFSRFlags, HFSR, volatile uint32_t> {
+struct HFSR : WritablePlatformRegister<HFSR, volatile HFSRFlags> {
 	REGISTER_BIT_R(debug_event)
 	REGISTER_BIT_R(forced)
 	REGISTER_BIT_R(vector_table_fault)

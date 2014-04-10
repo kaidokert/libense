@@ -26,7 +26,7 @@ static linker_placed_register<SystickCSR<>> sys_csr [[gnu::weakref(".SCS_Systick
 
 
 
-struct SystickRVR : WritablePlatformRegister<void, SystickRVR, volatile uint32_t> {
+struct SystickRVR : WritablePlatformRegister<SystickRVR, volatile uint32_t> {
 	REGISTER_INT_RW(reload_value, detail::bit::range<23, 0>)
 };
 
@@ -35,7 +35,7 @@ static linker_placed_register<SystickRVR> sys_rvr [[gnu::weakref(".SCS_SystickRV
 
 
 
-struct SystickCVR : WritablePlatformRegister<void, SystickCVR, volatile uint32_t> {
+struct SystickCVR : WritablePlatformRegister<SystickCVR, volatile uint32_t> {
 	void clear()
 	{
 		this->value(0);
@@ -52,7 +52,7 @@ enum class SystickCalibFlags : uint32_t {
 	inexact           = 1U << 30
 };
 
-struct SystickCalib : PlatformRegister<SystickCalibFlags, SystickCalib, volatile uint32_t> {
+struct SystickCalib : PlatformRegister<SystickCalib, volatile SystickCalibFlags> {
 	REGISTER_BIT_R(reference_present)
 	REGISTER_BIT_R(inexact)
 	REGISTER_INT_R(ten_ms, detail::bit::range<23, 0>)

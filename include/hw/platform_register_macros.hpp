@@ -4,7 +4,7 @@
 #define ENSE_REGISTER_BIT_R(_NAME) \
 	bool _NAME() const \
 	{ \
-		return this->get(ENSE_REGISTER_THIS_TYPE::bits_type::_NAME); \
+		return this->has_all(ENSE_REGISTER_THIS_TYPE::bits_type::_NAME); \
 	}
 #define ENSE_REGISTER_BIT_W(_NAME) \
 	auto _NAME(bool enable) \

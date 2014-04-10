@@ -9,33 +9,17 @@
 #include <detail/const_array_wrapper.hpp>
 #include <detail/array_wrapper.hpp>
 #include <bitmask.hpp>
+#include <mpl/all.hpp>
 
 namespace ense {
 
-template<typename Bits, typename Derived, typename Value>
-class PlatformRegister : public PlatformRegister<void, Derived, Value> {
-	static_assert(
-		std::is_same<
-			typename std::underlying_type<Bits>::type,
-			typename std::remove_cv<Value>::type>::value,
-		"Bits is not a Value-enum");
-
-	public:
-		typedef Bits bits_type;
-
-	public:
-		bool get(Bits bit) const
-		{
-			return this->_value & static_cast<typename PlatformRegister::value_type>(bit);
-		}
-};
+namespace detail {
 
 template<typename Derived, typename Value>
-class PlatformRegister<void, Derived, Value> {
-	static_assert(std::is_integral<Value>::value, "");
+class PlatformRegisterPlain {
+	static_assert(std::is_same<typename std::remove_cv<Value>::type, uint32_t>::value, "");
 
 	public:
-		typedef void bits_type;
 		typedef Value memory_type;
 		typedef typename std::remove_cv<memory_type>::type value_type;
 
@@ -43,52 +27,126 @@ class PlatformRegister<void, Derived, Value> {
 		Value _value;
 
 	public:
-		value_type value() const { return _value; }
-};
-
-template<typename Bits, typename Derived, typename Value>
-class WritablePlatformRegister : public PlatformRegister<Bits, Derived, Value> {
-	public:
-		template<typename... Flags>
-		Derived& set(Flags... flags)
+		value_type value() const
 		{
-			static_assert(std::is_base_of<WritablePlatformRegister, Derived>::value, "");
-			Derived* self = static_cast<Derived*>(this);
-			self->value(self->value() | bitmask(flags...));
-			return *self;
-		}
+			static_assert(std::is_base_of<PlatformRegisterPlain, Derived>::value, "");
 
-		template<typename... Flags>
-		Derived& clear(Flags... flags)
-		{
-			static_assert(std::is_base_of<WritablePlatformRegister, Derived>::value, "");
-			Derived* self = static_cast<Derived*>(this);
-			self->value(self->value() & ~bitmask(flags...));
-			return *self;
-		}
-
-		typename WritablePlatformRegister::value_type value() const { return this->_value; }
-
-		Derived& value(typename WritablePlatformRegister::value_type val)
-		{
-			static_assert(std::is_base_of<WritablePlatformRegister, Derived>::value, "");
-			this->_value = val;
-			return static_cast<Derived&>(*this);
+			return _value;
 		}
 };
 
 template<typename Derived, typename Value>
-class WritablePlatformRegister<void, Derived, Value> : public PlatformRegister<void, Derived, Value> {
+class WritablePlatformRegisterPlain : public PlatformRegisterPlain<Derived, Value> {
 	public:
-		typename WritablePlatformRegister::value_type value() const { return this->_value; }
+		using PlatformRegisterPlain<Derived, Value>::value;
 
-		Derived& value(typename WritablePlatformRegister::value_type val)
+		Derived& value(typename WritablePlatformRegisterPlain::value_type val)
 		{
-			static_assert(std::is_base_of<WritablePlatformRegister, Derived>::value, "");
+			static_assert(std::is_base_of<WritablePlatformRegisterPlain, Derived>::value, "");
+
 			this->_value = val;
 			return static_cast<Derived&>(*this);
 		}
 };
+
+
+
+template<class Enum>
+struct storage_type {
+	typedef typename std::conditional<
+		std::is_volatile<Enum>::value,
+		volatile typename std::underlying_type<Enum>::type,
+		typename std::underlying_type<Enum>::type>::type type;
+};
+
+
+
+template<typename Derived, typename Bits>
+class PlatformRegisterBits : public PlatformRegisterPlain<Derived, typename storage_type<Bits>::type> {
+	static_assert(
+		std::is_same<
+			typename std::underlying_type<Bits>::type,
+			typename PlatformRegisterBits::value_type>::value,
+		"Bits is not a Value-enum");
+
+	public:
+		typedef typename std::remove_cv<Bits>::type bits_type;
+
+	public:
+		template<typename... Args>
+		bool has_any(Args... args) const
+		{
+			static_assert(std::is_base_of<PlatformRegisterBits, Derived>::value, "");
+			static_assert(::ense::mpl::all(std::is_same<Args, bits_type>::value...), "");
+
+			auto mask = ::ense::detail::bitmask::bitmask(args...);
+			return (static_cast<const Derived*>(this)->value() & mask) != 0;
+		}
+
+		template<typename... Args>
+		bool has_all(Args... args) const
+		{
+			static_assert(std::is_base_of<PlatformRegisterBits, Derived>::value, "");
+			static_assert(::ense::mpl::all(std::is_same<Args, bits_type>::value...), "");
+
+			auto mask = ::ense::detail::bitmask::bitmask(args...);
+			return (static_cast<const Derived*>(this)->value() & mask) == mask;
+		}
+};
+
+template<typename Derived, typename Bits>
+class WritablePlatformRegisterBits : public PlatformRegisterBits<Derived, Bits> {
+	public:
+		template<typename... Args>
+		Derived& set(Args... args)
+		{
+			static_assert(std::is_base_of<WritablePlatformRegisterBits, Derived>::value, "");
+			static_assert(::ense::mpl::all(std::is_same<Args, typename WritablePlatformRegisterBits::bits_type>::value...), "");
+
+			Derived* self = static_cast<Derived*>(this);
+			return self->value(self->value() | ::ense::detail::bitmask::bitmask(args...));
+		}
+
+		template<typename... Args>
+		Derived& clear(Args... args)
+		{
+			static_assert(std::is_base_of<WritablePlatformRegisterBits, Derived>::value, "");
+			static_assert(::ense::mpl::all(std::is_same<Args, typename WritablePlatformRegisterBits::bits_type>::value...), "");
+
+			Derived* self = static_cast<Derived*>(this);
+			return self->value(self->value() & ~::ense::detail::bitmask::bitmask(args...));
+		}
+
+		using PlatformRegisterBits<Derived, Bits>::value;
+
+		Derived& value(typename WritablePlatformRegisterBits::value_type val)
+		{
+			static_assert(std::is_base_of<WritablePlatformRegisterBits, Derived>::value, "");
+
+			this->_value = val;
+			return static_cast<Derived&>(*this);
+		}
+};
+
+}
+
+template<typename Derived, typename Value>
+class PlatformRegister :
+	public std::conditional<
+		std::is_enum<Value>::value,
+		::ense::detail::PlatformRegisterBits<Derived, Value>,
+		::ense::detail::PlatformRegisterPlain<Derived, Value>>::type {
+};
+
+template<typename Derived, typename Value>
+class WritablePlatformRegister :
+	public std::conditional<
+		std::is_enum<Value>::value,
+		::ense::detail::WritablePlatformRegisterBits<Derived, Value>,
+		::ense::detail::WritablePlatformRegisterPlain<Derived, Value>>::type {
+};
+
+
 
 namespace traits {
 
@@ -103,27 +161,17 @@ namespace traits {
 
 		static_assert(sizeof(Register) == sizeof(typename Register::value_type), "Register array contains superfluous fields");
 
-		static_assert(alignof(Register) <= sizeof(typename Register::value_type), "Register array has weird alignment requirements");
-
 		return true;
 	};
 
 	template<typename Register>
 	constexpr bool is_platform_register_valid()
 	{
-		static_assert(
-			std::is_base_of<
-				ense::PlatformRegister<typename Register::bits_type, Register, typename Register::memory_type>,
-				Register>::value,
-			"Register must inherit PlatformRegister<_, Register, _> somewhere");
-
 		static_assert(std::is_standard_layout<Register>::value, "Register is not standard-layout");
 
 		static_assert(std::is_volatile<typename Register::memory_type>::value, "Register value is not volatile");
 
 		static_assert(sizeof(Register) == sizeof(typename Register::value_type), "Register contains superfluous fields");
-
-		static_assert(alignof(Register) <= sizeof(typename Register::value_type), "Register has weird alignment requirements");
 
 		return true;
 	};

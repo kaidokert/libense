@@ -3,12 +3,14 @@
 
 #include <stdint.h>
 
+#include <mpl/coalesce.hpp>
+
 #include <hw/platform_register.hpp>
 
 namespace ense {
 
 template<typename Bits, bool Config, template<bool> class RegisterName>
-class ConfigurationRegister : public WritablePlatformRegister<Bits, RegisterName<true>, uint32_t> {
+class ConfigurationRegister : public WritablePlatformRegister<RegisterName<true>, mpl::coalesce<Bits, uint32_t>> {
 	friend class ConfigurationRegister<Bits, false, RegisterName>;
 
 	private:
@@ -23,7 +25,7 @@ class ConfigurationRegister : public WritablePlatformRegister<Bits, RegisterName
 };
 
 template<typename Bits, template<bool> class RegisterName>
-class ConfigurationRegister<Bits, false, RegisterName> : public WritablePlatformRegister<Bits, RegisterName<false>, volatile uint32_t> {
+class ConfigurationRegister<Bits, false, RegisterName> : public WritablePlatformRegister<RegisterName<false>, volatile mpl::coalesce<Bits, uint32_t>> {
 	public:
 		typedef RegisterName<true> in_flight_type;
 

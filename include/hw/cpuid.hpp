@@ -6,7 +6,7 @@
 
 namespace ense {
 
-struct CPUID : PlatformRegister<void, CPUID, volatile uint32_t> {
+struct CPUID : PlatformRegister<CPUID, volatile uint32_t> {
 	REGISTER_INT_R(implementer,  detail::bit::range<31, 24>)
 	REGISTER_INT_R(variant,      detail::bit::range<23, 20>)
 	REGISTER_INT_R(architecture, detail::bit::range<19, 16>)
