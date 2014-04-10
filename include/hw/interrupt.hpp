@@ -9,7 +9,7 @@ namespace ense {
 struct ICTR : PlatformRegister<ICTR, volatile uint32_t> {
 	uint32_t lines() const
 	{
-		uint32_t line_code = _value & 0xF;
+		uint32_t line_code = value() & 0xF;
 		return line_code == 0xf ? 496 : 32 * (line_code + 1);
 	}
 };

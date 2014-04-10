@@ -16,22 +16,83 @@ namespace ense {
 namespace detail {
 
 template<typename Derived, typename Value>
-class PlatformRegisterPlain {
+class PlatformRegisterArray {
+	static_assert(std::is_array<Value>::value, "");
+	static_assert(std::rank<typename std::remove_cv<Value>::type>::value == 1, "");
+	static_assert(std::is_same<typename std::remove_all_extents<typename std::remove_cv<Value>::type>::type, uint32_t>::value, "");
+
+	public:
+		typedef Value memory_type;
+		typedef typename std::remove_cv<memory_type>::type value_type;
+		typedef typename std::remove_all_extents<value_type>::type word_type;
+		static constexpr uint32_t words = std::extent<Value>::value;
+
+	protected:
+		static constexpr uint32_t width = sizeof(word_type) * 8;
+
+	protected:
+		Value _value;
+
+	public:
+		template<uint32_t First, uint32_t Last>
+		word_type bits() const
+		{
+			static_assert(std::is_base_of<PlatformRegisterArray, Derived>::value, "");
+			static_assert(First <= Last && Last - First <= width && (First / width) == (Last / width), "");
+
+			uint32_t leading = First % width;
+			uint32_t trailing = width - 1 - Last % width;
+			return (this->word(First / width) << trailing) >> (leading + trailing);
+		}
+
+		word_type word(uint32_t idx) const
+		{
+			return _value[idx];
+		}
+};
+
+template<typename Derived, typename Value>
+class WritablePlatformRegisterArray : public PlatformRegisterArray<Derived, Value> {
+	public:
+		using PlatformRegisterArray<Derived, Value>::word;
+		using PlatformRegisterArray<Derived, Value>::bits;
+
+		template<uint32_t First, uint32_t Last>
+		Derived& bits(typename WritablePlatformRegisterArray::word_type val)
+		{
+			static constexpr uint32_t width = WritablePlatformRegisterArray::width;
+			uint32_t leading = First % width;
+			uint32_t trailing = width - 1 - Last % width;
+			auto max = ~typename WritablePlatformRegisterArray::word_type(0);
+			auto mask = (max >> (leading + trailing)) << leading;
+			return this->word(First / width, (this->word(First / width) & ~mask) | ((val << leading) & mask));
+		}
+
+		Derived& word(uint32_t i, typename WritablePlatformRegisterArray::value_type val)
+		{
+			static_assert(std::is_base_of<WritablePlatformRegisterArray, Derived>::value, "");
+
+			this->_value[i] = val;
+			return static_cast<Derived&>(*this);
+		}
+};
+
+
+
+template<typename Derived, typename Value>
+class PlatformRegisterPlain : public PlatformRegisterArray<Derived, Value[1]> {
 	static_assert(std::is_same<typename std::remove_cv<Value>::type, uint32_t>::value, "");
 
 	public:
 		typedef Value memory_type;
 		typedef typename std::remove_cv<memory_type>::type value_type;
 
-	protected:
-		Value _value;
-
 	public:
 		value_type value() const
 		{
 			static_assert(std::is_base_of<PlatformRegisterPlain, Derived>::value, "");
 
-			return _value;
+			return this->word(0);
 		}
 };
 
@@ -39,13 +100,31 @@ template<typename Derived, typename Value>
 class WritablePlatformRegisterPlain : public PlatformRegisterPlain<Derived, Value> {
 	public:
 		using PlatformRegisterPlain<Derived, Value>::value;
+		using PlatformRegisterPlain<Derived, Value>::word;
+		using PlatformRegisterPlain<Derived, Value>::bits;
 
-		Derived& value(typename WritablePlatformRegisterPlain::value_type val)
+		template<uint32_t First, uint32_t Last>
+		Derived& bits(typename WritablePlatformRegisterPlain::word_type val)
+		{
+			static constexpr uint32_t width = WritablePlatformRegisterPlain::width;
+			uint32_t leading = First % width;
+			uint32_t trailing = width - 1 - Last % width;
+			auto max = ~typename WritablePlatformRegisterPlain::word_type(0);
+			auto mask = (max >> (leading + trailing)) << leading;
+			return this->word(First / width, (this->word(First / width) & ~mask) | ((val << leading) & mask));
+		}
+
+		Derived& word(uint32_t i, typename WritablePlatformRegisterPlain::word_type val)
 		{
 			static_assert(std::is_base_of<WritablePlatformRegisterPlain, Derived>::value, "");
 
-			this->_value = val;
+			this->_value[i] = val;
 			return static_cast<Derived&>(*this);
+		}
+
+		Derived& value(typename WritablePlatformRegisterPlain::word_type val)
+		{
+			return this->word(0, val);
 		}
 };
 
@@ -118,12 +197,33 @@ class WritablePlatformRegisterBits : public PlatformRegisterBits<Derived, Bits> 
 		}
 
 		using PlatformRegisterBits<Derived, Bits>::value;
+		using PlatformRegisterBits<Derived, Bits>::word;
+		using PlatformRegisterBits<Derived, Bits>::bits;
+
+		template<uint32_t First, uint32_t Last>
+		Derived& bits(typename WritablePlatformRegisterBits::word_type val)
+		{
+			static constexpr uint32_t width = WritablePlatformRegisterBits::width;
+			uint32_t leading = First % width;
+			uint32_t trailing = width - 1 - Last % width;
+			auto max = ~typename WritablePlatformRegisterBits::word_type(0);
+			auto mask = (max >> (leading + trailing)) << leading;
+			return this->word(First / width, (this->word(First / width) & ~mask) | ((val << leading) & mask));
+		}
+
+		Derived& word(uint32_t i, typename WritablePlatformRegisterBits::word_type val)
+		{
+			static_assert(std::is_base_of<WritablePlatformRegisterBits, Derived>::value, "");
+
+			this->_value[i] = val;
+			return static_cast<Derived&>(*this);
+		}
 
 		Derived& value(typename WritablePlatformRegisterBits::value_type val)
 		{
 			static_assert(std::is_base_of<WritablePlatformRegisterBits, Derived>::value, "");
 
-			this->_value = val;
+			this->_value[0] = val;
 			return static_cast<Derived&>(*this);
 		}
 };

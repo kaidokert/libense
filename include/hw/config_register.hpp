@@ -19,7 +19,8 @@ class ConfigurationRegister : public WritablePlatformRegister<RegisterName<true>
 	public:
 		RegisterName<false>& commit()
 		{
-			_target->value(this->_value);
+			for (uint32_t i = 0; i < ConfigurationRegister::words; i++)
+				_target->word(i, this->word(i));
 			return *_target;
 		}
 };
@@ -32,7 +33,8 @@ class ConfigurationRegister<Bits, false, RegisterName> : public WritablePlatform
 		RegisterName<true> begin()
 		{
 			auto result = RegisterName<true>();
-			result._value = this->_value;
+			for (uint32_t i = 0; i < ConfigurationRegister::words; i++)
+				result.word(i, this->word(i));
 			result._target = static_cast<RegisterName<false>*>(this);
 			return result;
 		}
