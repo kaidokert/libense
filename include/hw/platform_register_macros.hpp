@@ -45,15 +45,14 @@
 	_TYPE _NAME() const \
 	{ \
 		typedef detail::bit::expand<__VA_ARGS__> bp; \
-		return static_cast<_TYPE>((this->value() & bp::field_mask) >> bp::begin); \
+		return static_cast<_TYPE>(this->template bits<bp::begin, bp::end>()); \
 	}
 #define ENSE_REGISTER_FIELD_W(_TYPE, _NAME, ...) \
 	auto _NAME(_TYPE value) \
 		-> decltype(*this) \
 	{ \
 		typedef detail::bit::expand<__VA_ARGS__> bp; \
-		this->value((this->value() & ~bp::field_mask) | ((static_cast<uint32_t>(value) << bp::begin) & bp::field_mask)); \
-		return *this; \
+		return this->template bits<bp::begin, bp::end>(static_cast<typename ENSE_REGISTER_THIS_TYPE::word_type>(value)); \
 	}
 
 #define REGISTER_FIELD_R ENSE_REGISTER_FIELD_R

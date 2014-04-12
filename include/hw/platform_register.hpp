@@ -37,11 +37,10 @@ class PlatformRegisterArray {
 		template<uint32_t First, uint32_t Last>
 		word_type bits() const
 		{
-			static_assert(std::is_base_of<PlatformRegisterArray, Derived>::value, "");
 			static_assert(First <= Last && Last - First <= width && (First / width) == (Last / width), "");
 
-			uint32_t leading = First % width;
-			uint32_t trailing = width - 1 - Last % width;
+			static constexpr uint32_t leading = First % width;
+			static constexpr uint32_t trailing = width - 1 - Last % width;
 			return (this->word(First / width) << trailing) >> (leading + trailing);
 		}
 
@@ -61,17 +60,15 @@ class WritablePlatformRegisterArray : public PlatformRegisterArray<Derived, Valu
 		Derived& bits(typename WritablePlatformRegisterArray::word_type val)
 		{
 			static constexpr uint32_t width = WritablePlatformRegisterArray::width;
-			uint32_t leading = First % width;
-			uint32_t trailing = width - 1 - Last % width;
-			auto max = ~typename WritablePlatformRegisterArray::word_type(0);
-			auto mask = (max >> (leading + trailing)) << leading;
+			static constexpr uint32_t leading = First % width;
+			static constexpr uint32_t trailing = width - 1 - Last % width;
+			static constexpr auto max = ~typename WritablePlatformRegisterArray::word_type(0);
+			static constexpr auto mask = (max >> (leading + trailing)) << leading;
 			return this->word(First / width, (this->word(First / width) & ~mask) | ((val << leading) & mask));
 		}
 
-		Derived& word(uint32_t i, typename WritablePlatformRegisterArray::value_type val)
+		Derived& word(uint32_t i, typename WritablePlatformRegisterArray::word_type val)
 		{
-			static_assert(std::is_base_of<WritablePlatformRegisterArray, Derived>::value, "");
-
 			this->_value[i] = val;
 			return static_cast<Derived&>(*this);
 		}
@@ -79,52 +76,27 @@ class WritablePlatformRegisterArray : public PlatformRegisterArray<Derived, Valu
 
 
 
-template<typename Derived, typename Value>
-class PlatformRegisterPlain : public PlatformRegisterArray<Derived, Value[1]> {
-	static_assert(std::is_same<typename std::remove_cv<Value>::type, uint32_t>::value, "");
-
+template<class Derived, typename Value>
+class PlatformRegisterPlainCommon {
 	public:
-		typedef Value memory_type;
-		typedef typename std::remove_cv<memory_type>::type value_type;
-
-	public:
-		value_type value() const
+		Value value() const
 		{
-			static_assert(std::is_base_of<PlatformRegisterPlain, Derived>::value, "");
-
-			return this->word(0);
+			return static_cast<const Derived*>(this)->word(0);
 		}
 };
 
 template<typename Derived, typename Value>
-class WritablePlatformRegisterPlain : public PlatformRegisterPlain<Derived, Value> {
+class PlatformRegisterPlain : public PlatformRegisterArray<Derived, Value[1]>, public PlatformRegisterPlainCommon<Derived, Value> {
+};
+
+template<typename Derived, typename Value>
+class WritablePlatformRegisterPlain : public WritablePlatformRegisterArray<Derived, Value[1]>, public PlatformRegisterPlainCommon<Derived, Value> {
 	public:
-		using PlatformRegisterPlain<Derived, Value>::value;
-		using PlatformRegisterPlain<Derived, Value>::word;
-		using PlatformRegisterPlain<Derived, Value>::bits;
-
-		template<uint32_t First, uint32_t Last>
-		Derived& bits(typename WritablePlatformRegisterPlain::word_type val)
-		{
-			static constexpr uint32_t width = WritablePlatformRegisterPlain::width;
-			uint32_t leading = First % width;
-			uint32_t trailing = width - 1 - Last % width;
-			auto max = ~typename WritablePlatformRegisterPlain::word_type(0);
-			auto mask = (max >> (leading + trailing)) << leading;
-			return this->word(First / width, (this->word(First / width) & ~mask) | ((val << leading) & mask));
-		}
-
-		Derived& word(uint32_t i, typename WritablePlatformRegisterPlain::word_type val)
-		{
-			static_assert(std::is_base_of<WritablePlatformRegisterPlain, Derived>::value, "");
-
-			this->_value[i] = val;
-			return static_cast<Derived&>(*this);
-		}
+		using PlatformRegisterPlainCommon<Derived, Value>::value;
 
 		Derived& value(typename WritablePlatformRegisterPlain::word_type val)
 		{
-			return this->word(0, val);
+			return static_cast<Derived*>(this)->word(0, val);
 		}
 };
 
@@ -138,16 +110,8 @@ struct storage_type {
 		typename std::underlying_type<Enum>::type>::type type;
 };
 
-
-
 template<typename Derived, typename Bits>
-class PlatformRegisterBits : public PlatformRegisterPlain<Derived, typename storage_type<Bits>::type> {
-	static_assert(
-		std::is_same<
-			typename std::underlying_type<Bits>::type,
-			typename PlatformRegisterBits::value_type>::value,
-		"Bits is not a Value-enum");
-
+class PlatformRegisterBitsCommon {
 	public:
 		typedef typename std::remove_cv<Bits>::type bits_type;
 
@@ -155,7 +119,6 @@ class PlatformRegisterBits : public PlatformRegisterPlain<Derived, typename stor
 		template<typename... Args>
 		bool has_any(Args... args) const
 		{
-			static_assert(std::is_base_of<PlatformRegisterBits, Derived>::value, "");
 			static_assert(::ense::mpl::all(std::is_same<Args, bits_type>::value...), "");
 
 			auto mask = ::ense::detail::bitmask::bitmask(args...);
@@ -165,7 +128,6 @@ class PlatformRegisterBits : public PlatformRegisterPlain<Derived, typename stor
 		template<typename... Args>
 		bool has_all(Args... args) const
 		{
-			static_assert(std::is_base_of<PlatformRegisterBits, Derived>::value, "");
 			static_assert(::ense::mpl::all(std::is_same<Args, bits_type>::value...), "");
 
 			auto mask = ::ense::detail::bitmask::bitmask(args...);
@@ -174,12 +136,15 @@ class PlatformRegisterBits : public PlatformRegisterPlain<Derived, typename stor
 };
 
 template<typename Derived, typename Bits>
-class WritablePlatformRegisterBits : public PlatformRegisterBits<Derived, Bits> {
+class PlatformRegisterBits : public PlatformRegisterPlain<Derived, typename storage_type<Bits>::type>, public PlatformRegisterBitsCommon<Derived, Bits> {
+};
+
+template<typename Derived, typename Bits>
+class WritablePlatformRegisterBits : public WritablePlatformRegisterPlain<Derived, typename storage_type<Bits>::type>, public PlatformRegisterBitsCommon<Derived, Bits> {
 	public:
 		template<typename... Args>
 		Derived& set(Args... args)
 		{
-			static_assert(std::is_base_of<WritablePlatformRegisterBits, Derived>::value, "");
 			static_assert(::ense::mpl::all(std::is_same<Args, typename WritablePlatformRegisterBits::bits_type>::value...), "");
 
 			Derived* self = static_cast<Derived*>(this);
@@ -189,42 +154,10 @@ class WritablePlatformRegisterBits : public PlatformRegisterBits<Derived, Bits> 
 		template<typename... Args>
 		Derived& clear(Args... args)
 		{
-			static_assert(std::is_base_of<WritablePlatformRegisterBits, Derived>::value, "");
 			static_assert(::ense::mpl::all(std::is_same<Args, typename WritablePlatformRegisterBits::bits_type>::value...), "");
 
 			Derived* self = static_cast<Derived*>(this);
 			return self->value(self->value() & ~::ense::detail::bitmask::bitmask(args...));
-		}
-
-		using PlatformRegisterBits<Derived, Bits>::value;
-		using PlatformRegisterBits<Derived, Bits>::word;
-		using PlatformRegisterBits<Derived, Bits>::bits;
-
-		template<uint32_t First, uint32_t Last>
-		Derived& bits(typename WritablePlatformRegisterBits::word_type val)
-		{
-			static constexpr uint32_t width = WritablePlatformRegisterBits::width;
-			uint32_t leading = First % width;
-			uint32_t trailing = width - 1 - Last % width;
-			auto max = ~typename WritablePlatformRegisterBits::word_type(0);
-			auto mask = (max >> (leading + trailing)) << leading;
-			return this->word(First / width, (this->word(First / width) & ~mask) | ((val << leading) & mask));
-		}
-
-		Derived& word(uint32_t i, typename WritablePlatformRegisterBits::word_type val)
-		{
-			static_assert(std::is_base_of<WritablePlatformRegisterBits, Derived>::value, "");
-
-			this->_value[i] = val;
-			return static_cast<Derived&>(*this);
-		}
-
-		Derived& value(typename WritablePlatformRegisterBits::value_type val)
-		{
-			static_assert(std::is_base_of<WritablePlatformRegisterBits, Derived>::value, "");
-
-			this->_value[0] = val;
-			return static_cast<Derived&>(*this);
 		}
 };
 
@@ -234,16 +167,16 @@ template<typename Derived, typename Value>
 class PlatformRegister :
 	public std::conditional<
 		std::is_enum<Value>::value,
-		::ense::detail::PlatformRegisterBits<Derived, Value>,
-		::ense::detail::PlatformRegisterPlain<Derived, Value>>::type {
+		detail::PlatformRegisterBits<Derived, Value>,
+		detail::PlatformRegisterPlain<Derived, Value>>::type {
 };
 
 template<typename Derived, typename Value>
 class WritablePlatformRegister :
 	public std::conditional<
 		std::is_enum<Value>::value,
-		::ense::detail::WritablePlatformRegisterBits<Derived, Value>,
-		::ense::detail::WritablePlatformRegisterPlain<Derived, Value>>::type {
+		detail::WritablePlatformRegisterBits<Derived, Value>,
+		detail::WritablePlatformRegisterPlain<Derived, Value>>::type {
 };
 
 
