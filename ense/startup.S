@@ -1,5 +1,4 @@
-.eabi_attribute Tag_DIV_use, 2
-
+.eabi_attribute Tag_DIV_use, 1
 .section ..init.head, "ax"
 
 .global _start

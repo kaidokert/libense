@@ -13,8 +13,8 @@ override CPPFLAGS += -I ../libcxx/include
 CCFLAGS_RELEASE := -Os -emit-llvm
 LDFLAGS_RELEASE := -plugin /usr/lib/LLVMgold.so -plugin-opt "mcpu=cortex-m4"
 
-CCFLAGS_DEBUG := -g -O0
-ASFLAGS_DEBUG := -g
+CCFLAGS_DEBUG := -Os
+ASFLAGS_DEBUG := 
 
 #CCFLAGS += -Werror
 CCFLAGS += -Wall -Wextra -pedantic -mstrict-align
