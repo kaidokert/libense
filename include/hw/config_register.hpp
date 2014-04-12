@@ -15,13 +15,36 @@ class ConfigurationRegister : public WritablePlatformRegister<RegisterName<true>
 
 	private:
 		RegisterName<false>* _target;
+		mutable uint8_t _status[ConfigurationRegister::words];
+
+		enum {
+			WORD_LOADED = 1,
+			WORD_CHANGED = 2,
+		};
 
 	public:
 		RegisterName<false>& commit()
 		{
 			for (uint32_t i = 0; i < ConfigurationRegister::words; i++)
-				_target->word(i, this->word(i));
+				if (_status[i] == WORD_CHANGED)
+					_target->word(i, this->word(i));
 			return *_target;
+		}
+
+		typename ConfigurationRegister::word_type word(uint32_t idx) const
+		{
+			if (!_status[idx]) {
+				const_cast<ConfigurationRegister*>(this)->_value[idx] = _target->word(idx);
+				_status[idx] = WORD_LOADED;
+			}
+			return this->_value[idx];
+		}
+
+		RegisterName<true>& word(uint32_t i, typename ConfigurationRegister::word_type val)
+		{
+			_status[i] = WORD_CHANGED;
+			this->_value[i] = val;
+			return static_cast<RegisterName<true>&>(*this);
 		}
 };
 
@@ -34,7 +57,7 @@ class ConfigurationRegister<Bits, false, RegisterName> : public WritablePlatform
 		{
 			auto result = RegisterName<true>();
 			for (uint32_t i = 0; i < ConfigurationRegister::words; i++)
-				result.word(i, this->word(i));
+				result._status[i] = 0;
 			result._target = static_cast<RegisterName<false>*>(this);
 			return result;
 		}
