@@ -10,10 +10,10 @@ FPU := vfp
 override CPPFLAGS += -I include
 override CPPFLAGS += -I ../libcxx/include
 
-CCFLAGS_RELEASE := -Os -emit-llvm
+CCFLAGS_RELEASE := -O2 -emit-llvm
 LDFLAGS_RELEASE := -plugin /usr/lib/LLVMgold.so -plugin-opt "mcpu=cortex-m4"
 
-CCFLAGS_DEBUG := -Os
+CCFLAGS_DEBUG := -O2
 ASFLAGS_DEBUG := 
 
 #CCFLAGS += -Werror
