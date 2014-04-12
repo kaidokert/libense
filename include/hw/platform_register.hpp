@@ -41,7 +41,8 @@ class PlatformRegisterArray {
 
 			static constexpr uint32_t leading = First % width;
 			static constexpr uint32_t trailing = width - 1 - Last % width;
-			return (this->word(First / width) << trailing) >> (leading + trailing);
+			const Derived* self = static_cast<const Derived*>(this);
+			return (self->word(First / width) << trailing) >> (leading + trailing);
 		}
 
 		word_type word(uint32_t idx) const
@@ -64,7 +65,8 @@ class WritablePlatformRegisterArray : public PlatformRegisterArray<Derived, Valu
 			static constexpr uint32_t trailing = width - 1 - Last % width;
 			static constexpr auto max = ~typename WritablePlatformRegisterArray::word_type(0);
 			static constexpr auto mask = (max >> (leading + trailing)) << leading;
-			return this->word(First / width, (this->word(First / width) & ~mask) | ((val << leading) & mask));
+			Derived* self = static_cast<Derived*>(this);
+			return self->word(First / width, (self->word(First / width) & ~mask) | ((val << leading) & mask));
 		}
 
 		Derived& word(uint32_t i, typename WritablePlatformRegisterArray::word_type val)
