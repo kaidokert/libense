@@ -79,7 +79,7 @@ class WritablePlatformRegisterArray : public PlatformRegisterArray<Derived, Valu
 template<class Derived, typename Value>
 class PlatformRegisterPlainCommon {
 	public:
-		Value value() const
+		typename std::remove_cv<Value>::type value() const
 		{
 			return static_cast<const Derived*>(this)->word(0);
 		}
