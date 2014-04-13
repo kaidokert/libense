@@ -10,6 +10,8 @@
 #include <detail/array_wrapper.hpp>
 #include <bitmask.hpp>
 #include <mpl/all.hpp>
+#include <mpl/min.hpp>
+#include <mpl/div_equals.hpp>
 
 namespace ense {
 
@@ -45,6 +47,14 @@ class PlatformRegisterArray {
 			return (self->word(First / width) << trailing) >> (leading + trailing);
 		}
 
+		word_type bits(uint32_t first, uint32_t last) const
+		{
+			uint32_t leading = first % width;
+			uint32_t trailing = width - 1 - last % width;
+			const Derived* self = static_cast<const Derived*>(this);
+			return (self->word(first / width) << trailing) >> (leading + trailing);
+		}
+
 		word_type word(uint32_t idx) const
 		{
 			return _value[idx];
@@ -67,6 +77,17 @@ class WritablePlatformRegisterArray : public PlatformRegisterArray<Derived, Valu
 			static constexpr auto mask = (max >> (leading + trailing)) << leading;
 			Derived* self = static_cast<Derived*>(this);
 			return self->word(First / width, (self->word(First / width) & ~mask) | ((val << leading) & mask));
+		}
+
+		Derived& bits(uint32_t first, uint32_t last, typename WritablePlatformRegisterArray::word_type val)
+		{
+			static constexpr uint32_t width = WritablePlatformRegisterArray::width;
+			uint32_t leading = first % width;
+			uint32_t trailing = width - 1 - last % width;
+			static constexpr auto max = ~typename WritablePlatformRegisterArray::word_type(0);
+			auto mask = (max >> (leading + trailing)) << leading;
+			Derived* self = static_cast<Derived*>(this);
+			return self->word(first / width, (self->word(first / width) & ~mask) | ((val << leading) & mask));
 		}
 
 		Derived& word(uint32_t i, typename WritablePlatformRegisterArray::word_type val)
@@ -179,7 +200,10 @@ class PlatformRegister :
 	public std::conditional<
 		std::is_enum<Value>::value,
 		detail::PlatformRegisterBits<Derived, Value>,
-		detail::PlatformRegisterPlain<Derived, Value>>::type {
+		typename std::conditional<
+			std::is_array<Value>::value,
+			detail::PlatformRegisterArray<Derived, Value>,
+			detail::PlatformRegisterPlain<Derived, Value>>::type>::type {
 };
 
 template<typename Derived, typename Value>
@@ -187,7 +211,10 @@ class WritablePlatformRegister :
 	public std::conditional<
 		std::is_enum<Value>::value,
 		detail::WritablePlatformRegisterBits<Derived, Value>,
-		detail::WritablePlatformRegisterPlain<Derived, Value>>::type {
+		typename std::conditional<
+			std::is_array<Value>::value,
+			detail::WritablePlatformRegisterArray<Derived, Value>,
+			detail::WritablePlatformRegisterPlain<Derived, Value>>::type>::type {
 };
 
 

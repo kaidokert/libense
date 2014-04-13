@@ -2,6 +2,7 @@
 #define INCLUDE_DETAIL_BIT__HPP_D397B4F8F926519E
 
 #include <mpl/list.hpp>
+#include <mpl/min.hpp>
 
 namespace ense {
 namespace detail {
@@ -49,12 +50,9 @@ struct expand<range<Bound1, Bound2>> : range<Bound1, Bound2> {
 	static constexpr uint32_t begin = expand::begin_t::value;
 	static constexpr uint32_t end = expand::end_t::value;
 
-	static_assert(end < 32, "Upper >= 32");
-	static_assert(begin <= end, "Lower > Upper");
+	typedef mpl::make_range<uint32_t, begin, end> items_list;
 
 	static constexpr uint32_t range = end - begin + 1;
-	static constexpr uint32_t field_anchored_mask = 0xFFFFFFFF >> (32 - range);
-	static constexpr uint32_t field_mask = field_anchored_mask << begin;
 };
 
 template<size_t Width>
@@ -62,7 +60,7 @@ struct expand<width<Width>> {
 	static_assert(Width < 32, "Width >= 32");
 
 	static constexpr uint32_t width = Width;
-	static constexpr uint32_t array_anchored_mask = (1U << width) - 1;
+	static constexpr uint32_t element_mask = 0xFFFFFFFF >> (32 - width);
 };
 
 template<size_t... Offsets>
@@ -126,17 +124,22 @@ constexpr size_t element_offset(size_t index)
 
 
 template<typename Bits>
-constexpr size_t splice_factor(size_t from_index, uint32_t mask)
+constexpr uint32_t splice_factor(size_t, mpl::list<>)
 {
-	return mask
-		? ((mask & 1) << element_offset<Bits>(from_index)) | splice_factor<Bits>(from_index + 1, mask >> 1)
-		: 0;
+	return 0;
 }
 
-template<typename Bits>
-constexpr size_t splice_mask(size_t from_index, uint32_t mask)
+template<typename Bits, uint32_t Offset, uint32_t... Offsets>
+constexpr uint32_t splice_factor(size_t from_bit, mpl::list<std::integral_constant<uint32_t, Offset>, std::integral_constant<uint32_t, Offsets>...>)
 {
-	return splice_factor<Bits>(from_index, mask) * Bits::array_anchored_mask;
+	return element_offset<Bits>(Offset - from_bit)
+		| splice_factor<Bits>(from_bit, mpl::list<std::integral_constant<uint32_t, Offsets>...>());
+}
+
+template<typename Bits, uint32_t... Offsets>
+constexpr size_t splice_mask(size_t from_bit, mpl::list<std::integral_constant<uint32_t, Offsets>...> mask)
+{
+	return splice_factor<Bits>(from_bit, mask) * Bits::element_mask;
 }
 
 }

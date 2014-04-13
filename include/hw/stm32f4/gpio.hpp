@@ -133,8 +133,8 @@ struct AF {
 };
 
 template<bool Config = false>
-struct AFR : ConfigurationRegister<void, Config, AFR> {
-	REGISTER_SINGULAR_ARRAY_RW(AF[8], detail::bit::range<0, 31>, detail::bit::width<4>)
+struct AFR : ConfigurationRegister<uint32_t[2], Config, AFR> {
+	REGISTER_SINGULAR_ARRAY_RW(AF[16], detail::bit::range<0, 63>, detail::bit::width<4>)
 };
 
 static_assert(traits::is_platform_register_valid<AFR<>>(), "");
@@ -153,8 +153,7 @@ namespace detail {
 		ODR<> odr;
 		BSSR<> bssr;
 		volatile uint32_t lckr;
-		AFR<> afrl;
-		AFR<> afrh;
+		AFR<> afr;
 	};
 
 }
@@ -181,7 +180,7 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 		STRUCT_SINGULAR_ARRAY_RW(output, odr)
 		STRUCT_ARRAY_C(set, bssr, set)
 		STRUCT_ARRAY_C(reset, bssr, reset)
-		STRUCT_SINGULAR_MULTIARRAY_RW(alternate_function, AFR<>, STRUCT_OFFSETOF(afrl), STRUCT_OFFSETOF(afrh))
+		STRUCT_SINGULAR_ARRAY_RW(alternate_function, afr)
 
 		STRUCT_CONFIGURE_MANY(
 			STRUCT_CONFIGURE_SINGLE(mode)

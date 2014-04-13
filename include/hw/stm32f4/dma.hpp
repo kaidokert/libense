@@ -20,7 +20,7 @@ enum class InterruptFlags : uint32_t {
 
 template<bool Config = false>
 struct ISR : ConfigurationRegister<InterruptFlags, Config, ISR> {
-	REGISTER_SINGULAR_ARRAY_R(InterruptFlags[4], detail::bit::width<6>, detail::bit::range<0, 31>, detail::bit::element_offsets<0, 6, 16, 22>)
+	REGISTER_SINGULAR_ARRAY_R(InterruptFlags[8], detail::bit::width<6>, detail::bit::range<0, 63>, detail::bit::element_offsets<0, 6, 16, 22, 32, 38, 48, 54>)
 };
 
 static_assert(traits::is_platform_register_valid<ISR<>>(), "");
@@ -29,7 +29,7 @@ static_assert(traits::is_platform_register_valid<ISR<>>(), "");
 
 template<bool Config = false>
 struct IFCR : ConfigurationRegister<InterruptFlags, Config, IFCR> {
-	REGISTER_SINGULAR_ARRAY_W(InterruptFlags[4], detail::bit::width<6>, detail::bit::range<0, 31>, detail::bit::element_offsets<0, 6, 16, 22>)
+	REGISTER_SINGULAR_ARRAY_W(InterruptFlags[8], detail::bit::width<6>, detail::bit::range<0, 63>, detail::bit::element_offsets<0, 6, 16, 22, 32, 38, 48, 54>)
 };
 
 static_assert(traits::is_platform_register_valid<IFCR<>>(), "");
@@ -168,10 +168,8 @@ static_assert(traits::is_platform_register_valid<SFCR<>>(), "");
 namespace detail {
 
 	struct layout_interrupts {
-		ISR<> lisr;
-		ISR<> hisr;
-		IFCR<> lifcr;
-		IFCR<> hifcr;
+		ISR<> isr;
+		IFCR<> ifcr;
 	};
 
 }
@@ -190,8 +188,8 @@ struct Interrupts : ConfigurationStruct<Interrupts, detail::layout_interrupts, F
 		using this_template = Interrupts<Next>;
 
 	public:
-		STRUCT_SINGULAR_MULTIARRAY_R(status, ISR<>, STRUCT_OFFSETOF(lisr), STRUCT_OFFSETOF(hisr))
-		STRUCT_SINGULAR_MULTIARRAY_W(clear, IFCR<>, STRUCT_OFFSETOF(lifcr), STRUCT_OFFSETOF(hifcr))
+		STRUCT_SINGULAR_ARRAY_R(status, isr)
+		STRUCT_SINGULAR_ARRAY_W(clear, ifcr)
 };
 
 static_assert(traits::is_config_struct_valid<Interrupts>(), "");
