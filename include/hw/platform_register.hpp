@@ -121,18 +121,18 @@ class PlatformRegisterBitsCommon {
 		template<typename... Args>
 		bool has_any(Args... args) const
 		{
-			static_assert(::ense::mpl::all(std::is_same<Args, bits_type>::value...), "");
+			static_assert(mpl::all(std::is_same<Args, bits_type>::value...), "");
 
-			auto mask = ::ense::detail::bitmask::bitmask(args...);
+			auto mask = bitmask::bitmask(args...);
 			return (static_cast<const Derived*>(this)->value() & mask) != 0;
 		}
 
 		template<typename... Args>
 		bool has_all(Args... args) const
 		{
-			static_assert(::ense::mpl::all(std::is_same<Args, bits_type>::value...), "");
+			static_assert(mpl::all(std::is_same<Args, bits_type>::value...), "");
 
-			auto mask = ::ense::detail::bitmask::bitmask(args...);
+			auto mask = bitmask::bitmask(args...);
 			return (static_cast<const Derived*>(this)->value() & mask) == mask;
 		}
 };
@@ -147,19 +147,28 @@ class WritablePlatformRegisterBits : public WritablePlatformRegisterPlain<Derive
 		template<typename... Args>
 		Derived& set(Args... args)
 		{
-			static_assert(::ense::mpl::all(std::is_same<Args, typename WritablePlatformRegisterBits::bits_type>::value...), "");
+			static_assert(mpl::all(std::is_same<Args, typename WritablePlatformRegisterBits::bits_type>::value...), "");
 
 			Derived* self = static_cast<Derived*>(this);
-			return self->value(self->value() | ::ense::detail::bitmask::bitmask(args...));
+			return self->value(self->value() | bitmask::bitmask(args...));
 		}
 
 		template<typename... Args>
 		Derived& clear(Args... args)
 		{
-			static_assert(::ense::mpl::all(std::is_same<Args, typename WritablePlatformRegisterBits::bits_type>::value...), "");
+			static_assert(mpl::all(std::is_same<Args, typename WritablePlatformRegisterBits::bits_type>::value...), "");
 
 			Derived* self = static_cast<Derived*>(this);
-			return self->value(self->value() & ~::ense::detail::bitmask::bitmask(args...));
+			return self->value(self->value() & ~bitmask::bitmask(args...));
+		}
+
+		template<typename... Args>
+		Derived& toggle(Args... args)
+		{
+			static_assert(mpl::all(std::is_same<Args, typename WritablePlatformRegisterBits::bits_type>::value...), "");
+
+			Derived* self = static_cast<Derived*>(this);
+			return self->value(self->value() ^ bitmask::bitmask(args...));
 		}
 };
 

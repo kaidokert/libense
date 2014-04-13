@@ -11,23 +11,21 @@
 		-> decltype(*this) \
 	{ \
 		if (enable) \
-			this->set(ENSE_REGISTER_THIS_TYPE::bits_type::_NAME); \
+			return this->set(ENSE_REGISTER_THIS_TYPE::bits_type::_NAME); \
 		else \
-		   this->clear(ENSE_REGISTER_THIS_TYPE::bits_type::_NAME); \
-		return *this; \
+			return this->clear(ENSE_REGISTER_THIS_TYPE::bits_type::_NAME); \
 	}
 #define ENSE_REGISTER_BIT_C(_NAME) \
 	auto _NAME() \
 		-> decltype(*this) \
 	{ \
-		this->set(ENSE_REGISTER_THIS_TYPE::bits_type::_NAME); \
-		return *this; \
+		return this->set(ENSE_REGISTER_THIS_TYPE::bits_type::_NAME); \
 	}
 #define ENSE_REGISTER_BIT_T(_NAME) \
 	auto toggle_ ## _NAME() \
 		-> decltype(*this) \
 	{ \
-		return this->value(this->value() ^ static_cast<uint32_t>(ENSE_REGISTER_THIS_TYPE::bits_type::_NAME)); \
+		return this->toggle(ENSE_REGISTER_THIS_TYPE::bits_type::_NAME); \
 	}
 
 #define REGISTER_BIT_R ENSE_REGISTER_BIT_R
