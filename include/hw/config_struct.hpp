@@ -262,8 +262,6 @@ namespace traits {
 
 		static_assert(sizeof(Struct<void>) == sizeof(typename Struct<void>::struct_type), "Struct contains superfluous fields");
 
-		static_assert(alignof(Struct<void>) <= sizeof(typename Struct<void>::struct_type), "Register has weird alignment requirements");
-
 		return true;
 	}
 
