@@ -19,7 +19,7 @@ enum class InterruptFlags : uint32_t {
 };
 
 template<bool Config = false>
-struct ISR : ConfigurationRegister<InterruptFlags, Config, ISR> {
+struct ISR : ConfigurationRegister<uint32_t[2], Config, ISR> {
 	REGISTER_SINGULAR_ARRAY_R(InterruptFlags[8], detail::bit::width<6>, detail::bit::range<0, 63>, detail::bit::element_offsets<0, 6, 16, 22, 32, 38, 48, 54>)
 };
 
@@ -28,7 +28,7 @@ static_assert(traits::is_platform_register_valid<ISR<>>(), "");
 
 
 template<bool Config = false>
-struct IFCR : ConfigurationRegister<InterruptFlags, Config, IFCR> {
+struct IFCR : ConfigurationRegister<uint32_t[2], Config, IFCR> {
 	REGISTER_SINGULAR_ARRAY_W(InterruptFlags[8], detail::bit::width<6>, detail::bit::range<0, 63>, detail::bit::element_offsets<0, 6, 16, 22, 32, 38, 48, 54>)
 };
 
@@ -115,10 +115,10 @@ static_assert(traits::is_platform_register_valid<SNDTR<>>(), "");
 
 template<bool Config = false>
 struct SAR : ConfigurationRegister<void, Config, SAR> {
-	const void* address() const
+	void* address() const
 	{
 		static_assert(sizeof(void*) == sizeof(this->value()), "");
-		return reinterpret_cast<const void*>(this->value());
+		return reinterpret_cast<void*>(this->value());
 	}
 
 	SAR& address(void* val)
