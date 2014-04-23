@@ -231,10 +231,10 @@ struct USART : ConfigurationStruct<USART, detail::layout, Flight> {
 	STRUCT_BIT_R(framing_error, status, framing_error)
 	STRUCT_BIT_R(parity_error, status, parity_error)
 
-	STRUCT_INT_RW(data, dr, content)
+	STRUCT_FIELD_RW(data, dr, content)
 
-	STRUCT_INT_RW(mantissa, brr, mantissa)
-	STRUCT_INT_RW(fraction, brr, fraction)
+	STRUCT_FIELD_RW(mantissa, brr, mantissa)
+	STRUCT_FIELD_RW(fraction, brr, fraction)
 
 	STRUCT_BIT_RW(oversample_by_8, cr1, oversample_by_8)
 	STRUCT_BIT_RW(enable, cr1, enable)
@@ -266,7 +266,7 @@ struct USART : ConfigurationStruct<USART, detail::layout, Flight> {
 	STRUCT_BIT_RW(last_bit_pulse, cr2, last_bit_pulse)
 	STRUCT_BIT_RW(lin_break_detect_interrupt, cr2, lin_break_detect_interrupt)
 	STRUCT_BIT_RW(lin_break_length, cr2, lin_break_length)
-	STRUCT_INT_RW(addr, cr2, addr)
+	STRUCT_FIELD_RW(addr, cr2, addr)
 
 	STRUCT_BIT_RW(sample_one_bit, cr3, sample_one_bit)
 	STRUCT_BIT_RW(cts_interrupt, cr3, cts_interrupt)
@@ -281,8 +281,8 @@ struct USART : ConfigurationStruct<USART, detail::layout, Flight> {
 	STRUCT_BIT_RW(irda_mode, cr3, irda_mode)
 	STRUCT_BIT_RW(error_interrupt, cr3, error_interrupt)
 
-	STRUCT_INT_RW(guard_time, gtpr, guard_time)
-	STRUCT_INT_RW(prescaler, gtpr, prescaler)
+	STRUCT_FIELD_RW(guard_time, gtpr, guard_time)
+	STRUCT_FIELD_RW(prescaler, gtpr, prescaler)
 };
 
 static linker_placed_struct<USART> usart1 [[gnu::weakref(".USART_USART1")]];

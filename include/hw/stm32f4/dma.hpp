@@ -223,10 +223,10 @@ struct Stream : ConfigurationStruct<Stream, detail::layout_stream, Flight> {
 		using this_template = Stream<Next>;
 
 	public:
-		STRUCT_INT_RW(channel, scr, channel)
+		STRUCT_FIELD_RW(channel, scr, channel)
 		STRUCT_FIELD_RW(memory_burst_size, scr, memory_burst_size)
 		STRUCT_FIELD_RW(peripheral_burst_size, scr, peripheral_burst_size)
-		STRUCT_INT_RW(current_target, scr, current_target)
+		STRUCT_FIELD_RW(current_target, scr, current_target)
 		STRUCT_BIT_RW(double_buffered, scr, double_buffered)
 		STRUCT_FIELD_RW(priority, scr, priority)
 		STRUCT_BIT_RW(peripheral_increment_by_four, scr, peripheral_increment_by_four)
@@ -243,7 +243,7 @@ struct Stream : ConfigurationStruct<Stream, detail::layout_stream, Flight> {
 		STRUCT_BIT_RW(direct_error_interrupt, scr, direct_error_interrupt)
 		STRUCT_BIT_RW(fifo_error_interrupt, scr, fifo_error_interrupt)
 
-		STRUCT_INT_RW(count, sndtr, count)
+		STRUCT_FIELD_RW(count, sndtr, count)
 
 		STRUCT_FIELD_RW(peripheral_address, spar, address)
 

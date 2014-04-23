@@ -247,6 +247,17 @@ namespace traits {
 		return true;
 	};
 
+	template<typename Array, typename FieldDesc>
+	constexpr bool assert_platform_array_type()
+	{
+		static_assert(std::rank<Array>::value == 1, "type must be one-dimensional");
+
+		static_assert(std::is_base_of<detail::bit::has_element_offsets, FieldDesc>::value
+				|| FieldDesc::range == std::extent<Array>::value * FieldDesc::width, "type does not fit range");
+
+		return true;
+	}
+
 }
 
 template<typename Register>
