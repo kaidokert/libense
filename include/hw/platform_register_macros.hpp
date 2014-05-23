@@ -93,17 +93,13 @@
 		typedef detail::bit::expand<__VA_ARGS__> bp; \
 		traits::assert_platform_array_type<FIELD_TYPE, bp>(); \
 		static_assert(mpl::all((Items < std::extent<FIELD_TYPE>::value)...), "Items list invalid"); \
-		constexpr uint32_t min_pos = mpl::min(detail::bit::element_offset<bp>(Items)...); \
 		constexpr uint32_t width = ENSE_REGISTER_THIS_TYPE::width; \
-		constexpr uint32_t word = min_pos / width; \
+		constexpr uint32_t word = mpl::min(detail::bit::element_offset<bp>(Items)...) / width; \
 		typedef mpl::partition< \
-			mpl::div_equals<uint32_t, width, min_pos / width>::template fn, \
-			mpl::list< \
-				std::integral_constant< \
-					uint32_t, \
-					detail::bit::element_offset<bp>(Items)>...>> items_split; \
-		constexpr uint32_t splice_factor = detail::bit::splice_factor<bp>(min_pos, typename items_split::left()); \
-		constexpr uint32_t splice_mask = detail::bit::splice_mask<bp>(min_pos, typename items_split::left()); \
+			detail::bit::item_in_word<word, width, bp>::template fn, \
+			mpl::list<std::integral_constant<uint32_t, Items>...>> items_split; \
+		constexpr uint32_t splice_factor = detail::bit::splice_factor<bp>(word * width, typename items_split::left()); \
+		constexpr uint32_t splice_mask = detail::bit::splice_mask<bp>(word * width, typename items_split::left()); \
 		auto splice_value = (static_cast<typename ENSE_REGISTER_THIS_TYPE::word_type>(VALUE) & bp::element_mask) * splice_factor; \
 		this->word(word, (this->word(word) & ~splice_mask) | splice_value); \
 		return this->FIELD_NAME ## _list(VALUE, typename items_split::right()); \

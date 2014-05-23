@@ -129,18 +129,28 @@ constexpr uint32_t splice_factor(size_t, mpl::list<>)
 	return 0;
 }
 
-template<typename Bits, uint32_t Offset, uint32_t... Offsets>
-constexpr uint32_t splice_factor(size_t from_bit, mpl::list<std::integral_constant<uint32_t, Offset>, std::integral_constant<uint32_t, Offsets>...>)
+template<typename Bits, uint32_t Item, uint32_t... Items>
+constexpr uint32_t splice_factor(size_t from_bit, mpl::list<std::integral_constant<uint32_t, Item>, std::integral_constant<uint32_t, Items>...>)
 {
-	return element_offset<Bits>(Offset - from_bit)
-		| splice_factor<Bits>(from_bit, mpl::list<std::integral_constant<uint32_t, Offsets>...>());
+	return (1ULL << (element_offset<Bits>(Item) - from_bit))
+		| splice_factor<Bits>(from_bit, mpl::list<std::integral_constant<uint32_t, Items>...>());
 }
 
-template<typename Bits, uint32_t... Offsets>
-constexpr size_t splice_mask(size_t from_bit, mpl::list<std::integral_constant<uint32_t, Offsets>...> mask)
+template<typename Bits, uint32_t... Items>
+constexpr size_t splice_mask(size_t from_bit, mpl::list<std::integral_constant<uint32_t, Items>...> mask)
 {
 	return splice_factor<Bits>(from_bit, mask) * Bits::element_mask;
 }
+
+
+
+template<uint32_t Word, uint32_t Width, typename Bits>
+struct item_in_word {
+	template<typename Item>
+	struct fn {
+		static constexpr bool value = element_offset<Bits>(Item::value) / Width == Word;
+	};
+};
 
 }
 }
