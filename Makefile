@@ -5,13 +5,14 @@ PARTICLES := ense
 CPU := cortex-m4
 FLOAT_ABI := hard
 FPU := vfp
+TARGET := arm-none-eabi
 
 # default compiler/linker flags
 override CPPFLAGS += -I include
 override CPPFLAGS += -I ../libcxx/include
 
 CCFLAGS_RELEASE := -O2 -emit-llvm
-LDFLAGS_RELEASE := -plugin /usr/lib/LLVMgold.so -plugin-opt "mcpu=cortex-m4"
+LDFLAGS_RELEASE := -plugin /usr/lib/LLVMgold.so -plugin-opt "mcpu=$(CPU)"
 
 CCFLAGS_DEBUG := -O2
 ASFLAGS_DEBUG := 
@@ -26,19 +27,19 @@ CFLAGS += $(CCFLAGS) -std=c99
 CXXFLAGS += $(CCFLAGS) -std=c++11
 ASFLAGS := -mcpu=$(CPU) -mthumb -mfloat-abi=$(FLOAT_ABI) -mfpu=$(FPU) -meabi=5
 
-LDFLAGS += -L/usr/lib/gcc/arm-elf/4.7.2/thumb/ -lgcc -T ldscripts/stm32f4/f4.ld
+LDFLAGS += -L/usr/lib/gcc/arm-none-eabi/4.9.0/thumb/$(CPU)/ -lgcc -T ldscripts/stm32f4/f4.ld
 
 # default values for internal variables
-AS := arm-elf-as
-CC := clang -target arm-elf-eabi -integrated-as
-CXX := clang++ -target arm-elf-eabi -integrated-as
+AS := $(TARGET)-as
+CC := clang -target $(TARGET) -integrated-as
+CXX := clang++ -target $(TARGET) -integrated-as
 CPP := $(CXX) -E
-LD := arm-elf-ld.gold
+LD := $(TARGET)-ld
 SED := sed
 FIND := find
 DOXYGEN := doxygen
 
-OBJCOPY := arm-elf-objcopy
+OBJCOPY := $(TARGET)-objcopy
 
 OBJDIR := obj
 BINDIR := bin
