@@ -14,7 +14,7 @@ override CPPFLAGS += -I ../libcxx/include
 CCFLAGS_RELEASE := -O2 -emit-llvm
 LDFLAGS_RELEASE := -plugin /usr/lib/LLVMgold.so -plugin-opt "mcpu=$(CPU)"
 
-CCFLAGS_DEBUG := -O2
+CCFLAGS_DEBUG := -O2 -g
 ASFLAGS_DEBUG := 
 
 #CCFLAGS += -Werror

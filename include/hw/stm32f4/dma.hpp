@@ -74,7 +74,7 @@ enum class ConfigFlags : uint32_t {
 	half_transfer_interrupt      = 1 << 3,
 	transfer_error_interrupt     = 1 << 2,
 	directmode_error_interrupt   = 1 << 1,
-	fifo_error_interrupt         = 1 << 0
+	enabled                      = 1 << 0
 };
 
 template<bool Config = false>
@@ -96,8 +96,8 @@ struct SCR : ConfigurationRegister<ConfigFlags, Config, SCR> {
 	REGISTER_BIT_RW(transfer_complete_interrupt)
 	REGISTER_BIT_RW(half_transfer_interrupt)
 	REGISTER_BIT_RW(transfer_error_interrupt)
-	REGISTER_BIT_RW(direct_error_interrupt)
-	REGISTER_BIT_RW(fifo_error_interrupt)
+	REGISTER_BIT_RW(directmode_error_interrupt)
+	REGISTER_BIT_RW(enabled)
 };
 
 static_assert(traits::is_platform_register_valid<SCR<>>(), "");
@@ -240,8 +240,8 @@ struct Stream : ConfigurationStruct<Stream, detail::layout_stream, Flight> {
 		STRUCT_BIT_RW(transfer_complete_interrupt, scr, transfer_complete_interrupt)
 		STRUCT_BIT_RW(half_transfer_interrupt, scr, half_transfer_interrupt)
 		STRUCT_BIT_RW(transfer_error_interrupt, scr, transfer_error_interrupt)
-		STRUCT_BIT_RW(direct_error_interrupt, scr, direct_error_interrupt)
-		STRUCT_BIT_RW(fifo_error_interrupt, scr, fifo_error_interrupt)
+		STRUCT_BIT_RW(directmode_error_interrupt, scr, directmode_error_interrupt)
+		STRUCT_BIT_RW(enabled, scr, enabled)
 
 		STRUCT_FIELD_RW(count, sndtr, count)
 
