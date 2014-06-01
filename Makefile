@@ -44,11 +44,6 @@ BINDIR := bin
 
 
 
-ram-update:
-	openocd -f ocd/f4.cfg -c "init; ram-update; shutdown"
-
-.DEFAULT_GOAL :=
-
 # extensions of files considered to be code
 # supported so far:
 # C++: cpp
@@ -100,6 +95,13 @@ else
   target-objdir := $(OBJDIR)/debug
   target-bindir := $(BINDIR)/debug
 endif
+
+
+
+ram-update:
+	$Vopenocd -f ocd/f4.cfg -c "init; ram-update $(target-bindir)/$(word 1,$(TARGETS)).bin; shutdown"
+
+.DEFAULT_GOAL :=
 
 
 
