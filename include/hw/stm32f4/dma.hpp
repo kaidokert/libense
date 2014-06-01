@@ -15,12 +15,21 @@ enum class InterruptFlags : uint32_t {
 	half_transfer     = 1 << 4,
 	transfer_error    = 1 << 3,
 	direct_mode_error = 1 << 2,
-	fifo_error        = 1 << 0
+	fifo_error        = 1 << 0,
+
+	all               = transfer_complete | half_transfer | transfer_error |
+	                    direct_mode_error | fifo_error
 };
 
 template<bool Config = false>
 struct ISR : ConfigurationRegister<uint32_t[2], Config, ISR> {
 	REGISTER_SINGULAR_ARRAY_R(InterruptFlags[8], detail::bit::width<6>, detail::bit::range<0, 63>, detail::bit::element_offsets<0, 6, 16, 22, 32, 38, 48, 54>)
+
+	REGISTER_ARRAY_R(bool[8], transfer_complete, detail::bit::width<6>, detail::bit::range<0, 63>, detail::bit::element_offsets<5, 11, 21, 27, 37, 43, 53, 59>)
+	REGISTER_ARRAY_R(bool[8], half_transfer, detail::bit::width<6>, detail::bit::range<0, 63>, detail::bit::element_offsets<4, 10, 20, 26, 36, 42, 52, 58>)
+	REGISTER_ARRAY_R(bool[8], transfer_error, detail::bit::width<6>, detail::bit::range<0, 63>, detail::bit::element_offsets<3, 9, 19, 25, 35, 41, 51, 57>)
+	REGISTER_ARRAY_R(bool[8], direct_mode_error, detail::bit::width<6>, detail::bit::range<0, 63>, detail::bit::element_offsets<2, 8, 18, 24, 34, 40, 50, 56>)
+	REGISTER_ARRAY_R(bool[8], fifo_error, detail::bit::width<6>, detail::bit::range<0, 63>, detail::bit::element_offsets<0, 6, 16, 22, 32, 38, 48, 54>)
 };
 
 static_assert(traits::is_platform_register_valid<ISR<>>(), "");
@@ -190,6 +199,12 @@ struct Interrupts : ConfigurationStruct<Interrupts, detail::layout_interrupts, F
 	public:
 		STRUCT_SINGULAR_ARRAY_R(status, isr)
 		STRUCT_SINGULAR_ARRAY_W(clear, ifcr)
+
+		STRUCT_ARRAY_R(transfer_complete, isr, transfer_complete)
+		STRUCT_ARRAY_R(half_transfer, isr, half_transfer)
+		STRUCT_ARRAY_R(transfer_error, isr, transfer_error)
+		STRUCT_ARRAY_R(direct_mode_error, isr, direct_mode_error)
+		STRUCT_ARRAY_R(fifo_error, isr, fifo_error)
 };
 
 static_assert(traits::is_config_struct_valid<Interrupts>(), "");
