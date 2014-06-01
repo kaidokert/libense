@@ -6,14 +6,14 @@
 	auto name(ENSE_STRUCT_UNPACK params) const \
 		-> typename ense::mpl::result_type<decltype(ense::mpl::select_memfn ## selector(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type \
 	{ \
-		auto&& extended = ENSE_STRUCT_EXTEND(reg); \
+		decltype(ENSE_STRUCT_EXTEND(reg)) extended = ENSE_STRUCT_EXTEND(reg); \
 		return ENSE_STRUCT_EXTRACT(extended, reg).name_in_reg(ENSE_STRUCT_UNPACK args); \
 	}
 #define ENSE_STRUCT_FORWARD_W(name, reg, name_in_reg, params, args) \
 	auto name(ENSE_STRUCT_UNPACK params) \
 		-> decltype(ENSE_STRUCT_EXTEND(reg)) \
 	{ \
-		auto&& extended = ENSE_STRUCT_EXTEND(reg); \
+		decltype(ENSE_STRUCT_EXTEND(reg)) extended = ENSE_STRUCT_EXTEND(reg); \
 		ENSE_STRUCT_EXTRACT(extended, reg).name_in_reg(ENSE_STRUCT_UNPACK args); \
 		return extended; \
 	}
@@ -22,7 +22,7 @@
 	auto name ## _list(ENSE_STRUCT_UNPACK params) \
 		-> decltype(ENSE_STRUCT_EXTEND(reg)) \
 	{ \
-		auto&& extended = ENSE_STRUCT_EXTEND(reg); \
+		decltype(ENSE_STRUCT_EXTEND(reg)) extended = ENSE_STRUCT_EXTEND(reg); \
 		ENSE_STRUCT_EXTRACT(extended, reg).template name_in_reg ## _list<Items...>(ENSE_STRUCT_UNPACK args); \
 		return extended; \
 	} \
@@ -30,7 +30,7 @@
 	auto name ## _range(ENSE_STRUCT_UNPACK params) \
 		-> decltype(ENSE_STRUCT_EXTEND(reg)) \
 	{ \
-		auto&& extended = ENSE_STRUCT_EXTEND(reg); \
+		decltype(ENSE_STRUCT_EXTEND(reg)) extended = ENSE_STRUCT_EXTEND(reg); \
 		ENSE_STRUCT_EXTRACT(extended, reg).template name_in_reg ## _range<Bound1, Bound2>(ENSE_STRUCT_UNPACK args); \
 		return extended; \
 	}
