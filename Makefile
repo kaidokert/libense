@@ -44,6 +44,13 @@ OBJCOPY := $(TARGET)-objcopy
 OBJDIR := obj
 BINDIR := bin
 
+
+
+ram-update:
+	openocd -f ocd/f4.cfg -c "init; ram-update; shutdown"
+
+.DEFAULT_GOAL :=
+
 # extensions of files considered to be code
 # supported so far:
 # C++: cpp
