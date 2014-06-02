@@ -67,7 +67,7 @@
 		 typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type arg1), \
 		(arg0, arg1)) \
 	ENSE_STRUCT_FORWARD_TEMPLATES(name, reg, name_in_reg, \
-		(typename ense::mpl::nth_arg<0, decltype(ense::mpl::select_memfn2(&decltype(std::declval<struct_type>().reg)::name_in_reg ## _list<>))>::type arg), \
+		(typename ense::mpl::nth_arg<1, decltype(ense::mpl::select_memfn2(&decltype(std::declval<struct_type>().reg)::name_in_reg))>::type arg), \
 		(arg))
 #define STRUCT_ARRAY_RW(name, reg, name_in_reg) \
 	STRUCT_ARRAY_R(name, reg, name_in_reg) \

@@ -233,7 +233,7 @@ namespace traits {
 		static_assert(sizeof(Register) == sizeof(typename Register::value_type), "Register array contains superfluous fields");
 
 		return true;
-	};
+	}
 
 	template<typename Register>
 	constexpr bool is_platform_register_valid()
@@ -245,7 +245,7 @@ namespace traits {
 		static_assert(sizeof(Register) == sizeof(typename Register::value_type), "Register contains superfluous fields");
 
 		return true;
-	};
+	}
 
 	template<typename Array, typename FieldDesc>
 	constexpr bool assert_platform_array_type()
