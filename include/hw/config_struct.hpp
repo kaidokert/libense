@@ -5,8 +5,6 @@
 #include <cstddef>
 
 #include <hw/config_register.hpp>
-#include <mpl/list.hpp>
-#include <mpl/any.hpp>
 #include <mpl/nth_arg.hpp>
 #include <mpl/result_type.hpp>
 #include <mpl/select_memfn.hpp>
@@ -18,56 +16,31 @@ namespace detail {
 	template<size_t Offset, typename ConfigRegister>
 	struct ConfigurationStructFlightPart {
 		ConfigRegister _register;
-
-		void commit()
-		{
-			_register.commit();
-		}
 	};
 
 	template<typename... Parts>
 	struct ConfigurationStructFlight : Parts... {
 		ConfigurationStructFlight() = default;
 
-		ConfigurationStructFlight(const Parts&... parts)
+		ConfigurationStructFlight(int, const Parts&... parts)
 			: Parts(parts)...
 		{
 		}
 
-		template<typename Only>
-		static void commit_all(Only& only)
-		{
-			only.commit();
-		}
-
-		template<typename First, typename... Rest>
-		static void commit_all(First& first, Rest&... rest)
-		{
-			first.commit();
-			commit_all(rest...);
-		}
+		template<typename... T> void ignore(T...) {}
 
 		void commit()
 		{
-			commit_all(static_cast<Parts&>(*this)...);
-		}
-	};
-
-	template<>
-	struct ConfigurationStructFlight<> {
-		void commit()
-		{
+			ignore((static_cast<Parts&>(*this)._register.commit(), 1)...);
 		}
 	};
 
 
 
-	template<typename Flight, typename... Extension>
+	template<typename Flight, typename Extension>
 	struct extend_flight;
 
-	template<
-		typename... Parts,
-		size_t Offset, typename Register>
+	template<typename... Parts, size_t Offset, typename Register>
 	struct extend_flight<
 		ConfigurationStructFlight<Parts...>,
 		ConfigurationStructFlightPart<Offset, Register>> {
@@ -78,7 +51,7 @@ namespace detail {
 			typedef ConfigurationStructFlight<Parts...> current_flight;
 			typedef ConfigurationStructFlight<Parts..., next_part> extended_flight;
 
-			static constexpr bool extend_is_id = ense::mpl::any(std::is_same<Parts, next_part>::value...);
+			static constexpr bool extend_is_id = std::is_base_of<next_part, current_flight>::value;
 
 			static current_flight extend(current_flight& csf, const next_part&, std::true_type)
 			{
@@ -87,7 +60,7 @@ namespace detail {
 
 			static extended_flight extend(current_flight& csf, const next_part& next, std::false_type)
 			{
-				return extended_flight(static_cast<Parts&>(csf)..., next);
+				return extended_flight(1, static_cast<Parts&>(csf)..., next);
 			}
 
 		public:
@@ -108,22 +81,12 @@ namespace detail {
 		return extend_flight<ConfigurationStructFlight<Parts...>, NextPart>::extend(flight, next);
 	}
 
-	template<size_t Offset, typename CS, typename Part>
-	auto extract(CS& cs, Part& part)
-		-> decltype(cs.template extract<Offset>(part))
-	{
-		return cs.template extract<Offset>(part);
-	}
-
 }
 
 template<template<typename> class Derived, typename Struct, typename Flight>
 class ConfigurationStruct {
 	template<template<typename> class, typename, typename>
 	friend class ConfigurationStruct;
-
-	template<size_t Offset, typename CS, typename Part>
-	friend auto detail::extract(CS& cs, Part& part) -> decltype(cs.template extract<Offset>(part));
 
 	private:
 		template<size_t FirstOffset, typename NextPart>
@@ -164,13 +127,13 @@ class ConfigurationStruct {
 			return extend_step<FirstOffset>(next, already_extended());
 		}
 
+	public:
 		template<size_t Offset, typename Part>
-		typename Part::in_flight_type& extract(Part&)
+		typename Part::in_flight_type& _load_part(Part&)
 		{
 			return static_cast<detail::ConfigurationStructFlightPart<Offset, typename Part::in_flight_type>&>(_flight)._register;
 		}
 
-	public:
 		Derived<void>& commit()
 		{
 			_flight.commit();
@@ -181,20 +144,17 @@ class ConfigurationStruct {
 
 template<template<typename> class Derived, typename Struct>
 class ConfigurationStruct<Derived, Struct, void> : public Struct {
-	template<size_t Offset, typename CS, typename Part>
-	friend auto detail::extract(CS& cs, Part& part) -> decltype(cs.template extract<Offset>(part));
-
 	protected:
-		template<size_t... Offsets, typename NextPart> Derived<void>&       extend(NextPart&)       { return *target(); }
-		template<size_t... Offsets, typename NextPart> Derived<void> const& extend(NextPart&) const { return *target(); }
-
 		Derived<void>*       target()       { return static_cast<Derived<void>*>(this); }
 		Derived<void> const* target() const { return static_cast<const Derived<void>*>(this); }
 
-		template<size_t Offset, typename Part> Part&       extract(Part& part)       { return part; }
-		template<size_t Offset, typename Part> Part const& extract(Part& part) const { return part; }
+		template<size_t Offset, typename NextPart> Derived<void>&       extend(NextPart&)       { return *target(); }
+		template<size_t Offset, typename NextPart> Derived<void> const& extend(NextPart&) const { return *target(); }
 
 	public:
+		template<size_t Offset, typename Part> Part&       _load_part(Part& part)       { return part; }
+		template<size_t Offset, typename Part> Part const& _load_part(Part& part) const { return part; }
+
 		Derived<detail::ConfigurationStructFlight<>> begin()
 		{
 			Derived<detail::ConfigurationStructFlight<>> result;

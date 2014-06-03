@@ -1,5 +1,5 @@
 #define ENSE_STRUCT_EXTEND(reg) this->template extend<offsetof(struct_type, reg)>(this->target()->reg)
-#define ENSE_STRUCT_EXTRACT(extended, reg) ense::detail::extract<offsetof(struct_type, reg)>(extended, this->target()->reg)
+#define ENSE_STRUCT_EXTRACT(extended, reg) extended.template _load_part<offsetof(struct_type, reg)>(this->target()->reg)
 #define ENSE_STRUCT_UNPACK(...) __VA_ARGS__
 
 #define ENSE_STRUCT_FORWARD_R(name, reg, name_in_reg, selector, params, args) \
