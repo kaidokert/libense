@@ -6,7 +6,6 @@
 #include <tuple>
 
 #include <detail/bit.hpp>
-#include <detail/const_array_wrapper.hpp>
 #include <detail/array_wrapper.hpp>
 #include <bitmask.hpp>
 #include <mpl/all.hpp>

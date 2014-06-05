@@ -1,28 +1,40 @@
 #ifndef INCLUDE_DETAIL_ARRAY__WRAPPER__HPP_7436E64E2CA426E3
 #define INCLUDE_DETAIL_ARRAY__WRAPPER__HPP_7436E64E2CA426E3
 
-#include <detail/const_array_wrapper.hpp>
+#include <type_traits>
 
 namespace ense {
 namespace detail {
 
 template<typename Target, typename Value>
-class array_wrapper : public const_array_wrapper<Target, Value> {
+class array_wrapper {
+	private:
+		Target* target;
+		uint32_t idx;
+
 	public:
 		array_wrapper(Target* target, uint32_t idx)
-			: const_array_wrapper<Target, Value>(target, idx)
+			: target(target), idx(idx)
 		{
 		}
 
-		Value operator=(Value val)
+		array_wrapper& operator=(Value val)
 		{
-			this->target->set(this->idx, val);
-			return val;
+			target->set(idx, val);
+			return *this;
 		}
 
-		operator Value&()
+		operator Value() const
 		{
-			return this->target->get(this->idx);
+			return target->get(idx);
+		}
+
+		void* operator&() = delete;
+
+		template<typename T, typename = typename std::enable_if<std::is_convertible<Value, T>::value>::type>
+		operator T() const
+		{
+			return target->get(idx);
 		}
 };
 
