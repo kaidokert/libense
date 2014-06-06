@@ -285,14 +285,24 @@ struct USART : ConfigurationStruct<USART, detail::layout, Flight> {
 	STRUCT_FIELD_RW(prescaler, gtpr, prescaler)
 };
 
-static linker_placed_struct<USART> usart1 [[gnu::weakref(".USART_USART1")]];
-static linker_placed_struct<USART> usart2 [[gnu::weakref(".USART_USART2")]];
-static linker_placed_struct<USART> usart3 [[gnu::weakref(".USART_USART3")]];
-static linker_placed_struct<USART> uart4 [[gnu::weakref(".UART_USART4")]];
-static linker_placed_struct<USART> uart5 [[gnu::weakref(".UART_USART5")]];
-static linker_placed_struct<USART> usart6 [[gnu::weakref(".USART_USART6")]];
-static linker_placed_struct<USART> uart7 [[gnu::weakref(".USART_UART7")]];
-static linker_placed_struct<USART> uart8 [[gnu::weakref(".USART_UART8")]];
+static_assert(ense::traits::is_config_struct_valid<USART>(), "");
+
+template<typename PeripheralType, PeripheralType Bit>
+struct USARTInst : USART<void> {
+	struct rcc_info {
+		typedef PeripheralType type;
+		static constexpr PeripheralType bit = Bit;
+	};
+};
+
+static USARTInst<ense::platform::rcc::APB2Peripheral, ense::platform::rcc::APB2Peripheral::usart1> usart1 [[gnu::weakref(".USART_USART1")]];
+static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::usart2> usart2 [[gnu::weakref(".USART_USART2")]];
+static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::usart3> usart3 [[gnu::weakref(".USART_USART3")]];
+static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::uart4> uart4 [[gnu::weakref(".UART_USART4")]];
+static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::uart5> uart5 [[gnu::weakref(".UART_USART5")]];
+static USARTInst<ense::platform::rcc::APB2Peripheral, ense::platform::rcc::APB2Peripheral::usart6> usart6 [[gnu::weakref(".USART_USART6")]];
+static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::uart7> uart7 [[gnu::weakref(".USART_UART7")]];
+static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::uart8> uart8 [[gnu::weakref(".USART_UART8")]];
 
 }
 }

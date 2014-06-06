@@ -1,6 +1,7 @@
 #ifndef INCLUDE_HW_STM32F4_DMA__HPP_2D5FACEC81ECD93C
 #define INCLUDE_HW_STM32F4_DMA__HPP_2D5FACEC81ECD93C
 
+#include <hw/stm32f4/rcc.hpp>
 #include <hw/config_register.hpp>
 #include <hw/config_struct.hpp>
 #include <hw/platform_register_macros.hpp>
@@ -278,8 +279,16 @@ struct DMA {
 static_assert(std::is_standard_layout<DMA>::value, "");
 static_assert(sizeof(DMA) == sizeof(Interrupts<>::struct_type) + sizeof(Stream<>::struct_type[8]), "");
 
-static DMA dma1 [[gnu::weakref(".DMA_DMA1")]];
-static DMA dma2 [[gnu::weakref(".DMA_DMA2")]];
+template<typename PeripheralType, PeripheralType Bit>
+struct DMAInst : DMA {
+	struct rcc_info {
+		typedef PeripheralType type;
+		static constexpr PeripheralType bit = Bit;
+	};
+};
+
+static DMAInst<ense::platform::rcc::AHB1Peripheral, ense::platform::rcc::AHB1Peripheral::dma1> dma1 [[gnu::weakref(".DMA_DMA1")]];
+static DMAInst<ense::platform::rcc::AHB1Peripheral, ense::platform::rcc::AHB1Peripheral::dma2> dma2 [[gnu::weakref(".DMA_DMA2")]];
 
 }
 }

@@ -1,6 +1,7 @@
 #ifndef INCLUDE_HW_STM32F4_GPIO__HPP_1F2CE1E9C788264A
 #define INCLUDE_HW_STM32F4_GPIO__HPP_1F2CE1E9C788264A
 
+#include <hw/stm32f4/rcc.hpp>
 #include <hw/config_struct.hpp>
 #include <hw/platform_register_macros.hpp>
 #include <hw/config_struct_macros.hpp>
@@ -207,15 +208,25 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 		ODR<>& out() { return this->odr; }
 };
 
-static linker_placed_struct<GPIO> gpioA [[gnu::weakref(".GPIO_PORTA")]];
-static linker_placed_struct<GPIO> gpioB [[gnu::weakref(".GPIO_PORTB")]];
-static linker_placed_struct<GPIO> gpioC [[gnu::weakref(".GPIO_PORTC")]];
-static linker_placed_struct<GPIO> gpioD [[gnu::weakref(".GPIO_PORTD")]];
-static linker_placed_struct<GPIO> gpioE [[gnu::weakref(".GPIO_PORTE")]];
-static linker_placed_struct<GPIO> gpioF [[gnu::weakref(".GPIO_PORTF")]];
-static linker_placed_struct<GPIO> gpioG [[gnu::weakref(".GPIO_PORTG")]];
-static linker_placed_struct<GPIO> gpioH [[gnu::weakref(".GPIO_PORTH")]];
-static linker_placed_struct<GPIO> gpioI [[gnu::weakref(".GPIO_PORTI")]];
+static_assert(ense::traits::is_config_struct_valid<GPIO>(), "");
+
+template<typename PeripheralType, PeripheralType Bit>
+struct GPIOInst : GPIO<void> {
+	struct rcc_info {
+		typedef PeripheralType type;
+		static constexpr PeripheralType bit = Bit;
+	};
+};
+
+static GPIOInst<ense::platform::rcc::AHB1Peripheral, ense::platform::rcc::AHB1Peripheral::gpioA> gpioA [[gnu::weakref(".GPIO_PORTA")]];
+static GPIOInst<ense::platform::rcc::AHB1Peripheral, ense::platform::rcc::AHB1Peripheral::gpioB> gpioB [[gnu::weakref(".GPIO_PORTB")]];
+static GPIOInst<ense::platform::rcc::AHB1Peripheral, ense::platform::rcc::AHB1Peripheral::gpioC> gpioC [[gnu::weakref(".GPIO_PORTC")]];
+static GPIOInst<ense::platform::rcc::AHB1Peripheral, ense::platform::rcc::AHB1Peripheral::gpioD> gpioD [[gnu::weakref(".GPIO_PORTD")]];
+static GPIOInst<ense::platform::rcc::AHB1Peripheral, ense::platform::rcc::AHB1Peripheral::gpioE> gpioE [[gnu::weakref(".GPIO_PORTE")]];
+static GPIOInst<ense::platform::rcc::AHB1Peripheral, ense::platform::rcc::AHB1Peripheral::gpioF> gpioF [[gnu::weakref(".GPIO_PORTF")]];
+static GPIOInst<ense::platform::rcc::AHB1Peripheral, ense::platform::rcc::AHB1Peripheral::gpioG> gpioG [[gnu::weakref(".GPIO_PORTG")]];
+static GPIOInst<ense::platform::rcc::AHB1Peripheral, ense::platform::rcc::AHB1Peripheral::gpioH> gpioH [[gnu::weakref(".GPIO_PORTH")]];
+static GPIOInst<ense::platform::rcc::AHB1Peripheral, ense::platform::rcc::AHB1Peripheral::gpioI> gpioI [[gnu::weakref(".GPIO_PORTI")]];
 
 }
 }

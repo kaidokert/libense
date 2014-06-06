@@ -607,6 +607,85 @@ struct DedicatedClockConfig : ConfigurationRegister<void, Config, DedicatedClock
 
 static linker_placed_register<DedicatedClockConfig<>> dedicated_clock_config [[gnu::weakref(".RCC_DCKCFGR")]];
 
+
+
+
+namespace detail {
+
+template<bool Set, typename RCCInfo, template<bool> class Register>
+inline void change_in_reg(ConfigurationRegister<typename RCCInfo::type, true, Register>& clock)
+{
+	if (Set)
+		clock.set(RCCInfo::bit);
+	else
+		clock.clear(RCCInfo::bit);
+}
+
+template<bool Set, typename RCCInfo, typename Mismatched, template<bool> class Register>
+inline void change_in_reg(ConfigurationRegister<Mismatched, true, Register>&)
+{
+}
+
+template<typename... T>
+inline void ignore(T...) {}
+
+template<bool Set, typename Peripheral, typename... Clocks>
+inline void change_one(Clocks&... clocks)
+{
+	ignore((change_in_reg<Set, typename Peripheral::rcc_info>(clocks), 0)...);
+}
+
+template<bool Set, typename... Clocks, typename... Peripherals>
+inline void change_many_flights(mpl::list<Peripherals...>, Clocks... clocks)
+{
+	ignore((change_one<Set, Peripherals>(clocks...), 0)...);
+	ignore((clocks.commit(), 0)...);
+}
+
+template<bool Set, typename... Clocks, typename... Peripherals>
+inline void change_many(mpl::list<Peripherals...> peripherals, Clocks&... clocks)
+{
+	change_many_flights<Set>(peripherals, clocks.begin()...);
+}
+
+}
+
+template<bool Enable = true, typename... Peripherals>
+inline void enable(const Peripherals&...)
+{
+	detail::change_many<Enable>(
+		mpl::list<Peripherals...>(),
+		ahb1_enable,
+		ahb2_enable,
+		ahb3_enable,
+		apb1_enable,
+		apb2_enable);
+}
+
+template<bool Enable = true, typename... Peripherals>
+inline void lp_enable(const Peripherals&...)
+{
+	detail::change_many<Enable>(
+		mpl::list<Peripherals...>(),
+		ahb1_lp_enable,
+		ahb2_lp_enable,
+		ahb3_lp_enable,
+		apb1_lp_enable,
+		apb2_lp_enable);
+}
+
+template<typename... Peripherals>
+inline void reset(const Peripherals&...)
+{
+	detail::change_many<true>(
+		mpl::list<Peripherals...>(),
+		ahb1_reset,
+		ahb2_reset,
+		ahb3_reset,
+		apb1_reset,
+		apb2_reset);
+}
+
 }
 }
 }
