@@ -291,8 +291,8 @@ static linker_placed_struct<USART> usart3 [[gnu::weakref(".USART_USART3")]];
 static linker_placed_struct<USART> uart4 [[gnu::weakref(".UART_USART4")]];
 static linker_placed_struct<USART> uart5 [[gnu::weakref(".UART_USART5")]];
 static linker_placed_struct<USART> usart6 [[gnu::weakref(".USART_USART6")]];
-static linker_placed_struct<USART> usart7 [[gnu::weakref(".USART_USART7")]];
-static linker_placed_struct<USART> usart8 [[gnu::weakref(".USART_USART8")]];
+static linker_placed_struct<USART> uart7 [[gnu::weakref(".USART_UART7")]];
+static linker_placed_struct<USART> uart8 [[gnu::weakref(".USART_UART8")]];
 
 }
 }
