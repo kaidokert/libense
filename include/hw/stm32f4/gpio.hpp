@@ -208,10 +208,8 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 		ODR<>& out() { return this->odr; }
 };
 
-static_assert(ense::traits::is_config_struct_valid<GPIO>(), "");
-
 template<typename PeripheralType, PeripheralType Bit>
-struct GPIOInst : GPIO<void> {
+struct GPIOInst : linker_placed_struct<GPIO> {
 	struct rcc_info {
 		typedef PeripheralType type;
 		static constexpr PeripheralType bit = Bit;

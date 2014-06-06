@@ -205,8 +205,6 @@ struct Interrupts : ConfigurationStruct<Interrupts, detail::layout_interrupts, F
 		STRUCT_ARRAY_R(fifo_error, isr, fifo_error)
 };
 
-static_assert(traits::is_config_struct_valid<Interrupts>(), "");
-
 
 
 namespace detail {
@@ -267,13 +265,11 @@ struct Stream : ConfigurationStruct<Stream, detail::layout_stream, Flight> {
 		STRUCT_FIELD_RW(fifo_threshold, sfcr, fifo_threshold)
 };
 
-static_assert(traits::is_config_struct_valid<Stream>(), "");
-
 
 
 struct DMA {
-	Interrupts<> interrupts;
-	Stream<> stream[8];
+	linker_placed_struct<Interrupts> interrupts;
+	linker_placed_struct<Stream> stream[8];
 };
 
 static_assert(std::is_standard_layout<DMA>::value, "");

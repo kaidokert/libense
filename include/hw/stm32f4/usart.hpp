@@ -285,10 +285,8 @@ struct USART : ConfigurationStruct<USART, detail::layout, Flight> {
 	STRUCT_FIELD_RW(prescaler, gtpr, prescaler)
 };
 
-static_assert(ense::traits::is_config_struct_valid<USART>(), "");
-
 template<typename PeripheralType, PeripheralType Bit>
-struct USARTInst : USART<void> {
+struct USARTInst : linker_placed_struct<USART> {
 	struct rcc_info {
 		typedef PeripheralType type;
 		static constexpr PeripheralType bit = Bit;
