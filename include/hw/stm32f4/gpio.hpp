@@ -167,9 +167,6 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 		typedef detail::layout struct_type;
 	private:
 		typedef GPIO this_type;
-		typedef Flight flight_type;
-		template<typename Next>
-		using this_template = GPIO<Next>;
 
 	public:
 		STRUCT_SINGULAR_ARRAY_RW(mode, moder)

@@ -192,9 +192,6 @@ struct Interrupts : ConfigurationStruct<Interrupts, detail::layout_interrupts, F
 		typedef detail::layout_interrupts struct_type;
 	private:
 		typedef Interrupts this_type;
-		typedef Flight flight_type;
-		template<typename Next>
-		using this_template = Interrupts<Next>;
 
 	public:
 		STRUCT_SINGULAR_ARRAY_R(status, isr)
@@ -233,9 +230,6 @@ struct Stream : ConfigurationStruct<Stream, detail::layout_stream, Flight> {
 		typedef detail::layout_stream struct_type;
 	private:
 		typedef Stream this_type;
-		typedef Flight flight_type;
-		template<typename Next>
-		using this_template = Stream<Next>;
 
 	public:
 		STRUCT_FIELD_RW(channel, scr, channel)
