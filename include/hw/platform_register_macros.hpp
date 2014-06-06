@@ -37,14 +37,16 @@
 #define REGISTER_FIELD_R(FIELD_TYPE, FIELD_NAME, ...) \
 	FIELD_TYPE FIELD_NAME() const \
 	{ \
-		typedef detail::bit::expand<__VA_ARGS__> bp; \
+		using namespace ::ense::detail::bit; \
+		typedef expand<__VA_ARGS__> bp; \
 		return static_cast<FIELD_TYPE>(this->template bits<bp::begin, bp::end>()); \
 	}
 #define REGISTER_FIELD_W(FIELD_TYPE, FIELD_NAME, ...) \
 	auto FIELD_NAME(FIELD_TYPE value) \
 		-> decltype(*this) \
 	{ \
-		typedef detail::bit::expand<__VA_ARGS__> bp; \
+		using namespace ::ense::detail::bit; \
+		typedef expand<__VA_ARGS__> bp; \
 		return this->template bits<bp::begin, bp::end>(static_cast<typename ENSE_REGISTER_THIS_TYPE::word_type>(value)); \
 	}
 #define REGISTER_FIELD_RW(FIELD_TYPE, FIELD_NAME, ...) \
@@ -64,19 +66,21 @@
 #define ENSE_REGISTER_ARRAY_R(FIELD_TYPE, FIELD_NAME, ...) \
 	std::remove_all_extents<FIELD_TYPE>::type FIELD_NAME(uint32_t idx) const \
 	{ \
+		using namespace ::ense::detail::bit; \
 		typedef std::remove_all_extents<FIELD_TYPE>::type value_type; \
-		typedef detail::bit::expand<__VA_ARGS__> bp; \
+		typedef expand<__VA_ARGS__> bp; \
 		traits::assert_platform_array_type<FIELD_TYPE, bp>(); \
-		uint32_t pos = detail::bit::element_offset<bp>(idx); \
+		uint32_t pos = element_offset<bp>(idx); \
 		return static_cast<value_type>(this->bits(pos, pos + bp::width - 1)); \
 	}
 #define ENSE_REGISTER_ARRAY_W(FIELD_TYPE, FIELD_NAME, VALUE_DECL, VALUE, ...) \
 	auto FIELD_NAME(uint32_t idx VALUE_DECL) \
 		-> decltype(*this) \
 	{ \
-		typedef detail::bit::expand<__VA_ARGS__> bp; \
+		using namespace ::ense::detail::bit; \
+		typedef expand<__VA_ARGS__> bp; \
 		traits::assert_platform_array_type<FIELD_TYPE, bp>(); \
-		uint32_t pos = detail::bit::element_offset<bp>(idx % std::extent<FIELD_TYPE>::value); \
+		uint32_t pos = element_offset<bp>(idx % std::extent<FIELD_TYPE>::value); \
 		return this->bits(pos, pos + bp::width - 1, static_cast<typename ENSE_REGISTER_THIS_TYPE::word_type>(VALUE)); \
 	}
 #define ENSE_REGISTER_ARRAY_W_TEMPLATES(FIELD_TYPE, FIELD_NAME, VALUE_DECL, VCOMMA, VALUE, ...) \
@@ -90,18 +94,19 @@
 	auto FIELD_NAME ## _list(VALUE_DECL VCOMMA mpl::list<std::integral_constant<uint32_t, Items>...>) \
 		-> decltype(*this) \
 	{ \
-		typedef detail::bit::expand<__VA_ARGS__> bp; \
+		using namespace ::ense::detail::bit; \
+		typedef expand<__VA_ARGS__> bp; \
 		traits::assert_platform_array_type<FIELD_TYPE, bp>(); \
 		static_assert(mpl::all((Items < std::extent<FIELD_TYPE>::value)...), "Items list invalid"); \
 		constexpr uint32_t width = ENSE_REGISTER_THIS_TYPE::width; \
-		constexpr uint32_t word = mpl::min(detail::bit::element_offset<bp>(Items)...) / width; \
+		constexpr uint32_t word = mpl::min(element_offset<bp>(Items)...) / width; \
 		typedef mpl::partition< \
-			detail::bit::item_in_word<word, width, bp>::template fn, \
+			item_in_word<word, width, bp>::template fn, \
 			mpl::list<std::integral_constant<uint32_t, Items>...>> items_split; \
-		constexpr uint32_t splice_factor = detail::bit::splice_factor<bp>(word * width, typename items_split::left()); \
-		constexpr uint32_t splice_mask = detail::bit::splice_mask<bp>(word * width, typename items_split::left()); \
-		auto splice_value = (static_cast<typename ENSE_REGISTER_THIS_TYPE::word_type>(VALUE) & bp::element_mask) * splice_factor; \
-		this->word(word, (this->word(word) & ~splice_mask) | splice_value); \
+		constexpr uint32_t factor = splice_factor<bp>(word * width, typename items_split::left()); \
+		constexpr uint32_t mask = splice_mask<bp>(word * width, typename items_split::left()); \
+		auto splice_value = (static_cast<typename ENSE_REGISTER_THIS_TYPE::word_type>(VALUE) & bp::element_mask) * factor; \
+		this->word(word, (this->word(word) & ~mask) | splice_value); \
 		return this->FIELD_NAME ## _list(VALUE, typename items_split::right()); \
 	} \
 	template<uint32_t... Items> \
@@ -114,7 +119,8 @@
 	auto FIELD_NAME ## _range(VALUE_DECL) \
 		-> decltype(*this) \
 	{ \
-		typedef detail::bit::expand<detail::bit::range<Bound1, Bound2>> range; \
+		using namespace ::ense::detail::bit; \
+		typedef expand<range<Bound1, Bound2>> range; \
 		static_assert(range::end < std::extent<FIELD_TYPE>::value, "Index out of range"); \
 		return FIELD_NAME ## _list(VALUE, typename range::items_list()); \
 	}

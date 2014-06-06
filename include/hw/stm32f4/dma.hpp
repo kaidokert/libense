@@ -23,13 +23,13 @@ enum class InterruptFlags : uint32_t {
 
 template<bool Config = false>
 struct ISR : ConfigurationRegister<uint32_t[2], Config, ISR> {
-	REGISTER_SINGULAR_ARRAY_R(InterruptFlags[8], detail::bit::width<6>, detail::bit::range<0, 63>, detail::bit::element_offsets<0, 6, 16, 22, 32, 38, 48, 54>)
+	REGISTER_SINGULAR_ARRAY_R(InterruptFlags[8], width<6>, range<0, 63>, element_offsets<0, 6, 16, 22, 32, 38, 48, 54>)
 
-	REGISTER_ARRAY_R(bool[8], transfer_complete, detail::bit::width<6>, detail::bit::range<0, 63>, detail::bit::element_offsets<5, 11, 21, 27, 37, 43, 53, 59>)
-	REGISTER_ARRAY_R(bool[8], half_transfer, detail::bit::width<6>, detail::bit::range<0, 63>, detail::bit::element_offsets<4, 10, 20, 26, 36, 42, 52, 58>)
-	REGISTER_ARRAY_R(bool[8], transfer_error, detail::bit::width<6>, detail::bit::range<0, 63>, detail::bit::element_offsets<3, 9, 19, 25, 35, 41, 51, 57>)
-	REGISTER_ARRAY_R(bool[8], direct_mode_error, detail::bit::width<6>, detail::bit::range<0, 63>, detail::bit::element_offsets<2, 8, 18, 24, 34, 40, 50, 56>)
-	REGISTER_ARRAY_R(bool[8], fifo_error, detail::bit::width<6>, detail::bit::range<0, 63>, detail::bit::element_offsets<0, 6, 16, 22, 32, 38, 48, 54>)
+	REGISTER_ARRAY_R(bool[8], transfer_complete, width<6>, range<0, 63>, element_offsets<5, 11, 21, 27, 37, 43, 53, 59>)
+	REGISTER_ARRAY_R(bool[8], half_transfer, width<6>, range<0, 63>, element_offsets<4, 10, 20, 26, 36, 42, 52, 58>)
+	REGISTER_ARRAY_R(bool[8], transfer_error, width<6>, range<0, 63>, element_offsets<3, 9, 19, 25, 35, 41, 51, 57>)
+	REGISTER_ARRAY_R(bool[8], direct_mode_error, width<6>, range<0, 63>, element_offsets<2, 8, 18, 24, 34, 40, 50, 56>)
+	REGISTER_ARRAY_R(bool[8], fifo_error, width<6>, range<0, 63>, element_offsets<0, 6, 16, 22, 32, 38, 48, 54>)
 };
 
 static_assert(traits::is_platform_register_valid<ISR<>>(), "");
@@ -38,7 +38,7 @@ static_assert(traits::is_platform_register_valid<ISR<>>(), "");
 
 template<bool Config = false>
 struct IFCR : ConfigurationRegister<uint32_t[2], Config, IFCR> {
-	REGISTER_SINGULAR_ARRAY_W(InterruptFlags[8], detail::bit::width<6>, detail::bit::range<0, 63>, detail::bit::element_offsets<0, 6, 16, 22, 32, 38, 48, 54>)
+	REGISTER_SINGULAR_ARRAY_W(InterruptFlags[8], width<6>, range<0, 63>, element_offsets<0, 6, 16, 22, 32, 38, 48, 54>)
 };
 
 static_assert(traits::is_platform_register_valid<IFCR<>>(), "");
@@ -88,19 +88,19 @@ enum class ConfigFlags : uint32_t {
 
 template<bool Config = false>
 struct SCR : ConfigurationRegister<ConfigFlags, Config, SCR> {
-	REGISTER_INT_RW(channel, detail::bit::range<27, 25>)
-	REGISTER_FIELD_RW(BurstSize, memory_burst_size, detail::bit::range<24, 23>)
-	REGISTER_FIELD_RW(BurstSize, peripheral_burst_size, detail::bit::range<22, 21>)
-	REGISTER_INT_RW(current_target, detail::bit::range<19, 19>)
+	REGISTER_INT_RW(channel, range<27, 25>)
+	REGISTER_FIELD_RW(BurstSize, memory_burst_size, range<24, 23>)
+	REGISTER_FIELD_RW(BurstSize, peripheral_burst_size, range<22, 21>)
+	REGISTER_INT_RW(current_target, range<19, 19>)
 	REGISTER_BIT_RW(double_buffered)
-	REGISTER_FIELD_RW(Priority, priority, detail::bit::range<17, 16>)
+	REGISTER_FIELD_RW(Priority, priority, range<17, 16>)
 	REGISTER_BIT_RW(peripheral_increment_by_four)
-	REGISTER_FIELD_RW(DataSize, memory_size, detail::bit::range<14, 13>)
-	REGISTER_FIELD_RW(DataSize, peripheral_size, detail::bit::range<12, 11>)
+	REGISTER_FIELD_RW(DataSize, memory_size, range<14, 13>)
+	REGISTER_FIELD_RW(DataSize, peripheral_size, range<12, 11>)
 	REGISTER_BIT_RW(memory_increment)
 	REGISTER_BIT_RW(peripheral_increment)
 	REGISTER_BIT_RW(circular)
-	REGISTER_FIELD_RW(Direction, direction, detail::bit::range<7, 6>)
+	REGISTER_FIELD_RW(Direction, direction, range<7, 6>)
 	REGISTER_BIT_RW(peripheral_flow_control)
 	REGISTER_BIT_RW(transfer_complete_interrupt)
 	REGISTER_BIT_RW(half_transfer_interrupt)
@@ -115,7 +115,7 @@ static_assert(traits::is_platform_register_valid<SCR<>>(), "");
 
 template<bool Config = false>
 struct SNDTR : ConfigurationRegister<void, Config, SNDTR> {
-	REGISTER_INT_RW(count, detail::bit::range<15, 0>)
+	REGISTER_INT_RW(count, range<15, 0>)
 };
 
 static_assert(traits::is_platform_register_valid<SNDTR<>>(), "");
@@ -165,9 +165,9 @@ enum class FIFOThreshold : uint32_t {
 template<bool Config = false>
 struct SFCR : ConfigurationRegister<SFCRFlags, Config, SFCR> {
 	REGISTER_BIT_RW(error_interrupt_enable)
-	REGISTER_FIELD_R(FIFOStatus, fifo_status, detail::bit::range<5, 3>)
+	REGISTER_FIELD_R(FIFOStatus, fifo_status, range<5, 3>)
 	REGISTER_BIT_RW(direct_mode_disable)
-	REGISTER_FIELD_RW(FIFOThreshold, fifo_threshold, detail::bit::range<1, 0>)
+	REGISTER_FIELD_RW(FIFOThreshold, fifo_threshold, range<1, 0>)
 };
 
 static_assert(traits::is_platform_register_valid<SFCR<>>(), "");

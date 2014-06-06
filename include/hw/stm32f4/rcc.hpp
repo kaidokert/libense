@@ -33,8 +33,8 @@ struct ClockControl : ConfigurationRegister<ClockControlFlags, Config, ClockCont
 	REGISTER_BIT_RW(hse_bypass)
 	REGISTER_BIT_R(hse_ready)
 	REGISTER_BIT_RW(hse_on)
-	REGISTER_INT_R(hsi_cal, detail::bit::range<15, 8>)
-	REGISTER_INT_RW(hsi_trim, detail::bit::range<7, 3>)
+	REGISTER_INT_R(hsi_cal, range<15, 8>)
+	REGISTER_INT_RW(hsi_trim, range<7, 3>)
 	REGISTER_BIT_R(hsi_ready)
 	REGISTER_BIT_RW(hsi_on)
 };
@@ -58,11 +58,11 @@ enum class PLLDivider : uint32_t {
 
 template<bool Config = false>
 struct PLLConfig : ConfigurationRegister<void, Config, PLLConfig> {
-	REGISTER_INT_RW(q, detail::bit::range<27, 24>)
-	REGISTER_FIELD_RW(PLLSource, pll_source, detail::bit::range<22, 22>)
-	REGISTER_FIELD_RW(PLLDivider, p, detail::bit::range<17, 16>)
-	REGISTER_INT_RW(n, detail::bit::range<14, 6>)
-	REGISTER_INT_RW(m, detail::bit::range<5, 0>)
+	REGISTER_INT_RW(q, range<27, 24>)
+	REGISTER_FIELD_RW(PLLSource, pll_source, range<22, 22>)
+	REGISTER_FIELD_RW(PLLDivider, p, range<17, 16>)
+	REGISTER_INT_RW(n, range<14, 6>)
+	REGISTER_INT_RW(m, range<5, 0>)
 };
 
 static linker_placed_register<PLLConfig<>> pll_config [[gnu::weakref(".RCC_PLLCFGR")]];
@@ -118,17 +118,17 @@ enum SystemClockSource : uint32_t {
 
 template<bool Config = false>
 struct ClockConfig : ConfigurationRegister<void, Config, ClockConfig> {
-	REGISTER_FIELD_RW(ClockOutSource, mco2_source, detail::bit::range<31, 30>)
-	REGISTER_FIELD_RW(ClockOutDivider, mco2_prescaler, detail::bit::range<29, 27>)
-	REGISTER_FIELD_RW(ClockOutDivider, mco1_prescaler, detail::bit::range<26, 24>)
-	REGISTER_FIELD_RW(I2SClockSource, i2s_source, detail::bit::range<23, 23>)
-	REGISTER_FIELD_RW(ClockOutSource, mco1_source, detail::bit::range<22, 21>)
-	REGISTER_INT_RW(rtc_prescaler, detail::bit::range<20, 16>)
-	REGISTER_FIELD_RW(APBPrescaler, apb2_prescaler, detail::bit::range<15, 13>)
-	REGISTER_FIELD_RW(APBPrescaler, apb1_prescaler, detail::bit::range<12, 10>)
-	REGISTER_FIELD_RW(AHBPrescaler, ahb_prescaler, detail::bit::range<7, 4>)
-	REGISTER_FIELD_RW(SystemClockSource, clock_source_status, detail::bit::range<3, 2>)
-	REGISTER_FIELD_RW(SystemClockSource, clock_source_switch, detail::bit::range<1, 0>)
+	REGISTER_FIELD_RW(ClockOutSource, mco2_source, range<31, 30>)
+	REGISTER_FIELD_RW(ClockOutDivider, mco2_prescaler, range<29, 27>)
+	REGISTER_FIELD_RW(ClockOutDivider, mco1_prescaler, range<26, 24>)
+	REGISTER_FIELD_RW(I2SClockSource, i2s_source, range<23, 23>)
+	REGISTER_FIELD_RW(ClockOutSource, mco1_source, range<22, 21>)
+	REGISTER_INT_RW(rtc_prescaler, range<20, 16>)
+	REGISTER_FIELD_RW(APBPrescaler, apb2_prescaler, range<15, 13>)
+	REGISTER_FIELD_RW(APBPrescaler, apb1_prescaler, range<12, 10>)
+	REGISTER_FIELD_RW(AHBPrescaler, ahb_prescaler, range<7, 4>)
+	REGISTER_FIELD_RW(SystemClockSource, clock_source_status, range<3, 2>)
+	REGISTER_FIELD_RW(SystemClockSource, clock_source_switch, range<1, 0>)
 };
 
 static linker_placed_register<ClockConfig<>> clock_config [[gnu::weakref(".RCC_CFGR")]];
@@ -527,7 +527,7 @@ struct BackupDomain : ConfigurationRegister<BackupDomainFlags, Config, BackupDom
 	REGISTER_BIT_RW(reset)
 	REGISTER_BIT_C(reset)
 	REGISTER_BIT_RW(rtc_enabled)
-	REGISTER_FIELD_RW(RTCSource, rtc_source, detail::bit::range<9, 8>)
+	REGISTER_FIELD_RW(RTCSource, rtc_source, range<9, 8>)
 	REGISTER_BIT_RW(lse_bypass)
 	REGISTER_BIT_R(lse_ready)
 	REGISTER_BIT_RW(lse_enabled)
@@ -578,10 +578,10 @@ enum class SpectrumSpread : uint32_t {
 
 template<bool Config = false>
 struct SpreadSpectrumClock : ConfigurationRegister<void, Config, SpreadSpectrumClock> {
-	REGISTER_FIELD_RW(bool, enabled, detail::bit::range<31, 31>)
-	REGISTER_FIELD_RW(SpectrumSpread, spread, detail::bit::range<30, 30>)
-	REGISTER_INT_RW(step, detail::bit::range<27, 13>)
-	REGISTER_INT_RW(period, detail::bit::range<12, 0>)
+	REGISTER_FIELD_RW(bool, enabled, range<31, 31>)
+	REGISTER_FIELD_RW(SpectrumSpread, spread, range<30, 30>)
+	REGISTER_INT_RW(step, range<27, 13>)
+	REGISTER_INT_RW(period, range<12, 0>)
 };
 
 static linker_placed_register<SpreadSpectrumClock<>> spread_spectrum_clock [[gnu::weakref(".RCC_SSCGR")]];
@@ -591,8 +591,8 @@ static linker_placed_register<SpreadSpectrumClock<>> spread_spectrum_clock [[gnu
 
 template<bool Config = false>
 struct PLLI2S : ConfigurationRegister<void, Config, PLLI2S> {
-	REGISTER_INT_RW(r, detail::bit::range<30, 28>)
-	REGISTER_INT_RW(n, detail::bit::range<14, 6>)
+	REGISTER_INT_RW(r, range<30, 28>)
+	REGISTER_INT_RW(n, range<14, 6>)
 };
 
 static linker_placed_register<PLLI2S<>> plli2s [[gnu::weakref(".RCC_PLLI2SCFGR")]];
@@ -602,7 +602,7 @@ static linker_placed_register<PLLI2S<>> plli2s [[gnu::weakref(".RCC_PLLI2SCFGR")
 
 template<bool Config = false>
 struct DedicatedClockConfig : ConfigurationRegister<void, Config, DedicatedClockConfig> {
-	REGISTER_FIELD_RW(bool, timpre, detail::bit::range<24, 24>)
+	REGISTER_FIELD_RW(bool, timpre, range<24, 24>)
 };
 
 static linker_placed_register<DedicatedClockConfig<>> dedicated_clock_config [[gnu::weakref(".RCC_DCKCFGR")]];

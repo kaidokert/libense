@@ -45,7 +45,7 @@ static_assert(traits::is_platform_register_valid<Status<>>(), "");
 
 template<bool Config = false>
 struct Data : ConfigurationRegister<void, Config, Data> {
-	REGISTER_INT_RW(content, detail::bit::range<8, 0>)
+	REGISTER_INT_RW(content, range<8, 0>)
 };
 
 static_assert(traits::is_platform_register_valid<Data<>>(), "");
@@ -57,8 +57,8 @@ template<bool Config = false>
 struct BRR : ConfigurationRegister<void, Config, BRR> {
 	using ConfigurationRegister<void, Config, usart::BRR>::value;
 
-	REGISTER_INT_RW(mantissa, detail::bit::range<15, 4>)
-	REGISTER_INT_RW(fraction, detail::bit::range<3, 0>)
+	REGISTER_INT_RW(mantissa, range<15, 4>)
+	REGISTER_INT_RW(fraction, range<3, 0>)
 
 	BRR& value(uint32_t mantissa, uint32_t fraction)
 	{
@@ -141,14 +141,14 @@ enum class StopBits : uint32_t {
 template<bool Config = false>
 struct CR2 : ConfigurationRegister<CR2Flags, Config, CR2> {
 	REGISTER_BIT_RW(lin_enabled)
-	REGISTER_FIELD_RW(StopBits, stop_bits, detail::bit::range<13, 12>)
+	REGISTER_FIELD_RW(StopBits, stop_bits, range<13, 12>)
 	REGISTER_BIT_RW(clock_enabled)
 	REGISTER_BIT_RW(clock_polarity)
 	REGISTER_BIT_RW(clock_phase)
 	REGISTER_BIT_RW(last_bit_pulse)
 	REGISTER_BIT_RW(lin_break_detect_interrupt)
 	REGISTER_BIT_RW(lin_break_length)
-	REGISTER_INT_RW(addr, detail::bit::range<3, 0>)
+	REGISTER_INT_RW(addr, range<3, 0>)
 };
 
 static_assert(traits::is_platform_register_valid<CR2<>>(), "");
@@ -192,8 +192,8 @@ static_assert(traits::is_platform_register_valid<CR3<>>(), "");
 
 template<bool Config = false>
 struct GTPR : ConfigurationRegister<void, Config, GTPR> {
-	REGISTER_INT_RW(guard_time, detail::bit::range<15, 8>)
-	REGISTER_INT_RW(prescaler, detail::bit::range<7, 0>)
+	REGISTER_INT_RW(guard_time, range<15, 8>)
+	REGISTER_INT_RW(prescaler, range<7, 0>)
 };
 
 static_assert(traits::is_platform_register_valid<GTPR<>>(), "");

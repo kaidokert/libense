@@ -20,7 +20,7 @@ enum class Function : uint32_t {
 
 template<bool Config = false>
 struct MODER : ConfigurationRegister<void, Config, MODER> {
-	REGISTER_SINGULAR_ARRAY_RW(Function[16], detail::bit::range<0, 31>, detail::bit::width<2>)
+	REGISTER_SINGULAR_ARRAY_RW(Function[16], range<0, 31>, width<2>)
 };
 
 static_assert(traits::is_platform_register_valid<MODER<>>(), "");
@@ -33,7 +33,7 @@ enum class OutputType : uint32_t {
 
 template<bool Config = false>
 struct OTYPER : ConfigurationRegister<void, Config, OTYPER> {
-	REGISTER_SINGULAR_ARRAY_RW(OutputType[16], detail::bit::range<0, 15>, detail::bit::width<1>)
+	REGISTER_SINGULAR_ARRAY_RW(OutputType[16], range<0, 15>, width<1>)
 };
 
 static_assert(traits::is_platform_register_valid<OTYPER<>>(), "");
@@ -48,7 +48,7 @@ enum class Speed : uint32_t {
 
 template<bool Config = false>
 struct OSPEEDR : ConfigurationRegister<void, Config, OSPEEDR> {
-	REGISTER_SINGULAR_ARRAY_RW(Speed[16], detail::bit::range<0, 31>, detail::bit::width<2>)
+	REGISTER_SINGULAR_ARRAY_RW(Speed[16], range<0, 31>, width<2>)
 };
 
 static_assert(traits::is_platform_register_valid<OSPEEDR<>>(), "");
@@ -62,7 +62,7 @@ enum class Pull : uint32_t {
 
 template<bool Config = false>
 struct PUPDR : ConfigurationRegister<void, Config, PUPDR> {
-	REGISTER_SINGULAR_ARRAY_RW(Pull[16], detail::bit::range<0, 31>, detail::bit::width<2>)
+	REGISTER_SINGULAR_ARRAY_RW(Pull[16], range<0, 31>, width<2>)
 };
 
 static_assert(traits::is_platform_register_valid<PUPDR<>>(), "");
@@ -70,8 +70,8 @@ static_assert(traits::is_platform_register_valid<PUPDR<>>(), "");
 
 template<bool Config = false>
 struct IDR : ConfigurationRegister<void, Config, IDR> {
-	REGISTER_SINGULAR_ARRAY_R(bool[16], detail::bit::range<0, 15>, detail::bit::width<1>)
-	REGISTER_FIELD_R(uint16_t, raw, detail::bit::range<0, 15>)
+	REGISTER_SINGULAR_ARRAY_R(bool[16], range<0, 15>, width<1>)
+	REGISTER_FIELD_R(uint16_t, raw, range<0, 15>)
 };
 
 static_assert(traits::is_platform_register_valid<IDR<>>(), "");
@@ -79,8 +79,8 @@ static_assert(traits::is_platform_register_valid<IDR<>>(), "");
 
 template<bool Config = false>
 struct ODR : ConfigurationRegister<void, Config, ODR> {
-	REGISTER_SINGULAR_ARRAY_RW(bool[16], detail::bit::range<0, 15>, detail::bit::width<1>)
-	REGISTER_FIELD_RW(uint16_t, raw, detail::bit::range<0, 15>)
+	REGISTER_SINGULAR_ARRAY_RW(bool[16], range<0, 15>, width<1>)
+	REGISTER_FIELD_RW(uint16_t, raw, range<0, 15>)
 
 	ODR& operator=(const ODR&) = default;
 
@@ -117,8 +117,8 @@ static_assert(traits::is_platform_register_valid<ODR<>>(), "");
 
 template<bool Config = false>
 struct BSSR : ConfigurationRegister<void, Config, BSSR> {
-	REGISTER_ARRAY_C(bool[16], set, detail::bit::range<0, 15>, detail::bit::width<1>)
-	REGISTER_ARRAY_C(bool[16], reset, detail::bit::range<16, 31>, detail::bit::width<1>)
+	REGISTER_ARRAY_C(bool[16], set, range<0, 15>, width<1>)
+	REGISTER_ARRAY_C(bool[16], reset, range<16, 31>, width<1>)
 };
 
 static_assert(traits::is_platform_register_valid<BSSR<>>(), "");
@@ -134,7 +134,7 @@ struct AF {
 
 template<bool Config = false>
 struct AFR : ConfigurationRegister<uint32_t[2], Config, AFR> {
-	REGISTER_SINGULAR_ARRAY_RW(AF[16], detail::bit::range<0, 63>, detail::bit::width<4>)
+	REGISTER_SINGULAR_ARRAY_RW(AF[16], range<0, 63>, width<4>)
 };
 
 static_assert(traits::is_platform_register_valid<AFR<>>(), "");

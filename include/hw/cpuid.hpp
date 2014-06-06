@@ -7,11 +7,11 @@
 namespace ense {
 
 struct CPUID : PlatformRegister<CPUID, volatile uint32_t> {
-	REGISTER_INT_R(implementer,  detail::bit::range<31, 24>)
-	REGISTER_INT_R(variant,      detail::bit::range<23, 20>)
-	REGISTER_INT_R(architecture, detail::bit::range<19, 16>)
-	REGISTER_INT_R(part_number,  detail::bit::range<15, 4>)
-	REGISTER_INT_R(revision,     detail::bit::range<3, 0>)
+	REGISTER_INT_R(implementer,  range<31, 24>)
+	REGISTER_INT_R(variant,      range<23, 20>)
+	REGISTER_INT_R(architecture, range<19, 16>)
+	REGISTER_INT_R(part_number,  range<15, 4>)
+	REGISTER_INT_R(revision,     range<3, 0>)
 };
 
 static linker_placed_register<CPUID> cpuid [[gnu::weakref(".SCS_CPUID")]];
