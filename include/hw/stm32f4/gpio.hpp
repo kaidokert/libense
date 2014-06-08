@@ -6,7 +6,6 @@
 #include <hw/platform_register_macros.hpp>
 #include <hw/config_struct_macros.hpp>
 #include <mpl/select_memfn.hpp>
-#include <tuple>
 
 namespace ense {
 namespace platform {

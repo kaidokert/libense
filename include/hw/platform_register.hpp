@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include <type_traits>
-#include <tuple>
 
 #include <detail/bit.hpp>
 #include <detail/array_wrapper.hpp>
