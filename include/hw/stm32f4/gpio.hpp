@@ -117,12 +117,12 @@ static_assert(traits::is_platform_register_valid<ODR<>>(), "");
 
 
 template<bool Config = false>
-struct BSSR : ConfigurationRegister<void, Config, BSSR> {
+struct BSRR : ConfigurationRegister<void, Config, BSRR> {
 	REGISTER_ARRAY_C(bool[16], set, range<0, 15>, width<1>)
 	REGISTER_ARRAY_C(bool[16], reset, range<16, 31>, width<1>)
 };
 
-static_assert(traits::is_platform_register_valid<BSSR<>>(), "");
+static_assert(traits::is_platform_register_valid<BSRR<>>(), "");
 
 
 struct AF {
@@ -152,7 +152,7 @@ namespace detail {
 		PUPDR<> pupdr;
 		IDR<> idr;
 		ODR<> odr;
-		BSSR<> bssr;
+		BSRR<> bsrr;
 		volatile uint32_t lckr;
 		AFR<> afr;
 	};
@@ -176,8 +176,8 @@ struct GPIO : ConfigurationStruct<GPIO, detail::layout, Flight> {
 		STRUCT_SINGULAR_ARRAY_RW(pull, pupdr)
 		STRUCT_SINGULAR_ARRAY_R(input, idr)
 		STRUCT_SINGULAR_ARRAY_RW(output, odr)
-		STRUCT_ARRAY_C(set, bssr, set)
-		STRUCT_ARRAY_C(reset, bssr, reset)
+		STRUCT_ARRAY_C(set, bsrr, set)
+		STRUCT_ARRAY_C(reset, bsrr, reset)
 		STRUCT_SINGULAR_ARRAY_RW(alternate_function, afr)
 
 		STRUCT_CONFIGURE_MANY(
