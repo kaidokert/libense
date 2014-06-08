@@ -212,7 +212,7 @@ namespace detail {
 	struct layout_stream {
 		SCR<> scr;
 		SNDTR<> sndtr;
-		SAR<> spar;
+		SAR<> par;
 		SAR<> m0ar;
 		SAR<> m1ar;
 		SFCR<> sfcr;
@@ -253,7 +253,7 @@ struct Stream : ConfigurationStruct<Stream, detail::layout_stream, Flight> {
 
 		STRUCT_FIELD_RW(count, sndtr, count)
 
-		STRUCT_FIELD_RW(peripheral_address, spar, address)
+		STRUCT_FIELD_RW(peripheral_address, par, address)
 
 		STRUCT_FIELD_RW(memory_address_0, m0ar, address)
 
