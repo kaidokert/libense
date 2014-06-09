@@ -259,9 +259,6 @@ namespace traits {
 }
 
 template<typename Register>
-using linker_placed_array = typename std::conditional<traits::is_platform_array_valid<Register>(), Register, void>::type;
-
-template<typename Register>
 using linker_placed_register = typename std::conditional<traits::is_platform_register_valid<Register>(), Register, void>::type;
 
 }

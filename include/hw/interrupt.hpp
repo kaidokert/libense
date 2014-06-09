@@ -110,33 +110,33 @@ enum class SystemHandlerName : uint32_t {
 	SysTick      = 15
 };
 
-class SystemHandlerPriorities {
-	public:
-		typedef uint8_t value_type[12];
-		typedef volatile value_type memory_type;
+template<bool Config = false>
+struct SystemHandlerPriorities : ConfigurationRegister<uint32_t[3], Config, SystemHandlerPriorities> {
+	REGISTER_SINGULAR_ARRAY_RW(uint8_t[12], range<0, 95>, width<8>)
 
-	private:
-		value_type priorities;
+	uint8_t get(SystemHandlerName handler) const
+	{
+		return get(static_cast<uint32_t>(handler) - 4);
+	}
 
-	public:
-		uint8_t operator[](SystemHandlerName name) const
-		{
-			return priorities[static_cast<uint32_t>(name) - 4];
-		}
+	uint8_t operator[](SystemHandlerName handler) const
+	{
+		return get(handler);
+	}
 
-		volatile uint8_t& operator[](SystemHandlerName name)
-		{
-			return priorities[static_cast<uint32_t>(name) - 4];
-		}
+	SystemHandlerPriorities& set(SystemHandlerName handler, uint8_t priority)
+	{
+		return set(static_cast<uint32_t>(handler) - 4, priority);
+	}
 
-		SystemHandlerPriorities& set(SystemHandlerName name, uint8_t prio)
-		{
-			priorities[static_cast<uint32_t>(name) - 4] = prio;
-			return *this;
-		}
+	auto operator[](SystemHandlerName handler)
+		-> decltype((*this)[0])
+	{
+		return (*this)[static_cast<uint32_t>(handler) - 4];
+	}
 };
 
-static linker_placed_array<SystemHandlerPriorities> system_handler_priorities [[gnu::weakref(".SCS_SHP")]];
+static linker_placed_register<SystemHandlerPriorities<>> system_handler_priorities [[gnu::weakref(".SCS_SHP")]];
 
 
 
