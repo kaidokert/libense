@@ -25,6 +25,7 @@ class PlatformRegisterArray {
 		typedef typename std::remove_cv<memory_type>::type value_type;
 		typedef typename std::remove_all_extents<value_type>::type word_type;
 		static constexpr uint32_t words = std::extent<Value>::value;
+		static constexpr bool is_write_only = false;
 
 	protected:
 		static constexpr uint32_t width = sizeof(word_type) * 8;
@@ -54,7 +55,7 @@ class PlatformRegisterArray {
 
 		word_type word(uint32_t idx) const
 		{
-			return _value[idx];
+			return Derived::is_write_only ? 0 : _value[idx];
 		}
 };
 

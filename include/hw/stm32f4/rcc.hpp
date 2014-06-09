@@ -243,6 +243,8 @@ struct AHB1Clock : ConfigurationRegister<AHB1Peripheral, Config, Inner> {
 
 template<bool Config = false>
 struct AHB1Reset : ConfigurationRegister<AHB1Peripheral, Config, AHB1Reset> {
+	static constexpr bool is_write_only = true;
+
 	REGISTER_BIT_C(usb_otg_hs)
 	REGISTER_BIT_C(eth_mac)
 	REGISTER_BIT_C(dma2)
@@ -291,6 +293,8 @@ struct AHB2Clock : ConfigurationRegister<AHB2Peripheral, Config, Inner> {
 
 template<bool Config = false>
 struct AHB2Reset : ConfigurationRegister<AHB2Peripheral, Config, AHB2Reset> {
+	static constexpr bool is_write_only = true;
+
 	REGISTER_BIT_C(usb_oth_fs)
 	REGISTER_BIT_C(rng)
 	REGISTER_BIT_C(hash)
@@ -322,6 +326,8 @@ struct AHB3Clock : ConfigurationRegister<AHB3Peripheral, Config, Inner> {
 
 template<bool Config = false>
 struct AHB3Reset : ConfigurationRegister<AHB3Peripheral, Config, AHB3Reset> {
+	static constexpr bool is_write_only = true;
+
 	REGISTER_BIT_C(fsmc)
 };
 
@@ -397,6 +403,8 @@ struct APB1Clock : ConfigurationRegister<APB1Peripheral, Config, Inner> {
 
 template<bool Config = false>
 struct APB1Reset : ConfigurationRegister<APB1Peripheral, Config, APB1Reset> {
+	static constexpr bool is_write_only = true;
+
 	REGISTER_BIT_C(uart8)
 	REGISTER_BIT_C(uart7)
 	REGISTER_BIT_C(dac)
@@ -478,6 +486,8 @@ struct APB2Clock : ConfigurationRegister<APB2Peripheral, Config, Inner> {
 
 template<bool Config = false>
 struct APB2Reset : ConfigurationRegister<APB2Peripheral, Config, APB2Reset> {
+	static constexpr bool is_write_only = true;
+
 	REGISTER_BIT_C(spi6)
 	REGISTER_BIT_C(spi5)
 	REGISTER_BIT_C(timer11)
