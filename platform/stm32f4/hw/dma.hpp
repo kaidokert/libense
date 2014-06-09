@@ -1,7 +1,7 @@
 #ifndef INCLUDE_HW_STM32F4_DMA__HPP_2D5FACEC81ECD93C
 #define INCLUDE_HW_STM32F4_DMA__HPP_2D5FACEC81ECD93C
 
-#include <hw/stm32f4/rcc.hpp>
+#include <hw/rcc.hpp>
 #include <hw/config_register.hpp>
 #include <hw/config_struct.hpp>
 #include <hw/platform_register_macros.hpp>

@@ -1,7 +1,7 @@
 #ifndef INCLUDE_HW_STM32F4_GPIO__HPP_1F2CE1E9C788264A
 #define INCLUDE_HW_STM32F4_GPIO__HPP_1F2CE1E9C788264A
 
-#include <hw/stm32f4/rcc.hpp>
+#include <hw/rcc.hpp>
 #include <hw/config_struct.hpp>
 #include <hw/platform_register_macros.hpp>
 #include <hw/config_struct_macros.hpp>

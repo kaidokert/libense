@@ -6,9 +6,13 @@ CPU := cortex-m4
 FLOAT_ABI := hard
 FPU := vfp
 TARGET := arm-none-eabi
+PART_FAMILY := stm32f4
+PART_SERIES := 0
 
 # default compiler/linker flags
-CPPFLAGS += -I include -I ../libcxx/include
+CPPFLAGS += -I include
+CPPFLAGS += -I platform/$(PART_FAMILY) -I platform/$(PART_FAMILY)$(PART_SERIES)
+CPPFLAGS += -I ../libcxx/include
 
 CCFLAGS_RELEASE := -O2 -emit-llvm
 CCFLAGS_DEBUG := -O2 -g
