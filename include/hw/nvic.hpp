@@ -9,7 +9,7 @@
 
 namespace ense {
 
-enum class ExternalInterrupt { a, b, c, d, x = 179 };
+enum class ExternalInterrupt : uint32_t;
 
 class NVIC {
 	private:
