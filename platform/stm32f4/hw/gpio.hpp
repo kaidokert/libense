@@ -119,8 +119,8 @@ template<bool Config = false>
 struct BSRR : ConfigurationRegister<void, Config, BSRR> {
 	static constexpr bool is_write_only = true;
 
-	REGISTER_ARRAY_C(bool[16], set, range<0, 15>, width<1>)
-	REGISTER_ARRAY_C(bool[16], reset, range<16, 31>, width<1>)
+	REGISTER_FIELD_W(uint16_t, set, range<0, 15>)
+	REGISTER_FIELD_W(uint16_t, reset, range<16, 31>)
 };
 
 static_assert(traits::is_platform_register_valid<BSRR<>>(), "");
