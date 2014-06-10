@@ -1,6 +1,8 @@
 #ifndef PLATFORM_STM32F40_HW_EXTI__HPP_BD19CAA6F5DE91C4
 #define PLATFORM_STM32F40_HW_EXTI__HPP_BD19CAA6F5DE91C4
 
+#include "../../stm32f4/hw/exti.hpp"
+
 namespace ense {
 
 enum class ExternalInterrupt : uint32_t {

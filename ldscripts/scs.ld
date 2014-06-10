@@ -33,10 +33,7 @@ SECTIONS
 		/* TODO: PID0-7 */
 		/* TODO: CID0-3 */
 
-		PROVIDE(.SCS_SystickCSR = . + 0x010);
-		PROVIDE(.SCS_SystickRVR = . + 0x014);
-		PROVIDE(.SCS_SystickCVR = . + 0x018);
-		PROVIDE(.SCS_SystickCalib = . + 0x01C);
+		PROVIDE(.SCS_Systick = . + 0x010);
 
 		PROVIDE(.SCS_NVIC = . + 0x100);
 
