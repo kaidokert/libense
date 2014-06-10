@@ -50,7 +50,7 @@ enum class InterruptSource : uint32_t {
 };
 
 template<bool Config = false>
-struct EXTICR : ConfigurationRegister<void, Config, EXTICR> {
+struct EXTICR : ConfigurationRegister<uint32_t[4], Config, EXTICR> {
 	REGISTER_SINGULAR_ARRAY_RW(InterruptSource[16], width<4>, range<0, 128>, element_offsets<0, 4, 8, 12, 32, 36, 40, 44, 64, 68, 72, 76, 96, 100, 104, 108>)
 };
 

@@ -87,23 +87,22 @@ namespace detail {
 		};
 		template<size_t... Offsets>
 		struct element_offset_specified<ense::mpl::list<std::integral_constant<size_t, Offsets>...>> {
-			template<size_t First, size_t... Rest, size_t ArgCount>
-			static constexpr size_t nth(size_t idx, std::integral_constant<size_t, ArgCount>)
+			template<typename... Rest>
+			static constexpr size_t nth(size_t idx, size_t first, Rest... rest)
 			{
 				return idx == 0
-					? First
-					: nth<Rest...>(idx - 1, std::integral_constant<size_t, sizeof...(Rest)>());
+					? first
+					: nth(idx - 1, rest...);
 			}
 
-			template<size_t First>
-			static constexpr size_t nth(size_t, std::integral_constant<size_t, 1>)
+			static constexpr size_t nth(size_t)
 			{
-				return First;
+				return 0;
 			}
 
 			static constexpr size_t map(size_t idx)
 			{
-				return nth<Offsets...>(idx, std::integral_constant<size_t, sizeof...(Offsets)>());
+				return nth(idx, Offsets...);
 			}
 		};
 
