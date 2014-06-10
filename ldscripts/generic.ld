@@ -1,6 +1,6 @@
 SECTIONS
 {
-	.text : AT(ORIGIN(RAM /* FLASH */)) {
+	.text : {
 		LONG(ABSOLUTE(..stack));
 		KEEP(*(..isr_vectors))
 
@@ -14,9 +14,9 @@ SECTIONS
 		PROVIDE(_text_begin = .);
 		*(.text .text.*)
 		PROVIDE(_text_end = .);
-	} >RAM /* FLASH */
+	} >R_TEXT AT>R_TEXT
 
-	.rodata : AT(ALIGN(_text_end, 4)) {
+	.rodata : {
 		_ctors_array = .;
 		KEEP(*(SORT(.ctors)));
 		KEEP(*(SORT(.init_array)));
@@ -26,13 +26,13 @@ SECTIONS
 		PROVIDE(_rodata_begin = .);
 		*(.rodata .rodata.*)
 		PROVIDE(_rodata_end = .);
-	} >RAM /* FLASH */
+	} >R_TEXT
 
-	.data : AT(ALIGN(_rodata_end, 4)) {
+	.data : ALIGN(4) {
 		PROVIDE(_data_begin = .);
 		*(.data .data.*)
 		PROVIDE(_data_end = .);
-	} >RAM
+	} >R_DATA AT>R_TEXT
 	_data_content_begin = LOADADDR(.data);
 	_data_content_end = _data_content_begin + SIZEOF(.data);
 
@@ -40,7 +40,7 @@ SECTIONS
 		PROVIDE(_bss_begin = .);
 		*(.bss .bss.*)
 		PROVIDE(_bss_end = .);
-	} >RAM
+	} >R_DATA
 }
 INCLUDE "ldscripts/debug.ld"
 INCLUDE "ldscripts/scs.ld"

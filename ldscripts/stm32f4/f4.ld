@@ -5,18 +5,20 @@ ENTRY(_start)
 
 MEMORY
 {
-	INIT  (r)   : ORIGIN = 0x00000000, LENGTH = 0x08000000
 	FLASH (rx)  : ORIGIN = 0x08000000, LENGTH = 0x00100000
-	CCM   (rwx) : ORIGIN = 0x10000000, LENGTH = 0x00010000
 	RAM   (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00020000
+	CCM   (rwx) : ORIGIN = 0x10000000, LENGTH = 0x00010000
 }
+
+REGION_ALIAS("R_TEXT", RAM)
+REGION_ALIAS("R_DATA", RAM)
 
 INCLUDE "ldscripts/generic.ld"
 SECTIONS
 {
 	..stack = ORIGIN(CCM) + LENGTH(CCM);
 
-	.ccmdata : AT(ALIGN(_data_content_end, 4)+4) {
+	.ccmdata : {
 		PROVIDE(_ccmdata_begin = .);
 		*(.ccmdata .ccmdata.*)
 		PROVIDE(_ccmdata_end = .);

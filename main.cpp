@@ -1,10 +1,12 @@
 #include <string.h>
 #include <stdint.h>
 
-#include <hw/stm32f4/rcc.hpp>
-#include <hw/stm32f4/gpio.hpp>
-#include <hw/stm32f4/usart.hpp>
-#include <hw/stm32f4/dma.hpp>
+#include <hw/rcc.hpp>
+#include <hw/gpio.hpp>
+#include <hw/syscfg.hpp>
+#include <hw/usart.hpp>
+#include <hw/dma.hpp>
+#include <hw/exti.hpp>
 
 #include <hw/cpuid.hpp>
 #include <hw/interrupt.hpp>
@@ -14,161 +16,248 @@
 #include <hw/nvic.hpp>
 #include <hw/ivt.hpp>
 
-struct X {
-	[[gnu::noinline]]
-	static void configure_pll()
-	{
-		using namespace ense::platform::rcc;
-		clock_control.begin()
-			.hse_on(true)
-			.commit();
-		while (!clock_control.hse_ready())
-			;
-		pll_config.begin()
-			.pll_source(PLLSource::hse)
-			.n(84 * 2)
-			.m(8)
-			.p(PLLDivider::div_2)
-			.q(8)
-			.commit();
-		clock_control.begin()
-			.pll_on(true)
-			.commit();
-		while (!clock_control.pll_ready())
-			;
-		clock_config.begin()
-			.clock_source_switch(SystemClockSource::pll)
-			.mco1_source(ClockOutSource::pll)
-			.apb2_prescaler(APBPrescaler::div_1)
-			.commit();
+namespace {
+
+
+auto& uart = ense::platform::usart::usart3;
+volatile unsigned ticks;
+
+
+void configure_clocks()
+{
+	using namespace ense::platform::rcc;
+
+	clock_control.hse_on(true);
+	while (!clock_control.hse_ready());
+	pll_config.begin()
+		.pll_source(PLLSource::hse)
+		.n(84 * 2)
+		.m(8)
+		.p(PLLDivider::div_2)
+		.q(8)
+		.commit();
+	clock_control.pll_on(true);
+	while (!clock_control.pll_ready());
+	clock_config.begin()
+		.clock_source_switch(SystemClockSource::pll)
+		.mco1_source(ClockOutSource::pll)
+		.apb2_prescaler(APBPrescaler::div_1)
+		.commit();
+}
+
+void configure_peripherals()
+{
+	using namespace ense::platform;
+
+	rcc::enable(gpio::gpioA, gpio::gpioC, gpio::gpioD, dma::dma1, usart::usart3);
+	gpio::gpioD.begin()
+		.configure_range<8, 15>(gpio::Function::output)
+		.commit();
+
+	gpio::gpioC.begin()
+		.configure_list<10, 11>(gpio::Function::alternate, gpio::OutputType::push_pull, gpio::Speed::fast, gpio::AF(7))
+		.commit();
+
+	uart.begin()
+		.enable(true)
+		.rxne_interrupt(true)
+		.mantissa(45).fraction(9)    // 115.2kBaud at 84MHz APB2
+//		.mantissa(1666).fraction(12) // 300 baud at 5.25MHz APB2
+		.receive_enable(true)
+		.transmit_enable(true)
+		.commit();
+
+	ense::systick.begin()
+		.reload_value(2100000)
+		.interrupt_enabled(true)
+		.enable(true)
+		.commit();
+}
+
+void configure_interrupts()
+{
+	using namespace ense::platform;
+
+	ense::system_handler_priorities[ense::SystemHandlerName::SysTick] = 0x20;
+
+	syscfg::exticr.set(0, syscfg::InterruptSource::portA);
+	exti::exti.begin()
+		.interrupt_mask(0, true)
+		.rising_trigger(0, true)
+		.commit();
+	ense::nvic.priority(ense::ExternalInterrupt::exti0, 0x40);
+
+	ense::nvic.enable<ense::ExternalInterrupt::exti0, ense::ExternalInterrupt::usart3>();
+}
+
+
+
+void transmit(char c)
+{
+	while (!uart.tdr_empty());
+	uart.data(c);
+}
+
+void transmit(const char* str)
+{
+	while (*str) {
+		transmit(*str);
+		str++;
 	}
+}
 
-	static void foo()
-	{
-		// enable gpioA clock
-		asm volatile ("nop");
-		asm volatile ("nop");
-		asm volatile ("nop");
-		ense::system_handler_priorities.set(ense::SystemHandlerName::SysTick, 0xff);
-		ense::platform::rcc::ahb1_enable.begin()
-			.gpioA(true)
-			.gpioB(true)
-			.gpioC(true)
-			.gpioD(true)
-			.commit();
-		asm volatile ("nop");
-		asm volatile ("nop");
-		asm volatile ("nop");
-		ense::nvic.enable<
-			ense::ExternalInterrupt::a,
-			ense::ExternalInterrupt::x>();
-		asm volatile ("nop");
-		asm volatile ("nop");
-		asm volatile ("nop");
-		ense::platform::gpio::gpioD.begin()
-			.mode_range<8, 15>(ense::platform::gpio::Function::output)
-			.commit();
-		asm volatile ("nop");
-		asm volatile ("nop");
-		asm volatile ("nop");
+void toggle()
+{
+	ense::platform::gpio::gpioD.out() ^= 1 << 14;
+}
 
-		configure_pll();
+void delay(uint32_t loops)
+{
+	while (loops-- > 0)
+		asm ("nop");
+}
 
-		using namespace ense::platform::gpio;
-		gpioA.begin()
-			.configure(8, Function::alternate, OutputType::push_pull, Speed::fast, AF(0))
-			.commit();
+void blink(uint32_t val, uint8_t bits)
+{
+	using ense::platform::gpio::gpioD;
 
-		gpioB.begin()
-			.configure(6, Function::alternate, OutputType::push_pull, Speed::fast, AF(7))
-			.commit();
-
-		ense::platform::rcc::apb2_enable.usart1(true);
+	delay(3200000);
+	while (bits-- > 0) {
+		gpioD.set(((val & 1) << 12) | (1 << 13));
+		delay(1600000);
+		gpioD.reset((1 << 12) | (1 << 13));
+		delay(1600000);
+		val >>= 1;
 	}
+}
 
-	X()
-	{
-		foo();
-	}
-};
-
-X x [[gnu::section(".ccmdata")]];
-
-char y[] = "\001\002\003\004\005\006\007\010\011\012\013\014\015\016";
-
-static void print()
+void dma_print_banner()
 {
 	using namespace ense::platform::usart;
-	using namespace ense::platform::gpio;
-	asm volatile ("nop");
-	asm volatile ("nop");
-	asm volatile ("nop");
-	asm volatile ("nop");
-	asm volatile ("nop");
-	asm volatile ("nop");
-	usart1.begin()
-		.enable(true)
-		.oversample_by_8(true)
-		.mantissa(1)
-		.fraction(0)
-		.transmit_enable(true)
-		.clock_enabled(false)
-		.commit();
-	for (uint8_t i = 0;; i++) {
-		usart1.data(i);
-		while (!usart1.tdr_empty())
-			;
-//		gpioD.out() ^= 1 << 12;
+	using namespace ense::platform::dma;
 
-//		for (int x = 0; x < 500000; x++)
-//			asm volatile ("nop");
-	}
-	ense::shcsr.usage_fault_enabled(true);
-//	const char foo[] = "brutzelbums";
-	for (unsigned char j = 0; ; j++) {
-		uint32_t c = ense::current_exception_number(); {
-//		char c = y[j % sizeof(y)]; {
-//		char c = j % sizeof(y); {
-//		for (char c : foo) {
-			for (int i = 0; i < 16; i++) {
-				gpioD.out() = ((c & 1) << 12) | (1 << 13);
-				for (int i = 0; i < 400000; i++)
-					__asm__ __volatile__ ("nop");
-				gpioD.out() = 0;
-				for (int i = 0; i < 400000; i++)
-					__asm__ __volatile__ ("nop");
-				c >>= 1;
-			}
-			gpioD.out() = 1 << 14;
-			for (int i = 0; i < 400000; i++)
-				__asm__ __volatile__ ("nop");
-			gpioD.out() = 0;
-			for (int i = 0; i < 1200000; i++)
-				__asm__ __volatile__ ("nop");
+	static char buffer[] = "snafu something something\r\n";
+
+	static constexpr int stream = 3;
+
+	auto& s = dma1.stream[stream];
+
+	s.enabled(false);
+	while (s.enabled());
+	dma1.interrupts.clear(stream, InterruptFlags::all);
+
+	s.begin()
+		.peripheral_address(&uart.dr)
+		.memory_address_0(buffer)
+		.count(sizeof(buffer) - 1)
+		.channel(4)
+		.priority(Priority::very_high)
+		.fifo_threshold(FIFOThreshold::full)
+		.direct_mode_disable(true)
+		.direction(Direction::memory_to_peripheral)
+		.memory_burst_size(BurstSize::one)
+		.memory_increment(true)
+		.memory_size(DataSize::byte)
+		.peripheral_size(DataSize::byte)
+		.commit();
+
+	s.enabled(true);
+
+	uart.dma_transmit(true);
+	uart.tx_complete(false);
+
+	while (!dma1.interrupts.transfer_complete(stream));
+	while (!uart.tx_complete());
+
+	uart.dma_transmit(false);
+}
+
+void run_usart()
+{
+	using namespace ense::platform::gpio;
+	using namespace ense::platform::usart;
+
+	for (;;) {
+		const unsigned val = ticks;
+
+		unsigned cbuf = val;
+		char buf[13];
+		unsigned c = 12;
+		buf[c--] = 0;
+		buf[c--] = '\r';
+		buf[c--] = '\n';
+
+		while (cbuf) {
+			buf[c--] = '0' + (cbuf % 10);
+			cbuf /= 10;
 		}
+
+		transmit(buf + c + 1);
+
+		while (ticks == val);
 	}
+}
+
 }
 
 void main()
 {
-	print();
+	configure_clocks();
+	configure_peripherals();
+	configure_interrupts();
+	dma_print_banner();
+
+	run_usart();
 }
 
-void nmi() { for (;;) ; }
-void hard() { for (;;) ; }
-void usage() { for (;;) ; }
-void bus() { for (;;) ; }
-void mem() { for (;;) ; }
+static void lockup() { for (;;) ; }
+
+static void button()
+{
+	static int i = 0;
+
+	ense::platform::exti::exti.clear_pending(0);
+	transmit("exti0 triggered\r\n");
+	blink(i++, 4);
+}
+
+static void systick()
+{
+	toggle();
+	ticks++;
+}
+
+static void echo()
+{
+	static char buf[64];
+	static int pos = 0;
+
+	char rdr = uart.data();
+
+	if (pos == sizeof(buf)) {
+		for (unsigned i = 1; i < sizeof(buf); i++)
+			buf[i - 1] = buf[i];
+
+		buf[sizeof(buf) - 1] = rdr;
+	} else {
+		buf[pos++] = rdr;
+	}
+
+	transmit('(');
+	transmit(buf);
+	transmit(")\r\n");
+}
 
 [[gnu::section("..isr_vectors"), gnu::used]]
 constexpr ense::IVT<
-	ense::nmi_handler<nmi>,
-	ense::hard_fault_handler<hard>,
+	ense::nmi_handler<lockup>,
+	ense::hard_fault_handler<lockup>,
 
-	ense::system_handler<ense::SystemHandlerName::MemManage, mem>,
-	ense::system_handler<ense::SystemHandlerName::BusFault, bus>,
-	ense::system_handler<ense::SystemHandlerName::UsageFault, usage>
+	ense::system_handler<ense::SystemHandlerName::MemManage, lockup>,
+	ense::system_handler<ense::SystemHandlerName::BusFault, lockup>,
+	ense::system_handler<ense::SystemHandlerName::UsageFault, lockup>,
+	ense::system_handler<ense::SystemHandlerName::SysTick, systick>,
+
+	ense::external_interrupt<ense::ExternalInterrupt::usart3, echo>,
+	ense::external_interrupt<ense::ExternalInterrupt::exti0, button>
 > ivt;
-
-// TODO: future-ify all the things
-
