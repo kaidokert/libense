@@ -30,49 +30,26 @@ class NVIC {
 		bitfield_t __reserved_padding [[gnu::unused]];
 		volatile uint8_t ipr[496];
 
-		template<size_t Idx>
-		struct partition_match {
-			template<typename Arg>
-			struct apply : std::integral_constant<bool, Arg::value < Idx * 32> {};
-		};
-
-		template<typename Acc, typename Arg>
-		struct to_bit : std::integral_constant<uint32_t, Acc::value | (1U << (Arg::value & 0x1F))> {
-		};
-
-		template<typename List>
-		static void assign(bitfield_t& target, std::integral_constant<size_t, 0>)
+		template<uint32_t... Flags>
+		static void assign(bitfield_t&, std::integral_constant<uint32_t, std::extent<bitfield_t>::value>)
 		{
-			typedef typename mpl::partition<partition_match<0>::template apply, List>::right flags;
-			typedef mpl::fold_left<
-				to_bit,
-				std::integral_constant<uint32_t, 0>,
-				flags> value;
-
-			if (value::value != 0)
-				target[0] = value::value;
 		}
 
-		template<typename List, size_t Idx>
-		static void assign(bitfield_t& target, std::integral_constant<size_t, Idx>)
+		template<uint32_t... Flags, uint32_t Idx>
+		static void assign(bitfield_t& target, std::integral_constant<uint32_t, Idx>)
 		{
-			typedef mpl::partition<partition_match<Idx>::template apply, List> parts;
-			typedef mpl::fold_left<
-				to_bit,
-				std::integral_constant<uint32_t, 0>,
-				typename parts::right> value;
+			constexpr uint32_t mask = detail::bit::make_mask_fragment(Idx, 8 * sizeof(target[0]), Flags...);
 
-			assign<typename parts::left>(target, std::integral_constant<size_t, Idx - 1>());
+			if (mask)
+				target[Idx] = mask;
 
-			if (value::value != 0)
-				target[Idx] = value::value;
+			assign<Flags...>(target, std::integral_constant<uint32_t, Idx + 1>());
 		}
 
 		template<ExternalInterrupt... Interrupts>
 		static void assign(bitfield_t& target)
 		{
-			typedef mpl::list<std::integral_constant<uint32_t, static_cast<uint32_t>(Interrupts)>...> flags;
-			assign<flags>(target, std::integral_constant<size_t, 15>());
+			assign<static_cast<uint32_t>(Interrupts)...>(target, std::integral_constant<uint32_t, 0>());
 		}
 
 		static void set_flag(bitfield_t& target, ExternalInterrupt interrupt)

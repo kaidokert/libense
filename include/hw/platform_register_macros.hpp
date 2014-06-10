@@ -84,36 +84,36 @@
 		return this->bits(pos, pos + bp::width - 1, static_cast<typename ENSE_REGISTER_THIS_TYPE::word_type>(VALUE)); \
 	}
 #define ENSE_REGISTER_ARRAY_W_TEMPLATES(FIELD_TYPE, FIELD_NAME, VALUE_DECL, VCOMMA, VALUE, ...) \
-	auto FIELD_NAME ## _list(VALUE_DECL VCOMMA mpl::list<>) \
+	template<uint32_t... Items> \
+	auto FIELD_NAME ## _list(VALUE_DECL VCOMMA mpl::list<std::integral_constant<uint32_t, Items>...>, std::integral_constant<uint32_t, ~(static_cast<uint32_t>(0))>) \
 		-> decltype(*this) \
 	{ \
 		(void) VALUE; \
 		return *this; \
 	} \
-	template<uint32_t... Items> \
-	auto FIELD_NAME ## _list(VALUE_DECL VCOMMA mpl::list<std::integral_constant<uint32_t, Items>...>) \
+	template<uint32_t... Items, uint32_t Word> \
+	auto FIELD_NAME ## _list(VALUE_DECL VCOMMA mpl::list<std::integral_constant<uint32_t, Items>...> items, std::integral_constant<uint32_t, Word>) \
 		-> decltype(*this) \
 	{ \
 		using namespace ::ense::detail::bit; \
 		typedef expand<__VA_ARGS__> bp; \
 		traits::assert_platform_array_type<FIELD_TYPE, bp>(); \
+		static_assert(Word < ENSE_REGISTER_THIS_TYPE::words, ""); \
 		static_assert(mpl::all((Items < std::extent<FIELD_TYPE>::value)...), "Items list invalid"); \
 		constexpr uint32_t width = ENSE_REGISTER_THIS_TYPE::width; \
-		constexpr uint32_t word = mpl::min(element_offset<bp>(Items)...) / width; \
-		typedef mpl::partition< \
-			item_in_word<word, width, bp>::template fn, \
-			mpl::list<std::integral_constant<uint32_t, Items>...>> items_split; \
-		constexpr uint32_t factor = splice_factor<bp>(word * width, typename items_split::left()); \
-		constexpr uint32_t mask = splice_mask<bp>(word * width, typename items_split::left()); \
-		auto splice_value = (static_cast<typename ENSE_REGISTER_THIS_TYPE::word_type>(VALUE) & bp::element_mask) * factor; \
-		this->word(word, (this->word(word) & ~mask) | splice_value); \
-		return this->FIELD_NAME ## _list(VALUE, typename items_split::right()); \
+		constexpr uint32_t factor = make_mask_fragment(Word, width, element_offset<bp>(Items)...); \
+		constexpr uint32_t mask = factor * bp::element_mask; \
+		if (mask) { \
+			auto splice_value = (static_cast<typename ENSE_REGISTER_THIS_TYPE::word_type>(VALUE) & bp::element_mask) * factor; \
+			this->word(Word, (this->word(Word) & ~mask) | splice_value); \
+		} \
+		return this->FIELD_NAME ## _list(VALUE, items, std::integral_constant<uint32_t, Word - 1>()); \
 	} \
 	template<uint32_t... Items> \
 	auto FIELD_NAME ## _list(VALUE_DECL) \
 		-> decltype(*this) \
 	{ \
-		return FIELD_NAME ## _list(VALUE, mpl::list<std::integral_constant<uint32_t, Items>...>()); \
+		return FIELD_NAME ## _list(VALUE, mpl::list<std::integral_constant<uint32_t, Items>...>(), std::integral_constant<uint32_t, ENSE_REGISTER_THIS_TYPE::words - 1>()); \
 	} \
 	template<uint32_t Bound1, uint32_t Bound2> \
 	auto FIELD_NAME ## _range(VALUE_DECL) \
@@ -122,7 +122,7 @@
 		using namespace ::ense::detail::bit; \
 		typedef expand<range<Bound1, Bound2>> range; \
 		static_assert(range::end < std::extent<FIELD_TYPE>::value, "Index out of range"); \
-		return FIELD_NAME ## _list(VALUE, typename range::items_list()); \
+		return FIELD_NAME ## _list(VALUE, typename range::items_list(), std::integral_constant<uint32_t, ENSE_REGISTER_THIS_TYPE::words - 1>()); \
 	}
 
 

@@ -123,34 +123,18 @@ constexpr size_t element_offset(size_t index)
 
 
 
-template<typename Bits>
-constexpr uint32_t splice_factor(size_t, mpl::list<>)
+static constexpr uint32_t make_mask_fragment(uint32_t, uint32_t)
 {
 	return 0;
 }
 
-template<typename Bits, uint32_t Item, uint32_t... Items>
-constexpr uint32_t splice_factor(size_t from_bit, mpl::list<std::integral_constant<uint32_t, Item>, std::integral_constant<uint32_t, Items>...>)
+template<typename... Rest>
+static constexpr uint32_t make_mask_fragment(uint32_t word, uint32_t width, uint32_t flag, Rest... rest)
 {
-	return (1ULL << (element_offset<Bits>(Item) - from_bit))
-		| splice_factor<Bits>(from_bit, mpl::list<std::integral_constant<uint32_t, Items>...>());
+	return (word * width <= flag && flag < (word + 1) * width
+		? (1UL << (flag - word * width))
+		: 0) | make_mask_fragment(word, width, rest...);
 }
-
-template<typename Bits, uint32_t... Items>
-constexpr size_t splice_mask(size_t from_bit, mpl::list<std::integral_constant<uint32_t, Items>...> mask)
-{
-	return splice_factor<Bits>(from_bit, mask) * Bits::element_mask;
-}
-
-
-
-template<uint32_t Word, uint32_t Width, typename Bits>
-struct item_in_word {
-	template<typename Item>
-	struct fn {
-		static constexpr bool value = element_offset<Bits>(Item::value) / Width == Word;
-	};
-};
 
 }
 }
