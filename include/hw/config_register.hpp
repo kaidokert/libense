@@ -15,7 +15,7 @@ class ConfigurationRegister : public WritablePlatformRegister<RegisterName<true>
 
 	private:
 		RegisterName<false>* _target;
-		mutable uint8_t _status[ConfigurationRegister::words];
+		mutable unsigned _status[ConfigurationRegister::words];
 
 		enum {
 			WORD_LOADED = 1,
