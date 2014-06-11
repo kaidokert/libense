@@ -420,7 +420,7 @@ namespace detail {
 					.memory_size(Buffer::size)
 					.memory_increment(!Buffer::pinned_buffer)
 					.circular(Buffer::circular_buffer)
-					.count((buffer.length << static_cast<uint32_t>(psize)) >> (static_cast<uint32_t>(Buffer::size)))
+					.count((buffer.length << static_cast<uint32_t>(Buffer::size)) >> static_cast<uint32_t>(psize))
 					.memory_address_0((void*) buffer.address),
 				(void*) buffer.alternate_address,
 				std::integral_constant<bool, Buffer::double_buffer>());
