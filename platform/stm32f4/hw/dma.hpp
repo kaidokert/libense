@@ -108,6 +108,8 @@ struct SCR : ConfigurationRegister<ConfigFlags, Config, SCR> {
 	REGISTER_BIT_RW(transfer_error_interrupt)
 	REGISTER_BIT_RW(directmode_error_interrupt)
 	REGISTER_BIT_RW(enabled)
+
+	REGISTER_INT_RW(_interrupt_mask, range<1, 4>)
 };
 
 static_assert(traits::is_platform_register_valid<SCR<>>(), "");
@@ -263,6 +265,8 @@ struct Stream : ConfigurationStruct<Stream, detail::layout_stream, Flight> {
 		STRUCT_FIELD_R(fifo_status, sfcr, fifo_status)
 		STRUCT_BIT_RW(direct_mode_disable, sfcr, direct_mode_disable)
 		STRUCT_FIELD_RW(fifo_threshold, sfcr, fifo_threshold)
+
+		STRUCT_FIELD_RW(_interrupt_mask, scr, _interrupt_mask)
 };
 
 
@@ -431,29 +435,13 @@ namespace detail {
 	{ return stream.priority(prio); }
 
 	template<typename Flight>
-	constexpr auto irq_setter(InterruptFlags irq)
-	{
-		typedef Stream<Flight> (Stream<Flight>::*setter)(bool);
-
-		switch (irq) {
-			case InterruptFlags::transfer_complete:
-				return (setter) &Stream<Flight>::transfer_complete_interrupt;
-			case InterruptFlags::half_transfer:
-				return (setter) &Stream<Flight>::half_transfer_interrupt;
-			case InterruptFlags::transfer_error:
-				return (setter) &Stream<Flight>::transfer_error_interrupt;
-			case InterruptFlags::direct_mode_error:
-				return (setter) &Stream<Flight>::directmode_error_interrupt;
-			case InterruptFlags::fifo_error:
-				return (setter) &Stream<Flight>::error_interrupt_enable;
-			default:
-				return nullptr;
-		}
-	}
-
-	template<typename Flight>
 	inline auto apply(Stream<Flight> stream, InterruptFlags irq)
-	{ return (stream.*irq_setter<Flight>(irq))(true); }
+	{
+		const uint32_t mask = static_cast<uint32_t>(irq);
+		return stream
+			._interrupt_mask(mask >> 1)
+			.error_interrupt_enable(mask & static_cast<uint32_t>(InterruptFlags::fifo_error));
+	}
 
 	template<typename Flight>
 	inline auto apply(Stream<Flight> stream, FIFOThreshold thresh)
