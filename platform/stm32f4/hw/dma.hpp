@@ -286,6 +286,256 @@ struct DMAInst : DMA {
 static DMAInst<ense::platform::rcc::AHB1Peripheral, ense::platform::rcc::AHB1Peripheral::dma1> dma1 [[gnu::weakref(".DMA_DMA1")]];
 static DMAInst<ense::platform::rcc::AHB1Peripheral, ense::platform::rcc::AHB1Peripheral::dma2> dma2 [[gnu::weakref(".DMA_DMA2")]];
 
+
+
+namespace detail {
+
+	template<typename Info>
+	inline DMA* select_controller()
+	{
+		switch (Info::controller) {
+			case 1: return &dma1;
+			case 2: return &dma2;
+			default: return nullptr;
+		}
+	}
+
+}
+
+
+template<typename Info>
+struct dma_association {
+	static constexpr auto stream_num = Info::stream;
+
+	DMA& controller() const
+	{
+		return *detail::select_controller<Info>();
+	}
+
+	Stream<>& stream() const
+	{
+		return controller().stream[stream_num];
+	}
+
+	bool transfer_complete() const { return controller().interrupts.transfer_complete(stream_num); }
+	bool half_transfer()     const { return controller().interrupts.half_transfer(stream_num); }
+	bool transfer_error()    const { return controller().interrupts.transfer_error(stream_num); }
+	bool direct_mode_error() const { return controller().interrupts.direct_mode_error(stream_num); }
+	bool fifo_error()        const { return controller().interrupts.fifo_error(stream_num); }
+};
+
+
+
+
+namespace detail {
+
+	template<typename Item>
+	struct data_size {
+		static_assert(sizeof(Item) == 1 || sizeof(Item) == 2 || sizeof(Item) == 4, "Buffer item size not in {1, 2, 4}");
+
+		static constexpr DataSize size = sizeof(Item) == 1 ? DataSize::byte : (sizeof(Item) == 2 ? DataSize::halfword : DataSize::word);
+	};
+
+	template<bool IsConst, bool Double, bool Circular, bool Pinned, DataSize Size>
+	struct dma_buffer {
+		static constexpr bool double_buffer = Double;
+		static constexpr bool circular_buffer = Circular;
+		static constexpr bool pinned_buffer = Pinned;
+		static constexpr DataSize size = Size;
+
+		typedef typename std::conditional<IsConst, const void*, void*>::type ptr_type;
+
+		ptr_type const address;
+		uint32_t const length;
+		ptr_type const alternate_address;
+
+		constexpr dma_buffer(ptr_type address, uint32_t length, ptr_type alternate_address = nullptr)
+			: address(address), length(length), alternate_address(alternate_address)
+		{}
+	};
+
+
+	template<bool IsConst, bool Double, bool Circular, bool Pinned, DataSize Size>
+	constexpr auto circular(dma_buffer<IsConst, Double, Circular, Pinned, Size> buffer)
+	{
+		return dma_buffer<IsConst, Double, true, Pinned, Size>(buffer.address, buffer.length, buffer.alternate_address);
+	}
+
+	template<bool IsConst, bool Double, bool Circular, bool Pinned, DataSize Size>
+	constexpr auto pinned(dma_buffer<IsConst, Double, Circular, Pinned, Size> buffer)
+	{
+		return dma_buffer<IsConst, Double, Circular, true, Size>(buffer.address, buffer.length, buffer.alternate_address);
+	}
+
+}
+
+template<typename Item, DataSize ItemSize = detail::data_size<Item>::size>
+constexpr auto buffer(Item* begin, Item* end)
+	-> typename std::enable_if<
+		!std::is_pointer<Item>::value,
+		detail::dma_buffer<std::is_const<Item>::value, false, false, false, ItemSize>
+	>::type
+{
+	static_assert(std::is_standard_layout<Item>::value, "DMA buffer not standard-layout");
+
+	return detail::dma_buffer<std::is_const<Item>::value, false, false, false, ItemSize>(begin, end - begin);
+}
+
+template<typename Item, DataSize ItemSize = detail::data_size<Item>::size>
+constexpr auto buffer(Item* begin, Item* end, Item* alternate)
+	-> typename std::enable_if<
+		!std::is_pointer<Item>::value,
+		detail::dma_buffer<std::is_const<Item>::value, true, false, false, ItemSize>
+	>::type
+{
+	static_assert(std::is_standard_layout<Item>::value, "DMA buffer not standard-layout");
+
+	return detail::dma_buffer<std::is_const<Item>::value, true, false, false, ItemSize>(begin, end - begin, alternate);
+}
+
+
+
+namespace detail {
+
+	template<typename Flight>
+	inline Stream<Flight> apply_addr_1(Stream<Flight> stream, void*, std::false_type)
+	{ return stream; }
+
+	template<typename Flight>
+	inline auto apply_addr_1(Stream<Flight> stream, void* addr, std::true_type)
+	{ return stream.memory_address_1(addr); }
+
+	template<typename Buffer, typename Flight>
+	inline auto apply_buffer(Stream<Flight> stream, Buffer buffer, DataSize psize)
+	{
+		return
+			apply_addr_1(
+				stream
+					.current_target(0)
+					.double_buffered(Buffer::double_buffer)
+					.memory_size(Buffer::size)
+					.memory_increment(!Buffer::pinned_buffer)
+					.circular(Buffer::circular_buffer)
+					.count((buffer.length << static_cast<uint32_t>(psize)) >> (static_cast<uint32_t>(Buffer::size)))
+					.memory_address_0((void*) buffer.address),
+				(void*) buffer.alternate_address,
+				std::integral_constant<bool, Buffer::double_buffer>());
+	}
+
+	template<typename Flight>
+	inline auto apply(Stream<Flight> stream, BurstSize burst)
+	{ return stream.direct_mode_disable(true).memory_burst_size(burst); }
+
+	template<typename Flight>
+	inline auto apply(Stream<Flight> stream, Priority prio)
+	{ return stream.priority(prio); }
+
+	template<typename Flight>
+	constexpr auto irq_setter(InterruptFlags irq)
+	{
+		typedef Stream<Flight> (Stream<Flight>::*setter)(bool);
+
+		switch (irq) {
+			case InterruptFlags::transfer_complete:
+				return (setter) &Stream<Flight>::transfer_complete_interrupt;
+			case InterruptFlags::half_transfer:
+				return (setter) &Stream<Flight>::half_transfer_interrupt;
+			case InterruptFlags::transfer_error:
+				return (setter) &Stream<Flight>::transfer_error_interrupt;
+			case InterruptFlags::direct_mode_error:
+				return (setter) &Stream<Flight>::directmode_error_interrupt;
+			case InterruptFlags::fifo_error:
+				return (setter) &Stream<Flight>::error_interrupt_enable;
+			default:
+				return nullptr;
+		}
+	}
+
+	template<typename Flight>
+	inline auto apply(Stream<Flight> stream, InterruptFlags irq)
+	{ return (stream.*irq_setter<Flight>(irq))(true); }
+
+	template<typename Flight>
+	inline auto apply(Stream<Flight> stream, FIFOThreshold thresh)
+	{ return stream.fifo_threshold(thresh); }
+
+	template<typename Flight>
+	inline auto apply(Stream<Flight> stream, Direction dir)
+	{ return stream.direction(dir); }
+
+
+	template<typename Flight, typename Arg, typename... Args>
+	inline auto apply(Stream<Flight> stream, Arg arg, Args... args)
+	{
+		return apply(apply(stream, arg), args...);
+	}
+
+
+	template<typename Info, typename Flight>
+	inline auto apply_dma_info(Stream<Flight> stream, const Info& info)
+	{
+		return
+			stream
+				.peripheral_burst_size(Info::burst_size)
+				.peripheral_increment_by_four(Info::inc_by_four)
+				.peripheral_increment(Info::increment)
+				.peripheral_flow_control(Info::flow_control)
+				.peripheral_address(info.address)
+				.channel(Info::channel)
+				.peripheral_size(Info::size);
+	}
+
+	template<typename Flight>
+	inline auto prepare(Stream<Flight> stream)
+	{
+		return stream
+			.transfer_complete_interrupt(false)
+			.half_transfer_interrupt(false)
+			.transfer_error_interrupt(false)
+			.directmode_error_interrupt(false)
+			.error_interrupt_enable(false);
+	}
+
+
+
+	template<typename Buffer, typename Info, typename... Args>
+	inline dma_association<Info> setup_stream(const Buffer& buf, Info&& info, Direction dir, Args... args)
+	{
+		DMA& dma = *detail::select_controller<Info>();
+		Stream<>& stream = dma.stream[Info::stream];
+
+		stream.enabled(false);
+		while (stream.enabled());
+
+		dma.interrupts.clear(Info::stream, InterruptFlags::all);
+		detail::apply(
+				detail::apply_buffer(
+					detail::apply_dma_info(
+						detail::prepare(stream.begin()),
+						info),
+					buf,
+					Info::size),
+				args...)
+			.direction(dir)
+			.commit();
+
+		return {};
+	}
+
+}
+
+template<bool IsConst, bool Double, bool Circular, bool Pinned, DataSize Size, typename Info, typename... Args>
+inline auto setup_stream(const detail::dma_buffer<IsConst, Double, Circular, Pinned, Size>& buf, Info&& info, Args... args)
+{
+	return detail::setup_stream(buf, std::move(info), Direction::memory_to_peripheral, args...);
+}
+
+template<bool IsConst, bool Double, bool Circular, bool Pinned, DataSize Size, typename Info, typename... Args>
+inline auto setup_stream(Info&& info, const detail::dma_buffer<IsConst, Double, Circular, Pinned, Size>& buf, Args... args)
+{
+	return detail::setup_stream(buf, std::move(info), Direction::peripheral_to_memory, args...);
+}
+
 }
 }
 }

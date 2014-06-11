@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#include <hw/dma.hpp>
 #include <hw/config_register.hpp>
 #include <hw/platform_register_macros.hpp>
 #include <hw/config_struct.hpp>
@@ -218,89 +219,197 @@ namespace detail {
 
 template<typename Flight = void>
 struct USART : ConfigurationStruct<USART, detail::layout, Flight> {
-	typedef detail::layout struct_type;
+	private:
+		typedef USART this_type;
 
-	STRUCT_BIT_RW(cts_toggled, status, cts_toggled)
-	STRUCT_BIT_RW(lin_break_detected, status, lin_break_detected)
-	STRUCT_BIT_R(tdr_empty, status, tdr_empty)
-	STRUCT_BIT_RW(tx_complete, status, tx_complete)
-	STRUCT_BIT_RW(rdr_not_empty, status, rdr_not_empty)
-	STRUCT_BIT_R(idle_detected, status, idle_detected)
-	STRUCT_BIT_R(overrun_error, status, overrun_error)
-	STRUCT_BIT_R(noise_error, status, noise_error)
-	STRUCT_BIT_R(framing_error, status, framing_error)
-	STRUCT_BIT_R(parity_error, status, parity_error)
+	public:
+		typedef detail::layout struct_type;
 
-	STRUCT_FIELD_RW(data, dr, content)
+		STRUCT_BIT_RW(cts_toggled, status, cts_toggled)
+		STRUCT_BIT_RW(lin_break_detected, status, lin_break_detected)
+		STRUCT_BIT_R(tdr_empty, status, tdr_empty)
+		STRUCT_BIT_RW(tx_complete, status, tx_complete)
+		STRUCT_BIT_RW(rdr_not_empty, status, rdr_not_empty)
+		STRUCT_BIT_R(idle_detected, status, idle_detected)
+		STRUCT_BIT_R(overrun_error, status, overrun_error)
+		STRUCT_BIT_R(noise_error, status, noise_error)
+		STRUCT_BIT_R(framing_error, status, framing_error)
+		STRUCT_BIT_R(parity_error, status, parity_error)
 
-	STRUCT_FIELD_RW(mantissa, brr, mantissa)
-	STRUCT_FIELD_RW(fraction, brr, fraction)
+		STRUCT_FIELD_RW(data, dr, content)
 
-	STRUCT_BIT_RW(oversample_by_8, cr1, oversample_by_8)
-	STRUCT_BIT_RW(enable, cr1, enable)
-	STRUCT_BIT_RW(nine_bit_words, cr1, nine_bit_words)
-	STRUCT_BIT_RW(wakeup_on_address, cr1, wakeup_on_address)
-	STRUCT_BIT_RW(parity_enable, cr1, parity_enable)
-	STRUCT_BIT_RW(odd_parity, cr1, odd_parity)
-	STRUCT_BIT_RW(parity_interrupt, cr1, parity_interrupt)
-	STRUCT_BIT_RW(txe_interrupt, cr1, txe_interrupt)
-	STRUCT_BIT_RW(transmit_interrupt, cr1, transmit_interrupt)
-	STRUCT_BIT_RW(rxne_interrupt, cr1, rxne_interrupt)
-	STRUCT_BIT_RW(idle_interrupt, cr1, idle_interrupt)
-	STRUCT_BIT_RW(transmit_enable, cr1, transmit_enable)
-	STRUCT_BIT_RW(receive_enable, cr1, receive_enable)
-	STRUCT_BIT_RW(receiver_muted, cr1, receiver_muted)
-	STRUCT_BIT_C(send_break, cr1, send_break)
+		STRUCT_FIELD_RW(mantissa, brr, mantissa)
+		STRUCT_FIELD_RW(fraction, brr, fraction)
 
-	void send_idle()
-	{
-		transmit_enable(false);
-		transmit_enable(true);
-	}
+		STRUCT_BIT_RW(oversample_by_8, cr1, oversample_by_8)
+		STRUCT_BIT_RW(enable, cr1, enable)
+		STRUCT_BIT_RW(nine_bit_words, cr1, nine_bit_words)
+		STRUCT_BIT_RW(wakeup_on_address, cr1, wakeup_on_address)
+		STRUCT_BIT_RW(parity_enable, cr1, parity_enable)
+		STRUCT_BIT_RW(odd_parity, cr1, odd_parity)
+		STRUCT_BIT_RW(parity_interrupt, cr1, parity_interrupt)
+		STRUCT_BIT_RW(txe_interrupt, cr1, txe_interrupt)
+		STRUCT_BIT_RW(transmit_interrupt, cr1, transmit_interrupt)
+		STRUCT_BIT_RW(rxne_interrupt, cr1, rxne_interrupt)
+		STRUCT_BIT_RW(idle_interrupt, cr1, idle_interrupt)
+		STRUCT_BIT_RW(transmit_enable, cr1, transmit_enable)
+		STRUCT_BIT_RW(receive_enable, cr1, receive_enable)
+		STRUCT_BIT_RW(receiver_muted, cr1, receiver_muted)
+		STRUCT_BIT_C(send_break, cr1, send_break)
 
-	STRUCT_BIT_RW(lin_enabled, cr2, lin_enabled)
-	STRUCT_FIELD_RW(stop_bits, cr2, stop_bits)
-	STRUCT_BIT_RW(clock_enabled, cr2, clock_enabled)
-	STRUCT_BIT_RW(clock_polarity, cr2, clock_polarity)
-	STRUCT_BIT_RW(clock_phase, cr2, clock_phase)
-	STRUCT_BIT_RW(last_bit_pulse, cr2, last_bit_pulse)
-	STRUCT_BIT_RW(lin_break_detect_interrupt, cr2, lin_break_detect_interrupt)
-	STRUCT_BIT_RW(lin_break_length, cr2, lin_break_length)
-	STRUCT_FIELD_RW(addr, cr2, addr)
+		void send_idle()
+		{
+			transmit_enable(false);
+			transmit_enable(true);
+		}
 
-	STRUCT_BIT_RW(sample_one_bit, cr3, sample_one_bit)
-	STRUCT_BIT_RW(cts_interrupt, cr3, cts_interrupt)
-	STRUCT_BIT_RW(cts_enabled, cr3, cts_enabled)
-	STRUCT_BIT_RW(rts_enable, cr3, rts_enable)
-	STRUCT_BIT_RW(dma_transmit, cr3, dma_transmit)
-	STRUCT_BIT_RW(dma_receive, cr3, dma_receive)
-	STRUCT_BIT_RW(smartcard_mode, cr3, smartcard_mode)
-	STRUCT_BIT_RW(smartcard_nack, cr3, smartcard_nack)
-	STRUCT_BIT_RW(half_duplex, cr3, half_duplex)
-	STRUCT_BIT_RW(irda_low_power, cr3, irda_low_power)
-	STRUCT_BIT_RW(irda_mode, cr3, irda_mode)
-	STRUCT_BIT_RW(error_interrupt, cr3, error_interrupt)
+		STRUCT_BIT_RW(lin_enabled, cr2, lin_enabled)
+		STRUCT_FIELD_RW(stop_bits, cr2, stop_bits)
+		STRUCT_BIT_RW(clock_enabled, cr2, clock_enabled)
+		STRUCT_BIT_RW(clock_polarity, cr2, clock_polarity)
+		STRUCT_BIT_RW(clock_phase, cr2, clock_phase)
+		STRUCT_BIT_RW(last_bit_pulse, cr2, last_bit_pulse)
+		STRUCT_BIT_RW(lin_break_detect_interrupt, cr2, lin_break_detect_interrupt)
+		STRUCT_BIT_RW(lin_break_length, cr2, lin_break_length)
+		STRUCT_FIELD_RW(addr, cr2, addr)
 
-	STRUCT_FIELD_RW(guard_time, gtpr, guard_time)
-	STRUCT_FIELD_RW(prescaler, gtpr, prescaler)
+		STRUCT_BIT_RW(sample_one_bit, cr3, sample_one_bit)
+		STRUCT_BIT_RW(cts_interrupt, cr3, cts_interrupt)
+		STRUCT_BIT_RW(cts_enabled, cr3, cts_enabled)
+		STRUCT_BIT_RW(rts_enable, cr3, rts_enable)
+		STRUCT_BIT_RW(dma_transmit, cr3, dma_transmit)
+		STRUCT_BIT_RW(dma_receive, cr3, dma_receive)
+		STRUCT_BIT_RW(smartcard_mode, cr3, smartcard_mode)
+		STRUCT_BIT_RW(smartcard_nack, cr3, smartcard_nack)
+		STRUCT_BIT_RW(half_duplex, cr3, half_duplex)
+		STRUCT_BIT_RW(irda_low_power, cr3, irda_low_power)
+		STRUCT_BIT_RW(irda_mode, cr3, irda_mode)
+		STRUCT_BIT_RW(error_interrupt, cr3, error_interrupt)
+
+		STRUCT_FIELD_RW(guard_time, gtpr, guard_time)
+		STRUCT_FIELD_RW(prescaler, gtpr, prescaler)
 };
 
-template<typename PeripheralType, PeripheralType Bit>
-struct USARTInst : linker_placed_struct<USART> {
+namespace detail {
+
+	template<unsigned Controller, unsigned Stream, unsigned Channel, dma::DataSize Size>
+	struct dma_info {
+		static constexpr auto burst_size = dma::BurstSize::one;
+		static constexpr bool inc_by_four = false;
+		static constexpr bool increment = false;
+		static constexpr bool flow_control = false;
+		static constexpr auto channel = Channel;
+		static constexpr auto stream = Stream;
+		static constexpr auto size = Size;
+		static constexpr auto controller = Controller;
+
+		void* const address;
+
+		constexpr dma_info(USART<>& usart)
+			: address(&usart.dr)
+		{}
+	};
+
+	template<unsigned Id, unsigned Stream, unsigned Channel>
+	struct rx_channel {};
+
+	template<unsigned Id, unsigned Stream, unsigned Channel>
+	struct tx_channel {};
+
+
+
+	template<unsigned Id, unsigned Controller, dma::DataSize Size, unsigned Stream, unsigned Channel>
+	inline auto make_dma_rx(rx_channel<Id, Stream, Channel>, USART<>& usart)
+	{
+		return dma_info<Controller, Stream, Channel, Size>(usart);
+	}
+
+	template<unsigned Id, unsigned Controller, dma::DataSize Size, unsigned Stream, unsigned Channel>
+	inline auto make_dma_tx(tx_channel<Id, Stream, Channel>, USART<>& usart)
+	{
+		return dma_info<Controller, Stream, Channel, Size>(usart);
+	}
+
+}
+
+template<typename PeripheralType, PeripheralType Bit, unsigned Controller, typename... Channels>
+struct USARTInst : linker_placed_struct<USART>, Channels... {
 	struct rcc_info {
 		typedef PeripheralType type;
 		static constexpr PeripheralType bit = Bit;
 	};
 };
 
-static USARTInst<ense::platform::rcc::APB2Peripheral, ense::platform::rcc::APB2Peripheral::usart1> usart1 [[gnu::weakref(".USART_USART1")]];
-static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::usart2> usart2 [[gnu::weakref(".USART_USART2")]];
-static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::usart3> usart3 [[gnu::weakref(".USART_USART3")]];
-static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::uart4> uart4 [[gnu::weakref(".UART_USART4")]];
-static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::uart5> uart5 [[gnu::weakref(".UART_USART5")]];
-static USARTInst<ense::platform::rcc::APB2Peripheral, ense::platform::rcc::APB2Peripheral::usart6> usart6 [[gnu::weakref(".USART_USART6")]];
-static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::uart7> uart7 [[gnu::weakref(".USART_UART7")]];
-static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::uart8> uart8 [[gnu::weakref(".USART_UART8")]];
+
+
+template<unsigned Id, typename PeripheralType, PeripheralType Bit, unsigned Controller, typename... Channels>
+inline auto dma_rx(USARTInst<PeripheralType, Bit, Controller, Channels...>& inst)
+{
+	return detail::make_dma_rx<Id, Controller, dma::DataSize::byte>(inst, inst);
+}
+
+template<unsigned Id, typename PeripheralType, PeripheralType Bit, unsigned Controller, typename... Channels>
+inline auto dma_rx_wide(USARTInst<PeripheralType, Bit, Controller, Channels...>& inst)
+{
+	return detail::make_dma_rx<Id, Controller, dma::DataSize::halfword>(inst, inst);
+}
+
+
+
+template<unsigned Id, typename PeripheralType, PeripheralType Bit, unsigned Controller, typename... Channels>
+inline auto dma_tx(USARTInst<PeripheralType, Bit, Controller, Channels...>& inst)
+{
+	return detail::make_dma_tx<Id, Controller, dma::DataSize::byte>(inst, inst);
+}
+
+template<unsigned Id, typename PeripheralType, PeripheralType Bit, unsigned Controller, typename... Channels>
+inline auto dma_tx_wide(USARTInst<PeripheralType, Bit, Controller, Channels...>& inst)
+{
+	return detail::make_dma_tx<Id, Controller, dma::DataSize::halfword>(inst, inst);
+}
+
+
+
+static USARTInst<ense::platform::rcc::APB2Peripheral, ense::platform::rcc::APB2Peripheral::usart1,
+	2,
+	detail::rx_channel<0, 2, 4>, detail::rx_channel<1, 5, 4>,
+	detail::tx_channel<0, 7, 4>>
+	usart1 [[gnu::weakref(".USART_USART1")]];
+static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::usart2,
+	1,
+	detail::rx_channel<0, 5, 4>,
+	detail::tx_channel<0, 6, 4>>
+	usart2 [[gnu::weakref(".USART_USART2")]];
+static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::usart3,
+	1,
+	detail::rx_channel<0, 2, 4>,
+	detail::tx_channel<0, 3, 4>, detail::tx_channel<1, 4, 7>>
+	usart3 [[gnu::weakref(".USART_USART3")]];
+static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::uart4,
+	1,
+	detail::rx_channel<0, 2, 4>,
+	detail::tx_channel<0, 4, 4>>
+	uart4 [[gnu::weakref(".UART_USART4")]];
+static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::uart5,
+	1,
+	detail::rx_channel<0, 0, 4>,
+	detail::tx_channel<0, 7, 4>>
+	uart5 [[gnu::weakref(".UART_USART5")]];
+static USARTInst<ense::platform::rcc::APB2Peripheral, ense::platform::rcc::APB2Peripheral::usart6,
+	2,
+	detail::rx_channel<0, 1, 5>, detail::rx_channel<1, 2, 5>,
+	detail::tx_channel<0, 6, 5>, detail::tx_channel<1, 7, 5>>
+	usart6 [[gnu::weakref(".USART_USART6")]];
+static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::uart7,
+	1,
+	detail::rx_channel<0, 3, 5>,
+	detail::tx_channel<0, 1, 5>>
+	uart7 [[gnu::weakref(".USART_UART7")]];
+static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::uart8,
+	1,
+	detail::rx_channel<0, 6, 5>,
+	detail::tx_channel<0, 0, 5>>
+	uart8 [[gnu::weakref(".USART_UART8")]];
 
 }
 }

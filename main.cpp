@@ -138,35 +138,27 @@ void dma_print_banner()
 
 	static char buffer[] = "snafu something something\r\n";
 
-	static constexpr int stream = 3;
+	asm volatile ("nop");
+	asm volatile ("nop");
+	asm volatile ("nop");
+	namespace d = ense::platform::dma;
+	auto assoc = setup_stream(
+		d::buffer(buffer, buffer + sizeof(buffer)),
+		dma_tx<0>(uart),
+		BurstSize::sixteen,
+		Priority::very_high,
+		FIFOThreshold::full
+	);
+	asm volatile ("nop");
+	asm volatile ("nop");
+	asm volatile ("nop");
 
-	auto& s = dma1.stream[stream];
-
-	s.enabled(false);
-	while (s.enabled());
-	dma1.interrupts.clear(stream, InterruptFlags::all);
-
-	s.begin()
-		.peripheral_address(&uart.dr)
-		.memory_address_0(buffer)
-		.count(sizeof(buffer) - 1)
-		.channel(4)
-		.priority(Priority::very_high)
-		.fifo_threshold(FIFOThreshold::full)
-		.direct_mode_disable(true)
-		.direction(Direction::memory_to_peripheral)
-		.memory_burst_size(BurstSize::one)
-		.memory_increment(true)
-		.memory_size(DataSize::byte)
-		.peripheral_size(DataSize::byte)
-		.commit();
-
-	s.enabled(true);
+	assoc.stream().enabled(true);
 
 	uart.dma_transmit(true);
 	uart.tx_complete(false);
 
-	while (!dma1.interrupts.transfer_complete(stream));
+	while (!assoc.transfer_complete());
 	while (!uart.tx_complete());
 
 	uart.dma_transmit(false);

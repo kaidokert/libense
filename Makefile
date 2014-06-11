@@ -27,7 +27,7 @@ CCFLAGS += -ffreestanding -nostdlib
 CCFLAGS += -fno-exceptions -fno-rtti -fno-stack-protector
 CCFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += $(CCFLAGS) -std=c99
-CXXFLAGS += $(CCFLAGS) -std=c++11 -nostdinc++
+CXXFLAGS += $(CCFLAGS) -std=c++1y -nostdinc++
 ASFLAGS := -mcpu=$(CPU) -mthumb -mfloat-abi=$(FLOAT_ABI) -mfpu=$(FPU) -meabi=5
 
 LDFLAGS += -nostdlib -L/usr/lib/gcc/arm-none-eabi/4.9.0/thumb/$(CPU)/ -lgcc -T ldscripts/stm32f4/f4.ld
