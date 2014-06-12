@@ -105,7 +105,8 @@
 		constexpr uint32_t mask = factor * bp::element_mask; \
 		if (mask) { \
 			auto splice_value = (static_cast<typename ENSE_REGISTER_THIS_TYPE::word_type>(VALUE) & bp::element_mask) * factor; \
-			this->word(Word, (this->word(Word) & ~mask) | splice_value); \
+			auto reg_value = ENSE_REGISTER_THIS_TYPE::can_elide_read_on_modify ? 0 : this->word(Word); \
+			this->word(Word, (reg_value & ~mask) | splice_value); \
 		} \
 		return this->FIELD_NAME ## _list(VALUE, items, std::integral_constant<uint32_t, Word - 1>()); \
 	} \

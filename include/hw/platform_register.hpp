@@ -173,7 +173,8 @@ class WritablePlatformRegisterBits : public WritablePlatformRegisterPlain<Derive
 			static_assert(mpl::all(std::is_same<Args, typename WritablePlatformRegisterBits::bits_type>::value...), "");
 
 			Derived* self = static_cast<Derived*>(this);
-			return self->value(self->value() | bitmask::bitmask(args...));
+			auto value = Derived::can_elide_read_on_modify ? 0 : self->value();
+			return self->value(value | bitmask::bitmask(args...));
 		}
 
 		template<typename... Args>
@@ -182,7 +183,8 @@ class WritablePlatformRegisterBits : public WritablePlatformRegisterPlain<Derive
 			static_assert(mpl::all(std::is_same<Args, typename WritablePlatformRegisterBits::bits_type>::value...), "");
 
 			Derived* self = static_cast<Derived*>(this);
-			return self->value(self->value() & ~bitmask::bitmask(args...));
+			auto value = Derived::can_elide_read_on_modify ? 0 : self->value();
+			return self->value(value & ~bitmask::bitmask(args...));
 		}
 
 		template<typename... Args>
