@@ -83,16 +83,15 @@
 		uint32_t pos = element_offset<bp>(idx % std::extent<FIELD_TYPE>::value); \
 		return this->bits(pos, pos + bp::width - 1, static_cast<typename ENSE_REGISTER_THIS_TYPE::word_type>(VALUE)); \
 	}
-#define ENSE_REGISTER_ARRAY_W_TEMPLATES(FIELD_TYPE, FIELD_NAME, VALUE_DECL, VCOMMA, VALUE, ...) \
+#define ENSE_REGISTER_ARRAY_W_TEMPLATES(FIELD_TYPE, FIELD_NAME, VTYPE, VNAME, VCOMMA, VALUE, ...) \
 	template<uint32_t... Items> \
-	auto FIELD_NAME ## _list(VALUE_DECL VCOMMA mpl::list<std::integral_constant<uint32_t, Items>...>, std::integral_constant<uint32_t, ~(static_cast<uint32_t>(0))>) \
+	auto FIELD_NAME ## _list(VTYPE VCOMMA mpl::list<std::integral_constant<uint32_t, Items>...>, std::integral_constant<uint32_t, ~(static_cast<uint32_t>(0))>) \
 		-> decltype(*this) \
 	{ \
-		(void) VALUE; \
 		return *this; \
 	} \
 	template<uint32_t... Items, uint32_t Word> \
-	auto FIELD_NAME ## _list(VALUE_DECL VCOMMA mpl::list<std::integral_constant<uint32_t, Items>...> items, std::integral_constant<uint32_t, Word>) \
+	auto FIELD_NAME ## _list(VTYPE VNAME VCOMMA mpl::list<std::integral_constant<uint32_t, Items>...> items, std::integral_constant<uint32_t, Word>) \
 		-> decltype(*this) \
 	{ \
 		using namespace ::ense::detail::bit; \
@@ -108,22 +107,22 @@
 			auto reg_value = ENSE_REGISTER_THIS_TYPE::can_elide_read_on_modify ? 0 : this->word(Word); \
 			this->word(Word, (reg_value & ~mask) | splice_value); \
 		} \
-		return this->FIELD_NAME ## _list(VALUE, items, std::integral_constant<uint32_t, Word - 1>()); \
+		return this->FIELD_NAME ## _list(VNAME VCOMMA items, std::integral_constant<uint32_t, Word - 1>()); \
 	} \
 	template<uint32_t... Items> \
-	auto FIELD_NAME ## _list(VALUE_DECL) \
+	auto FIELD_NAME ## _list(VTYPE VNAME) \
 		-> decltype(*this) \
 	{ \
-		return FIELD_NAME ## _list(VALUE, mpl::list<std::integral_constant<uint32_t, Items>...>(), std::integral_constant<uint32_t, ENSE_REGISTER_THIS_TYPE::words - 1>()); \
+		return FIELD_NAME ## _list(VNAME VCOMMA mpl::list<std::integral_constant<uint32_t, Items>...>(), std::integral_constant<uint32_t, ENSE_REGISTER_THIS_TYPE::words - 1>()); \
 	} \
 	template<uint32_t Bound1, uint32_t Bound2> \
-	auto FIELD_NAME ## _range(VALUE_DECL) \
+	auto FIELD_NAME ## _range(VTYPE VNAME) \
 		-> decltype(*this) \
 	{ \
 		using namespace ::ense::detail::bit; \
 		typedef expand<range<Bound1, Bound2>> range; \
 		static_assert(range::end < std::extent<FIELD_TYPE>::value, "Index out of range"); \
-		return FIELD_NAME ## _list(VALUE, typename range::items_list(), std::integral_constant<uint32_t, ENSE_REGISTER_THIS_TYPE::words - 1>()); \
+		return FIELD_NAME ## _list(VNAME VCOMMA typename range::items_list(), std::integral_constant<uint32_t, ENSE_REGISTER_THIS_TYPE::words - 1>()); \
 	}
 
 
@@ -132,10 +131,10 @@
 	ENSE_REGISTER_ARRAY_R(FIELD_TYPE, FIELD_NAME, __VA_ARGS__)
 #define REGISTER_ARRAY_W(FIELD_TYPE, FIELD_NAME, ...) \
 	ENSE_REGISTER_ARRAY_W(FIELD_TYPE, FIELD_NAME, ENSE_REGISTER_COMMA std::remove_all_extents<FIELD_TYPE>::type value, value, __VA_ARGS__) \
-	ENSE_REGISTER_ARRAY_W_TEMPLATES(FIELD_TYPE, FIELD_NAME, std::remove_all_extents<FIELD_TYPE>::type value, ENSE_REGISTER_COMMA, value, __VA_ARGS__)
+	ENSE_REGISTER_ARRAY_W_TEMPLATES(FIELD_TYPE, FIELD_NAME, std::remove_all_extents<FIELD_TYPE>::type, value, ENSE_REGISTER_COMMA, value, __VA_ARGS__)
 #define REGISTER_ARRAY_C(FIELD_TYPE, FIELD_NAME, ...) \
 	ENSE_REGISTER_ARRAY_W(FIELD_TYPE, FIELD_NAME, , 1, __VA_ARGS__) \
-	ENSE_REGISTER_ARRAY_W_TEMPLATES(FIELD_TYPE, FIELD_NAME, , , 1, __VA_ARGS__)
+	ENSE_REGISTER_ARRAY_W_TEMPLATES(FIELD_TYPE, FIELD_NAME, , , , 1, __VA_ARGS__)
 #define REGISTER_ARRAY_RW(FIELD_TYPE, FIELD_NAME, ...) \
 	REGISTER_ARRAY_R(FIELD_TYPE, FIELD_NAME, __VA_ARGS__) \
 	REGISTER_ARRAY_W(FIELD_TYPE, FIELD_NAME, __VA_ARGS__)
