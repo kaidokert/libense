@@ -65,6 +65,8 @@ class WritablePlatformRegisterArray : public PlatformRegisterArray<Derived, Valu
 		using PlatformRegisterArray<Derived, Value>::word;
 		using PlatformRegisterArray<Derived, Value>::bits;
 
+		static constexpr bool can_elide_read_on_modify = false;
+
 		template<uint32_t First, uint32_t Last>
 		Derived& bits(typename WritablePlatformRegisterArray::word_type val)
 		{
@@ -74,7 +76,8 @@ class WritablePlatformRegisterArray : public PlatformRegisterArray<Derived, Valu
 			static constexpr auto max = ~typename WritablePlatformRegisterArray::word_type(0);
 			static constexpr auto mask = (max >> (leading + trailing)) << leading;
 			Derived* self = static_cast<Derived*>(this);
-			return self->word(First / width, (self->word(First / width) & ~mask) | ((val << leading) & mask));
+			auto register_value = Derived::can_elide_read_on_modify ? 0 : (self->word(First / width) & ~mask);
+			return self->word(First / width, register_value | ((val << leading) & mask));
 		}
 
 		Derived& bits(uint32_t first, uint32_t last, typename WritablePlatformRegisterArray::word_type val)
@@ -85,7 +88,8 @@ class WritablePlatformRegisterArray : public PlatformRegisterArray<Derived, Valu
 			static constexpr auto max = ~typename WritablePlatformRegisterArray::word_type(0);
 			auto mask = (max >> (leading + trailing)) << leading;
 			Derived* self = static_cast<Derived*>(this);
-			return self->word(first / width, (self->word(first / width) & ~mask) | ((val << leading) & mask));
+			auto register_value = Derived::can_elide_read_on_modify ? 0 : (self->word(first / width) & ~mask);
+			return self->word(first / width, register_value | ((val << leading) & mask));
 		}
 
 		Derived& word(uint32_t i, typename WritablePlatformRegisterArray::word_type val)

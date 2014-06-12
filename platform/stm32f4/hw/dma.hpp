@@ -39,6 +39,8 @@ static_assert(traits::is_platform_register_valid<ISR<>>(), "");
 
 template<bool Config = false>
 struct IFCR : ConfigurationRegister<uint32_t[2], Config, IFCR> {
+	static constexpr bool is_write_only = true;
+
 	REGISTER_SINGULAR_ARRAY_W(InterruptFlags[8], width<6>, range<0, 63>, element_offsets<0, 6, 16, 22, 32, 38, 48, 54>)
 };
 
@@ -118,6 +120,8 @@ static_assert(traits::is_platform_register_valid<SCR<>>(), "");
 
 template<bool Config = false>
 struct SNDTR : ConfigurationRegister<void, Config, SNDTR> {
+	static constexpr bool can_elide_read_on_modify = true;
+
 	REGISTER_INT_RW(count, range<15, 0>)
 };
 
@@ -127,6 +131,8 @@ static_assert(traits::is_platform_register_valid<SNDTR<>>(), "");
 
 template<bool Config = false>
 struct SAR : ConfigurationRegister<void, Config, SAR> {
+	static constexpr bool can_elide_read_on_modify = true;
+
 	void* address() const
 	{
 		static_assert(sizeof(void*) == sizeof(this->value()), "");
@@ -499,7 +505,7 @@ namespace detail {
 		detail::apply(
 				detail::apply_buffer(
 					detail::apply_dma_info(
-						detail::prepare(stream.begin()),
+						detail::prepare(stream.begin_reset()),
 						info),
 					buf,
 					Info::size),

@@ -22,6 +22,14 @@ class ConfigurationRegister : public WritablePlatformRegister<RegisterName<true>
 			WORD_CHANGED = 2,
 		};
 
+		void _clear_flight()
+		{
+			for (uint32_t i = 0; i < ConfigurationRegister::words; i++) {
+				_status[i] = WORD_LOADED;
+				this->_value[i] = 0;
+			}
+		}
+
 	public:
 		RegisterName<false>& commit()
 		{
@@ -58,6 +66,14 @@ class ConfigurationRegister<Bits, false, RegisterName> : public WritablePlatform
 			auto result = RegisterName<true>();
 			for (uint32_t i = 0; i < ConfigurationRegister::words; i++)
 				result._status[i] = 0;
+			result._target = static_cast<RegisterName<false>*>(this);
+			return result;
+		}
+
+		RegisterName<true> begin_reset()
+		{
+			auto result = RegisterName<true>();
+			result._clear_flight();
 			result._target = static_cast<RegisterName<false>*>(this);
 			return result;
 		}

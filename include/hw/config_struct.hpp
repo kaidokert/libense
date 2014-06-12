@@ -18,8 +18,10 @@ namespace detail {
 		ConfigRegister _register;
 	};
 
-	template<typename... Parts>
+	template<bool Reset, typename... Parts>
 	struct ConfigurationStructFlight : Parts... {
+		static constexpr bool is_reset_flight = Reset;
+
 		ConfigurationStructFlight() = default;
 
 		ConfigurationStructFlight(int, const Parts&... parts)
@@ -40,16 +42,16 @@ namespace detail {
 	template<typename Flight, typename Extension>
 	struct extend_flight;
 
-	template<typename... Parts, size_t Offset, typename Register>
+	template<bool Reset, typename... Parts, size_t Offset, typename Register>
 	struct extend_flight<
-		ConfigurationStructFlight<Parts...>,
+		ConfigurationStructFlight<Reset, Parts...>,
 		ConfigurationStructFlightPart<Offset, Register>> {
 
 		private:
 			typedef ConfigurationStructFlightPart<Offset, Register> next_part;
 
-			typedef ConfigurationStructFlight<Parts...> current_flight;
-			typedef ConfigurationStructFlight<Parts..., next_part> extended_flight;
+			typedef ConfigurationStructFlight<Reset, Parts...> current_flight;
+			typedef ConfigurationStructFlight<Reset, Parts..., next_part> extended_flight;
 
 			static constexpr bool extend_is_id = std::is_base_of<next_part, current_flight>::value;
 
@@ -74,11 +76,11 @@ namespace detail {
 
 
 
-	template<typename... Parts, typename NextPart>
-	auto extend(ConfigurationStructFlight<Parts...>& flight, const NextPart& next)
-		-> typename extend_flight<ConfigurationStructFlight<Parts...>, NextPart>::type
+	template<bool Reset, typename... Parts, typename NextPart>
+	auto extend(ConfigurationStructFlight<Reset, Parts...>& flight, const NextPart& next)
+		-> typename extend_flight<ConfigurationStructFlight<Reset, Parts...>, NextPart>::type
 	{
-		return extend_flight<ConfigurationStructFlight<Parts...>, NextPart>::extend(flight, next);
+		return extend_flight<ConfigurationStructFlight<Reset, Parts...>, NextPart>::extend(flight, next);
 	}
 
 }
@@ -100,7 +102,8 @@ class ConfigurationStruct {
 		auto extend_step(NextPart& next, std::false_type)
 			-> Derived<typename detail::extend_flight<Flight, detail::ConfigurationStructFlightPart<FirstOffset, typename NextPart::in_flight_type>>::type>
 		{
-			auto single_extended = detail::extend(_flight, detail::ConfigurationStructFlightPart<FirstOffset, typename NextPart::in_flight_type>{ next.begin() });
+			auto next_flight = Flight::is_reset_flight ? next.begin_reset() : next.begin();
+			auto single_extended = detail::extend(_flight, detail::ConfigurationStructFlightPart<FirstOffset, typename NextPart::in_flight_type>{ next_flight });
 			Derived<decltype(single_extended)> result;
 			result._target = _target;
 			result._flight = single_extended;
@@ -155,9 +158,16 @@ class ConfigurationStruct<Derived, Struct, void> : public Struct {
 		template<size_t Offset, typename Part> Part&       _load_part(Part& part)       { return part; }
 		template<size_t Offset, typename Part> Part const& _load_part(Part& part) const { return part; }
 
-		Derived<detail::ConfigurationStructFlight<>> begin()
+		Derived<detail::ConfigurationStructFlight<false>> begin()
 		{
-			Derived<detail::ConfigurationStructFlight<>> result;
+			Derived<detail::ConfigurationStructFlight<false>> result;
+			result._target = target();
+			return result;
+		}
+
+		Derived<detail::ConfigurationStructFlight<true>> begin_reset()
+		{
+			Derived<detail::ConfigurationStructFlight<true>> result;
 			result._target = target();
 			return result;
 		}

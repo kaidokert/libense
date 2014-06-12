@@ -46,6 +46,8 @@ static_assert(traits::is_platform_register_valid<Status<>>(), "");
 
 template<bool Config = false>
 struct Data : ConfigurationRegister<void, Config, Data> {
+	static constexpr bool can_elide_read_on_modify = true;
+
 	REGISTER_INT_RW(content, range<8, 0>)
 };
 
