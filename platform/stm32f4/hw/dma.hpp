@@ -521,6 +521,7 @@ inline auto setup_stream(const detail::dma_buffer<IsConst, Double, Circular, Pin
 template<bool IsConst, bool Double, bool Circular, bool Pinned, DataSize Size, typename Info, typename... Args>
 inline auto setup_stream(Info&& info, const detail::dma_buffer<IsConst, Double, Circular, Pinned, Size>& buf, Args... args)
 {
+	static_assert(!IsConst, "cannot DMA to const buffer");
 	return detail::setup_stream(buf, std::move(info), Direction::peripheral_to_memory, args...);
 }
 
