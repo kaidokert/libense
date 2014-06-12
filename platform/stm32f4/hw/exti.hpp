@@ -18,6 +18,8 @@ struct ExtISet : ConfigurationRegister<void, Config, ExtISet> {
 
 template<bool Config = false>
 struct ExtIPending : ConfigurationRegister<void, Config, ExtIPending> {
+	static constexpr bool can_elide_read_on_modify = true;
+
 	REGISTER_ARRAY_R(bool[23], pending, width<1>, range<0, 22>)
 	REGISTER_ARRAY_C(bool[23], set_pending, width<1>, range<0, 22>)
 };
