@@ -294,42 +294,16 @@ struct USART : ConfigurationStruct<USART, detail::layout, Flight> {
 
 namespace detail {
 
-	template<unsigned Controller, unsigned Stream, unsigned Channel, dma::DataSize Size>
-	struct dma_info {
-		static constexpr auto burst_size = dma::BurstSize::one;
-		static constexpr bool inc_by_four = false;
-		static constexpr bool increment = false;
-		static constexpr bool flow_control = false;
-		static constexpr auto channel = Channel;
-		static constexpr auto stream = Stream;
-		static constexpr auto size = Size;
-		static constexpr auto controller = Controller;
-
-		void* const address;
-
-		constexpr dma_info(USART<>& usart)
-			: address(&usart.dr)
-		{}
-	};
-
 	template<unsigned Id, unsigned Stream, unsigned Channel>
 	struct rx_channel {};
 
 	template<unsigned Id, unsigned Stream, unsigned Channel>
 	struct tx_channel {};
 
-
-
-	template<unsigned Id, unsigned Controller, dma::DataSize Size, unsigned Stream, unsigned Channel>
-	inline auto make_dma_rx(rx_channel<Id, Stream, Channel>, USART<>& usart)
+	template<unsigned Controller, unsigned Id, template<unsigned, unsigned, unsigned> class Desc, unsigned Stream, unsigned Channel>
+	inline auto make_trigger(Desc<Id, Stream, Channel>)
 	{
-		return dma_info<Controller, Stream, Channel, Size>(usart);
-	}
-
-	template<unsigned Id, unsigned Controller, dma::DataSize Size, unsigned Stream, unsigned Channel>
-	inline auto make_dma_tx(tx_channel<Id, Stream, Channel>, USART<>& usart)
-	{
-		return dma_info<Controller, Stream, Channel, Size>(usart);
+		return dma::trigger<Controller, Stream, Channel>();
 	}
 
 }
@@ -344,16 +318,41 @@ struct USARTInst : linker_placed_struct<USART>, Channels... {
 
 
 
+inline auto dma_target(USART<>& inst)
+{
+	return dma::target<dma::DataSize::byte, dma::BurstSize::one, false, false, false>(&inst.dr);
+}
+
+inline auto dma_target_wide(USART<>& inst)
+{
+	return dma::target<dma::DataSize::halfword, dma::BurstSize::one, false, false, false>(&inst.dr);
+}
+
+
+template<unsigned Id, typename PeripheralType, PeripheralType Bit, unsigned Controller, typename... Channels>
+inline auto dma_rx_trigger(const USARTInst<PeripheralType, Bit, Controller, Channels...>& inst)
+{
+	return detail::make_trigger<Controller, Id, detail::rx_channel>(inst);
+}
+
+template<unsigned Id, typename PeripheralType, PeripheralType Bit, unsigned Controller, typename... Channels>
+inline auto dma_tx_trigger(const USARTInst<PeripheralType, Bit, Controller, Channels...>& inst)
+{
+	return detail::make_trigger<Controller, Id, detail::tx_channel>(inst);
+}
+
+
+
 template<unsigned Id, typename PeripheralType, PeripheralType Bit, unsigned Controller, typename... Channels>
 inline auto dma_rx(USARTInst<PeripheralType, Bit, Controller, Channels...>& inst)
 {
-	return detail::make_dma_rx<Id, Controller, dma::DataSize::byte>(inst, inst);
+	return dma_rx_trigger<Id>(inst) >> dma_target(inst);
 }
 
 template<unsigned Id, typename PeripheralType, PeripheralType Bit, unsigned Controller, typename... Channels>
 inline auto dma_rx_wide(USARTInst<PeripheralType, Bit, Controller, Channels...>& inst)
 {
-	return detail::make_dma_rx<Id, Controller, dma::DataSize::halfword>(inst, inst);
+	return dma_rx_trigger<Id>(inst) >> dma_target_wide(inst);
 }
 
 
@@ -361,13 +360,13 @@ inline auto dma_rx_wide(USARTInst<PeripheralType, Bit, Controller, Channels...>&
 template<unsigned Id, typename PeripheralType, PeripheralType Bit, unsigned Controller, typename... Channels>
 inline auto dma_tx(USARTInst<PeripheralType, Bit, Controller, Channels...>& inst)
 {
-	return detail::make_dma_tx<Id, Controller, dma::DataSize::byte>(inst, inst);
+	return dma_tx_trigger<Id>(inst) >> dma_target(inst);
 }
 
 template<unsigned Id, typename PeripheralType, PeripheralType Bit, unsigned Controller, typename... Channels>
 inline auto dma_tx_wide(USARTInst<PeripheralType, Bit, Controller, Channels...>& inst)
 {
-	return detail::make_dma_tx<Id, Controller, dma::DataSize::halfword>(inst, inst);
+	return dma_tx_trigger<Id>(inst) >> dma_target_wide(inst);
 }
 
 
@@ -384,7 +383,7 @@ static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1P
 	usart2 [[gnu::weakref(".USART_USART2")]];
 static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::usart3,
 	1,
-	detail::rx_channel<0, 2, 4>,
+	detail::rx_channel<0, 1, 4>,
 	detail::tx_channel<0, 3, 4>, detail::tx_channel<1, 4, 7>>
 	usart3 [[gnu::weakref(".USART_USART3")]];
 static USARTInst<ense::platform::rcc::APB1Peripheral, ense::platform::rcc::APB1Peripheral::uart4,

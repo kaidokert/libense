@@ -314,7 +314,7 @@ namespace detail {
 
 
 template<typename Info>
-struct dma_association {
+struct association {
 	static constexpr auto stream_num = Info::stream;
 
 	DMA& controller() const
@@ -334,6 +334,45 @@ struct dma_association {
 	bool fifo_error()        const { return controller().interrupts.fifo_error(stream_num); }
 };
 
+template<DataSize Size, BurstSize BurstSize, bool Inc, bool Inc4, bool FlowControl>
+struct target {
+	static constexpr auto size = Size;
+	static constexpr auto burst_size = BurstSize;
+	static constexpr bool inc_by_four = Inc;
+	static constexpr bool increment = Inc4;
+	static constexpr bool flow_control = FlowControl;
+
+	void* const address;
+
+	constexpr target(void* address)
+		: address(address)
+	{}
+};
+
+template<unsigned Controller, unsigned Stream, unsigned Channel, DataSize Size, BurstSize BurstSize, bool Inc, bool Inc4, bool FlowControl>
+struct info : target<Size, BurstSize, Inc, Inc4, FlowControl> {
+	static constexpr auto channel = Channel;
+	static constexpr auto stream = Stream;
+	static constexpr auto controller = Controller;
+
+	constexpr info(void* address)
+		: target<Size, BurstSize, Inc, Inc4, FlowControl>(address)
+	{}
+};
+
+template<unsigned Controller, unsigned Stream, unsigned Channel>
+struct trigger {
+	static constexpr auto channel = Channel;
+	static constexpr auto stream = Stream;
+	static constexpr auto controller = Controller;
+
+	template<DataSize Size, BurstSize BurstSize, bool Inc, bool Inc4, bool FlowControl>
+	friend info<Controller, Stream, Channel, Size, BurstSize, Inc, Inc4, FlowControl>
+		operator>>(const trigger&, const target<Size, BurstSize, Inc, Inc4, FlowControl>& target)
+	{
+		return { target.address };
+	}
+};
 
 
 
@@ -493,7 +532,7 @@ namespace detail {
 
 
 	template<typename Buffer, typename Info, typename... Args>
-	inline dma_association<Info> setup_stream(const Buffer& buf, Info&& info, Direction dir, Args... args)
+	inline association<Info> setup_stream(const Buffer& buf, Info&& info, Direction dir, Args... args)
 	{
 		DMA& dma = *detail::select_controller<Info>();
 		Stream<>& stream = dma.stream[Info::stream];
