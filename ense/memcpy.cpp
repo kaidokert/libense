@@ -1,10 +1,13 @@
 #include <string.h>
 #include <stdint.h>
 
+[[gnu::alias("memcpy")]]
+extern "C" void __aeabi_memcpy(void*, const void*, size_t);
+
 void* memcpy(void* dest, const void* src, size_t n)
 {
-	size_t dOverhang = reinterpret_cast<intptr_t>(dest) & (sizeof(uint32_t) - 1);
-	size_t sOverhang = reinterpret_cast<intptr_t>(src) & (sizeof(uint32_t) - 1);
+	size_t dOverhang = reinterpret_cast<uintptr_t>(dest) % sizeof(uint32_t);
+	size_t sOverhang = reinterpret_cast<uintptr_t>(src) % sizeof(uint32_t);
 
 	void* target = dest;
 
