@@ -21,7 +21,6 @@ SECTIONS
 	.ccmdata : {
 		PROVIDE(_ccmdata_begin = .);
 		*(.ccmdata .ccmdata.*)
-		PROVIDE(_ccmdata_end = .);
 	} >CCM
 	_ccmdata_content_begin = LOADADDR(.ccmdata);
 	_ccmdata_content_end = _ccmdata_content_begin + SIZEOF(.ccmdata);

@@ -20,18 +20,14 @@ SECTIONS
 		_ctors_array = .;
 		KEEP(*(SORT(.ctors)));
 		KEEP(*(SORT(.init_array)));
-		_ctors_end = .;
 		LONG(0);
 
-		PROVIDE(_rodata_begin = .);
 		*(.rodata .rodata.*)
-		PROVIDE(_rodata_end = .);
 	} >R_TEXT
 
 	.data : ALIGN(4) {
 		PROVIDE(_data_begin = .);
 		*(.data .data.*)
-		PROVIDE(_data_end = .);
 	} >R_DATA AT>R_TEXT
 	_data_content_begin = LOADADDR(.data);
 	_data_content_end = _data_content_begin + SIZEOF(.data);

@@ -10,15 +10,13 @@ typedef void (*cxx_ctor_ptr)();
 
 extern const cxx_ctor_ptr _ctors_array[];
 
-extern int _ccmdata_begin;
-extern int _ccmdata_end;
-extern int _ccmdata_content_begin;
-extern int _ccmdata_content_end;
+extern char _ccmdata_begin;
+extern char _ccmdata_content_begin;
+extern char _ccmdata_content_end;
 
-extern int _data_begin;
-extern int _data_end;
-extern int _data_content_begin;
-extern int _data_content_end;
+extern char _data_begin;
+extern char _data_content_begin;
+extern char _data_content_end;
 
 extern char _bss_begin;
 extern char _bss_end;
@@ -27,13 +25,9 @@ extern char _bss_end;
 
 void _pre_init()
 {
-	memcpy(&_data_begin,
-			&_data_content_begin,
-			reinterpret_cast<char*>(&_data_content_end) - reinterpret_cast<char*>(&_data_content_begin));
+	memcpy(&_data_begin, &_data_content_begin, &_data_content_end - &_data_content_begin);
 
-	memcpy(&_ccmdata_begin,
-			&_ccmdata_content_begin,
-			reinterpret_cast<char*>(&_ccmdata_content_end) - reinterpret_cast<char*>(&_ccmdata_content_begin));
+	memcpy(&_ccmdata_begin, &_ccmdata_content_begin, &_ccmdata_content_end - &_ccmdata_content_begin);
 
 	memset(&_bss_begin, 0, &_bss_end - &_bss_begin);
 
