@@ -73,6 +73,9 @@ TARGET_NAME := $(if $(RELEASE),release,debug)
 TARGET_NAME_FILE = $(target-objdir)/.target
 
 V := @
+ifneq ($V, @)
+	override V :=
+endif
 
 # result: cleaned name of particle
 # argument 1: makefile name or directory name of particle root
