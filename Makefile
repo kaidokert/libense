@@ -139,6 +139,7 @@ DEP_SRC := $(SRC)
 DIRS := $(target-bindir) $(subst ./,,$(sort $(patsubst %,$(target-objdir)/%,$(dir $(DEP_SRC)))))
 
 PARTICLE_MAKEFILES := $(patsubst %,%/dir.mk,$(PARTICLES))
+MAKEFILES := Makefile $(shell $(FIND) $(PARTICLES) -maxdepth 1 -name extraflags.mk)
 
 TARGET_EXECUTABLES := $(patsubst %,$(target-bindir)/%,$(TARGETS))
 
@@ -188,17 +189,17 @@ depclean:
 distclean:
 	-$(RM) -r $(BINDIR)
 
-$(target-objdir)/%.o: %.cpp Makefile | $(DIRS)
+$(target-objdir)/%.o: %.cpp $(MAKEFILES) | $(DIRS)
 	@echo "[CXX]	" $<
 	$V$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 	$(call generate_depfile,$<,$@,$(CXXFLAGS))
 
-$(target-objdir)/%.o: %.c Makefile | $(DIRS)
+$(target-objdir)/%.o: %.c $(MAKEFILES) | $(DIRS)
 	@echo "[CC]	" $<
 	$V$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 	$(call generate_depfile,$<,$@,$(CFLAGS))
 
-$(target-objdir)/%.o: %.S Makefile | $(DIRS)
+$(target-objdir)/%.o: %.S $(MAKEFILES) | $(DIRS)
 	@echo "[AS]	" $<
 	$V$(AS) $(ASFLAGS) -o $@ $<
 
@@ -224,7 +225,18 @@ endef
 # result: shell commands to create a particle Makefile
 # argument 1: directory
 define generate_subdir_makefile
-DIRS += $$(target-objdir)/$(1:/dir.mk=)
+__objdir := $$(target-objdir)/$(1:/dir.mk=)
+DIRS += $$(__objdir)
+
+__vars := $$(filter %FLAGS, $$(.VARIABLES))
+$$(foreach var, $$(__vars), $$(eval __$$(var) := $$($$(var))))
+
+-include $(1:/dir.mk=/extraflags.mk)
+
+$$(foreach var, $$(filter %FLAGS, $$(.VARIABLES)), \
+	$$(eval $$(__objdir)/%.o: $$(var) := $$($$(var))))
+$$(foreach var, $$(__vars), \
+	$$(eval $$(var) := $$(__$$(var))))
 
 $(call submk_name,$1)_SRC := $(foreach ext,$(CODE_EXTS),$$(wildcard $(dir $1)*.$(ext)))
 
