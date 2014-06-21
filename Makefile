@@ -10,9 +10,9 @@ PART_FAMILY := stm32f4
 PART_SERIES := 0
 
 # default compiler/linker flags
+CPPFLAGS += -I libc/include -I libcxx/include
 CPPFLAGS += -I include
 CPPFLAGS += -I platform/$(PART_FAMILY)$(PART_SERIES) -I platform/$(PART_FAMILY)
-CPPFLAGS += -I libcxx/include
 
 CCFLAGS_RELEASE := -O2 -emit-llvm
 CCFLAGS_DEBUG := -O2 -g
@@ -23,11 +23,11 @@ LDFLAGS_DEBUG :=
 #CCFLAGS += -Werror
 CCFLAGS += -Wall -Wextra -pedantic -mstrict-align
 CCFLAGS += -mcpu=$(CPU) -mthumb -mfloat-abi=$(FLOAT_ABI)
-CCFLAGS += -ffreestanding -nostdlib
-CCFLAGS += -fno-exceptions -fno-rtti -fno-stack-protector
+CCFLAGS += -ffreestanding -nostdlib -nostdlibinc
+CCFLAGS += -fno-stack-protector
 CCFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += $(CCFLAGS) -std=c99
-CXXFLAGS += $(CCFLAGS) -std=c++1y -nostdinc++
+CXXFLAGS += $(CCFLAGS) -std=c++1y -fno-exceptions -fno-rtti
 ASFLAGS := -mcpu=$(CPU) -mthumb -mfloat-abi=$(FLOAT_ABI) -mfpu=$(FPU) -meabi=5
 
 LDFLAGS += -nostdlib -L/usr/lib/gcc/arm-none-eabi/4.9.0/thumb/$(CPU)/ -lgcc -T ldscripts/stm32f4/f4.ld

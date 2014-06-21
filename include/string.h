@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define _STRING_H_CPLUSPLUS_98_CONFORMANCE_
+
 extern "C" {
 
 [[gnu::always_inline]]
