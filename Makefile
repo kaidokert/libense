@@ -12,7 +12,7 @@ PART_SERIES := 0
 # default compiler/linker flags
 CPPFLAGS += -I include
 CPPFLAGS += -I platform/$(PART_FAMILY)$(PART_SERIES) -I platform/$(PART_FAMILY)
-CPPFLAGS += -I ../libcxx/include
+CPPFLAGS += -I libcxx/include
 
 CCFLAGS_RELEASE := -O2 -emit-llvm
 CCFLAGS_DEBUG := -O2 -g

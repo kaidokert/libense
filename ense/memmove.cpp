@@ -1,10 +1,7 @@
 #include <string.h>
-#include <stdint.h>
 
-[[gnu::alias("memmove")]]
-extern "C" void __aeabi_memmove(void*, const void*, size_t);
-
-void* memmove(void* dest, const void* src, size_t n)
+extern "C"
+void* __aeabi_memmove(void* dest, const void* src, size_t n)
 {
 	uintptr_t dup = reinterpret_cast<uintptr_t>(dest);
 	uintptr_t sup = reinterpret_cast<uintptr_t>(src);
@@ -13,32 +10,36 @@ void* memmove(void* dest, const void* src, size_t n)
 		return memcpy(dest, src, n);
 	}
 
-	size_t dOverhang = dup % sizeof(uint32_t);
-	size_t sOverhang = sup % sizeof(uint32_t);
+	unsigned char* d = static_cast<unsigned char*>(dest) + n - 1;
+	const unsigned char* s = static_cast<const unsigned char*>(src) + n - 1;
 
-	void* target = dest;
+#if !__ENSE_SMALL_LIBC
+	if (n >= 4) {
+		while (reinterpret_cast<uintptr_t>(d) % 4) {
+			*d-- = *s--;
+			n--;
+		}
 
-	char* d = reinterpret_cast<char*>(dest) + n;
-	const char* s = reinterpret_cast<const char*>(src) + n;
+		typedef uint32_t u32 [[gnu::may_alias]];
 
-	while (dOverhang == sOverhang && (dup + n) % sizeof(uint32_t)) {
-		*--d = *--s;
-		n--;
-	}
+		if (reinterpret_cast<uintptr_t>(s) % 4 == 0) {
+			u32* dl = reinterpret_cast<u32*>(d);
+			const u32* sl = reinterpret_cast<const u32*>(s);
 
-	if (!dOverhang && !sOverhang) {
-		uint32_t* dl = reinterpret_cast<uint32_t*>(d);
-		const uint32_t* sl = reinterpret_cast<const uint32_t*>(s);
+			while (n >= 4) {
+				*dl-- = *sl--;
+				n -= 4;
+			}
 
-		while (n >= sizeof(uint32_t)) {
-			*--dl = *--sl;
-			n -= sizeof(uint32_t);
+			d = reinterpret_cast<unsigned char*>(dl);
+			s = reinterpret_cast<const unsigned char*>(sl);
 		}
 	}
+#endif
 
-	while (n-- > 0) {
-		*--d = *--s;
+	while (n--) {
+		*d-- = *s--;
 	}
 
-	return target;
+	return dest;
 }
