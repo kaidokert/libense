@@ -1,6 +1,6 @@
 # main targets and particle libraries
 TARGETS := main
-PARTICLES := ense
+PARTICLES := ense libcxxabi/src libcxx/src
 
 CPU := cortex-m4
 FLOAT_ABI := hard
