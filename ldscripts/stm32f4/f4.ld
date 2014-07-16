@@ -17,6 +17,20 @@ INCLUDE "ldscripts/generic.ld"
 SECTIONS
 {
 	..stack = ORIGIN(CCM) + LENGTH(CCM);
+	..stack_end = ..stack - 0x200;
+
+	.text : {
+		. = ALIGN(4);
+		_memalloc_regions = .;
+		..region.RAM.begin = ABSOLUTE(ALIGN(ADDR(.bss) + SIZEOF(.bss), 4));
+		..region.RAM.end = ABSOLUTE(ORIGIN(RAM) + LENGTH(RAM));
+			LONG(ABSOLUTE(..region.RAM.begin));
+			LONG(ABSOLUTE(..region.RAM.end - ..region.RAM.begin));
+		..region.CCM.begin = ABSOLUTE(ALIGN(ADDR(.ccmdata) + SIZEOF(.ccmdata), 4));
+		..region.CCM.end = ABSOLUTE(..stack_end);
+			LONG(ABSOLUTE(..region.CCM.begin));
+			LONG(ABSOLUTE(..region.CCM.end - ..region.CCM.begin));
+	} >R_TEXT AT>R_TEXT
 
 	.ccmdata : {
 		PROVIDE(_ccmdata_begin = .);

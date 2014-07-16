@@ -1,7 +1,19 @@
 #include <string.h>
 
+#include <memalloc.hpp>
+
 extern void main();
 
+namespace ense {
+
+struct MemallocInit {
+	static void init(MemallocContext& ctx)
+	{
+		ctx.init();
+	}
+};
+
+}
 
 
 extern "C" {
@@ -30,6 +42,10 @@ void _pre_init()
 	memcpy(&_ccmdata_begin, &_ccmdata_content_begin, &_ccmdata_content_end - &_ccmdata_content_begin);
 
 	memset(&_bss_begin, 0, &_bss_end - &_bss_begin);
+
+	for (auto& region : ense::memalloc::regions()) {
+		ense::MemallocInit::init(region);
+	}
 
 	for (size_t i = 0; _ctors_array[i]; i++) {
 		_ctors_array[i]();
