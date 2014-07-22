@@ -1,0 +1,34 @@
+// -*- C++ -*-
+//===--------------------------- iosfwd -----------------------------------===//
+//
+//                     The LLVM Compiler Infrastructure
+//
+// This file is dual licensed under the MIT and the University of Illinois Open
+// Source Licenses. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _LIBCPP_IOSFWD
+#define _LIBCPP_IOSFWD
+
+#include <__config>
+
+#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+#pragma GCC system_header
+#endif
+
+_LIBCPP_BEGIN_NAMESPACE_STD
+
+template<class _CharT>  struct _LIBCPP_TYPE_VIS_ONLY char_traits;
+template<class _Tp>     class _LIBCPP_TYPE_VIS_ONLY allocator;
+
+template <class _CharT,             // for <stdexcept>
+          class _Traits = char_traits<_CharT>,
+          class _Allocator = allocator<_CharT> >
+    class _LIBCPP_TYPE_VIS_ONLY basic_string;
+typedef basic_string<char, char_traits<char>, allocator<char> > string;
+typedef basic_string<wchar_t, char_traits<wchar_t>, allocator<wchar_t> > wstring;
+
+_LIBCPP_END_NAMESPACE_STD
+
+#endif  // _LIBCPP_IOSFWD
