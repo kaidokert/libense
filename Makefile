@@ -195,12 +195,12 @@ distclean:
 $(target-objdir)/%.o: %.cpp $(MAKEFILES) | $(DIRS)
 	@echo "[CXX]	" $<
 	$V$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
-	$(call generate_depfile,$<,$@,$(CXXFLAGS))
+	$(call generate_depfile,$<,$@,$(CXXFLAGS) -x c++)
 
 $(target-objdir)/%.o: %.c $(MAKEFILES) | $(DIRS)
 	@echo "[CC]	" $<
 	$V$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
-	$(call generate_depfile,$<,$@,$(CFLAGS))
+	$(call generate_depfile,$<,$@,$(CFLAGS) -x c)
 
 $(target-objdir)/%.o: %.S $(MAKEFILES) | $(DIRS)
 	@echo "[AS]	" $<
