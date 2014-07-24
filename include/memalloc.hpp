@@ -130,6 +130,9 @@ struct MemallocInstances<MemallocInstance<Ids, Flags>...> {
 
 #include <hw/__memalloc.hpp>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnew-returns-null"
+
 inline void* operator new(size_t size, ense::MemallocFlags flags, const std::nothrow_t&) noexcept
 {
 	return ense::memalloc::allocate(size, flags);
@@ -141,9 +144,6 @@ inline void operator delete(void* block, ense::MemallocFlags, const std::nothrow
 }
 
 inline void* operator new(size_t size, ense::MemallocFlags flags)
-#if !__has_feature(cxx_exceptions)
-	noexcept
-#endif
 {
 	if (void* result = ense::memalloc::allocate(size, flags))
 		return result;
@@ -173,9 +173,6 @@ inline void operator delete[](void* block, ense::MemallocFlags, const std::nothr
 }
 
 inline void* operator new[](size_t size, ense::MemallocFlags flags)
-#if !__has_feature(cxx_exceptions)
-	noexcept
-#endif
 {
 	if (void* result = ense::memalloc::allocate(size, flags))
 		return result;
@@ -191,5 +188,7 @@ inline void operator delete[](void* block, ense::MemallocFlags) noexcept
 {
 	ense::memalloc::free(block);
 }
+
+#pragma clang diagnostic pop
 
 #endif /* INCLUDE_MEMALLOC__HPP_A5BBDC0BBB2AA0F8 */
