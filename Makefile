@@ -231,12 +231,12 @@ define generate_subdir_makefile
 __objdir := $$(target-objdir)/$(1:/dir.mk=)
 DIRS += $$(__objdir)
 
-__vars := $$(filter %FLAGS, $$(.VARIABLES))
+__vars := $$(filter-out __%, $$(filter %FLAGS, $$(.VARIABLES)))
 $$(foreach var, $$(__vars), $$(eval __$$(var) := $$($$(var))))
 
 -include $(1:/dir.mk=/extraflags.mk)
 
-$$(foreach var, $$(filter %FLAGS, $$(.VARIABLES)), \
+$$(foreach var, $$(filter-out __%, $$(filter %FLAGS, $$(.VARIABLES))), \
 	$$(eval $$(__objdir)/%.o: $$(var) := $$($$(var))))
 $$(foreach var, $$(__vars), \
 	$$(eval $$(var) := $$(__$$(var))))
