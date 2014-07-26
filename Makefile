@@ -1,6 +1,6 @@
 # main targets and particle libraries
 TARGETS := main
-PARTICLES := ense libcxxabi/src libcxx/src libc/src/fenv
+PARTICLES := ense libcxxabi/src libcxx/src libc/src/fenv libc/src/math
 
 CPU := cortex-m4
 FLOAT_ABI := hard
@@ -13,6 +13,7 @@ PART_SERIES := 0
 CPPFLAGS += -I libc/include -I libcxx/include
 CPPFLAGS += -I include
 CPPFLAGS += -I platform/$(PART_FAMILY)$(PART_SERIES) -I platform/$(PART_FAMILY)
+CPPFLAGS += -D_XOPEN_SOURCE
 
 CCFLAGS_RELEASE := -O2 -emit-llvm
 CCFLAGS_DEBUG := -O2 -g
@@ -26,11 +27,13 @@ CCFLAGS += -mcpu=$(CPU) -mthumb -mfloat-abi=$(FLOAT_ABI)
 CCFLAGS += -ffreestanding -nostdlib -nostdlibinc
 CCFLAGS += -fno-stack-protector
 CCFLAGS += -ffunction-sections -fdata-sections
+# libgcc is compiled with this, we need to be as well
+CCFLAGS += -fshort-enums
 CFLAGS += $(CCFLAGS) -std=c99
 CXXFLAGS += $(CCFLAGS) -std=c++1y -fno-exceptions -fno-rtti
 ASFLAGS := -mcpu=$(CPU) -mthumb -mfloat-abi=$(FLOAT_ABI) -mfpu=$(FPU) -meabi=5
 
-LDFLAGS += -nostdlib -L/usr/lib/gcc/arm-none-eabi/4.9.0/thumb/$(CPU)/ -lgcc -T ldscripts/stm32f4/f4.ld
+LDFLAGS += -nostdlib -L/usr/lib/gcc/arm-none-eabi/4.9.0/thumb/$(CPU)/float-abi-hard/fpuv4-sp-d16/ -T ldscripts/stm32f4/f4.ld
 
 # default values for internal variables
 CCPREFIX := $(if $(TARGET),$(TARGET)-,)
@@ -167,7 +170,7 @@ ifneq (,$(LIBRARIES))
   CCFLAGS += `pkg-config --cflags $(LIBRARIES)`
   LDFLAGS += `pkg-config --libs $(LIBRARIES)`
 endif
-LDFLAGS += -Wl,--start-group $(PARTICLE_LIBRARIES) -Wl,--end-group
+LDFLAGS += -Wl,--start-group $(PARTICLE_LIBRARIES) -Wl,--end-group -lgcc
 
 
 $(BINDIR)/%.bin: $(BINDIR)/%
