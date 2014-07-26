@@ -145,7 +145,6 @@ DEP_SRC := $(SRC)
 DIRS := $(target-bindir) $(subst ./,,$(sort $(patsubst %,$(target-objdir)/%,$(dir $(DEP_SRC)))))
 
 PARTICLE_MAKEFILES := $(patsubst %,%/dir.mk,$(PARTICLES))
-MAKEFILES := Makefile $(shell $(FIND) $(PARTICLES) -maxdepth 1 -name extraflags.mk)
 
 TARGET_EXECUTABLES := $(patsubst %,$(target-bindir)/%,$(TARGETS))
 
@@ -195,17 +194,17 @@ depclean:
 distclean:
 	-$(RM) -r $(BINDIR)
 
-$(target-objdir)/%.o: %.cpp $(MAKEFILES) | $(DIRS)
+$(target-objdir)/%.o: %.cpp Makefile | $(DIRS)
 	@echo "[CXX]	" $<
 	$V$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 	$(call generate_depfile,$<,$@,$(CXXFLAGS) -x c++)
 
-$(target-objdir)/%.o: %.c $(MAKEFILES) | $(DIRS)
+$(target-objdir)/%.o: %.c Makefile | $(DIRS)
 	@echo "[CC]	" $<
 	$V$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 	$(call generate_depfile,$<,$@,$(CFLAGS) -x c)
 
-$(target-objdir)/%.o: %.S $(MAKEFILES) | $(DIRS)
+$(target-objdir)/%.o: %.S Makefile | $(DIRS)
 	@echo "[AS]	" $<
 	$V$(AS) $(ASFLAGS) -o $@ $<
 
@@ -247,6 +246,10 @@ $$(foreach var, $$(__vars), \
 $(call submk_name,$1)_SRC := $(foreach ext,$(CODE_EXTS),$$(wildcard $(dir $1)*.$(ext)))
 
 $(call submk_name,$1)_OBJ := $(foreach ext,$(CODE_EXTS),$$(patsubst %.$(ext),$$(target-objdir)/%.o,$$(filter %.$(ext),$$($(call submk_name,$1)_SRC))))
+
+ifneq ($$(wildcard $(1:/dir.mk=/extraflags.mk)),)
+$$($(call submk_name,$1)_OBJ): $(1:/dir.mk=/extraflags.mk)
+endif
 
 DEP_SRC += $$($(call submk_name,$1)_SRC)
 
