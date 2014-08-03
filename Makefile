@@ -4,7 +4,7 @@ PARTICLES := ense libcxxabi/src libcxx/src libc/src/fenv libc/src/math
 
 CPU := cortex-m4
 FLOAT_ABI := hard
-FPU := vfp
+FPU := fpv4-sp-d16
 TARGET := arm-none-eabi
 PART_FAMILY := stm32f4
 PART_SERIES := 0
@@ -21,19 +21,19 @@ CCFLAGS_DEBUG := -O2 -g
 LDFLAGS_RELEASE := -plugin /usr/lib/LLVMgold.so -plugin-opt "mcpu=$(CPU)"
 LDFLAGS_DEBUG :=
 
+# libgcc hast -fshort-enums, and it modifies ABI
+ABI_CCFLAGS := -mcpu=$(CPU) -mthumb -mfpu=$(FPU) -mfloat-abi=$(FLOAT_ABI) -fshort-enums
 #CCFLAGS += -Werror
 CCFLAGS += -Wall -Wextra -pedantic -mstrict-align
-CCFLAGS += -mcpu=$(CPU) -mthumb -mfloat-abi=$(FLOAT_ABI)
+CCFLAGS += $(ABI_CCFLAGS)
 CCFLAGS += -ffreestanding -nostdlib -nostdlibinc
 CCFLAGS += -fno-stack-protector
 CCFLAGS += -ffunction-sections -fdata-sections
-# libgcc is compiled with this, we need to be as well
-CCFLAGS += -fshort-enums
 CFLAGS += $(CCFLAGS) -std=c99
 CXXFLAGS += $(CCFLAGS) -std=c++1y -fno-exceptions
 ASFLAGS := -mcpu=$(CPU) -mthumb -mfloat-abi=$(FLOAT_ABI) -mfpu=$(FPU) -meabi=5
 
-LDFLAGS += -nostdlib -L/usr/lib/gcc/arm-none-eabi/4.9.0/thumb/$(CPU)/float-abi-hard/fpuv4-sp-d16/ -T ldscripts/stm32f4/f4.ld -Wl,--gc-sections
+LDFLAGS += -nostdlib -T ldscripts/stm32f4/f4.ld -Wl,--gc-sections
 
 # default values for internal variables
 CCPREFIX := $(if $(TARGET),$(TARGET)-,)
@@ -48,7 +48,6 @@ OBJCOPY := $(CCPREFIX)objcopy
 
 OBJDIR := obj
 BINDIR := bin
-
 
 
 # extensions of files considered to be code
@@ -74,6 +73,8 @@ endef
 
 TARGET_NAME := $(if $(RELEASE),release,debug)
 TARGET_NAME_FILE = $(target-objdir)/.target
+
+LIBGCC_DIR := $(dir $(shell $(CCPREFIX)gcc $(ABI_CCFLAGS) -print-libgcc-file-name))
 
 V := @
 ifneq ($V, @)
@@ -163,7 +164,7 @@ release:
 PARTICLE_LIBRARY_NAMES := $(foreach lib,$(PARTICLES),$(call sublib_name,$(lib)))
 PARTICLE_LIBRARIES := $(foreach lib,$(PARTICLES),-l$(call submk_name,$(lib)))
 
-LDFLAGS += -L $(target-objdir)
+LDFLAGS += -L $(target-objdir) -L$(LIBGCC_DIR)
 LDFLAGS += $(patsubst %,-l%,$(LIBRARIES_WITHOUT_PKGCONFIG))
 ifneq (,$(LIBRARIES))
   CCFLAGS += `pkg-config --cflags $(LIBRARIES)`
