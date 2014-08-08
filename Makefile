@@ -24,7 +24,7 @@ LDFLAGS_DEBUG :=
 # libgcc hast -fshort-enums, and it modifies ABI
 ABI_CCFLAGS := -mcpu=$(CPU) -mthumb -mfpu=$(FPU) -mfloat-abi=$(FLOAT_ABI) -fshort-enums
 #CCFLAGS += -Werror
-CCFLAGS += -Wall -Wextra -pedantic -mstrict-align
+CCFLAGS += -Wall -Wextra -pedantic -mstrict-align -fno-common
 CCFLAGS += $(ABI_CCFLAGS)
 CCFLAGS += -ffreestanding -nostdlib -nostdlibinc
 CCFLAGS += -fno-stack-protector
