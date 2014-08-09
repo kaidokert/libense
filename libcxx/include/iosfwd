@@ -22,6 +22,18 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 template<class _CharT>  struct _LIBCPP_TYPE_VIS_ONLY char_traits;
 template<class _Tp>     class _LIBCPP_TYPE_VIS_ONLY allocator;
 
+typedef struct {} mbstate_t;
+
+template <class _State>             class _LIBCPP_TYPE_VIS_ONLY fpos;
+typedef fpos<mbstate_t>    streampos;
+typedef fpos<mbstate_t>    wstreampos;
+#ifndef _LIBCPP_HAS_NO_UNICODE_CHARS
+typedef fpos<mbstate_t>    u16streampos;
+typedef fpos<mbstate_t>    u32streampos;
+#endif  // _LIBCPP_HAS_NO_UNICODE_CHARS
+
+typedef long long streamoff;        // for char_traits in <string>
+
 template <class _CharT,             // for <stdexcept>
           class _Traits = char_traits<_CharT>,
           class _Allocator = allocator<_CharT> >
