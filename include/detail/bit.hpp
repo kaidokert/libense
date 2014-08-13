@@ -34,7 +34,7 @@ struct has_element_offsets {};
 
 template<size_t... Offsets>
 struct element_offsets : has_element_offsets {
-	typedef ense::mpl::list<std::integral_constant<size_t, Offsets>...> offsets_t;
+	typedef std::integer_sequence<size_t, Offsets...> offsets_t;
 };
 
 
@@ -86,7 +86,7 @@ namespace detail {
 		struct element_offset_specified : element_offset_specified<typename Offsets::offsets_t> {
 		};
 		template<size_t... Offsets>
-		struct element_offset_specified<ense::mpl::list<std::integral_constant<size_t, Offsets>...>> {
+		struct element_offset_specified<std::integer_sequence<size_t, Offsets...>> {
 			template<typename... Rest>
 			static constexpr size_t nth(size_t idx, size_t first, Rest... rest)
 			{

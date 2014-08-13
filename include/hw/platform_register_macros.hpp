@@ -85,13 +85,13 @@
 	}
 #define ENSE_REGISTER_ARRAY_W_TEMPLATES(FIELD_TYPE, FIELD_NAME, VTYPE, VNAME, VCOMMA, VALUE, ...) \
 	template<uint32_t... Items> \
-	auto FIELD_NAME ## _list(VTYPE VCOMMA mpl::list<std::integral_constant<uint32_t, Items>...>, std::integral_constant<uint32_t, ~(static_cast<uint32_t>(0))>) \
+	auto FIELD_NAME ## _list(VTYPE VCOMMA std::integer_sequence<uint32_t, Items...>, std::integral_constant<uint32_t, ~(static_cast<uint32_t>(0))>) \
 		-> decltype(*this) \
 	{ \
 		return *this; \
 	} \
 	template<uint32_t... Items, uint32_t Word> \
-	auto FIELD_NAME ## _list(VTYPE VNAME VCOMMA mpl::list<std::integral_constant<uint32_t, Items>...> items, std::integral_constant<uint32_t, Word>) \
+	auto FIELD_NAME ## _list(VTYPE VNAME VCOMMA std::integer_sequence<uint32_t, Items...> items, std::integral_constant<uint32_t, Word>) \
 		-> decltype(*this) \
 	{ \
 		using namespace ::ense::detail::bit; \
@@ -113,7 +113,7 @@
 	auto FIELD_NAME ## _list(VTYPE VNAME) \
 		-> decltype(*this) \
 	{ \
-		return FIELD_NAME ## _list(VNAME VCOMMA mpl::list<std::integral_constant<uint32_t, Items>...>(), std::integral_constant<uint32_t, ENSE_REGISTER_THIS_TYPE::words - 1>()); \
+		return FIELD_NAME ## _list(VNAME VCOMMA std::integer_sequence<uint32_t, Items...>(), std::integral_constant<uint32_t, ENSE_REGISTER_THIS_TYPE::words - 1>()); \
 	} \
 	template<uint32_t Bound1, uint32_t Bound2> \
 	auto FIELD_NAME ## _range(VTYPE VNAME) \

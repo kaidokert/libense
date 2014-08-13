@@ -73,7 +73,7 @@ namespace detail {
 	struct ivt_handler_list;
 
 	template<uint32_t... Slots, typename... Handlers>
-	struct ivt_handler_list<mpl::list<std::integral_constant<uint32_t, Slots>...>, Handlers...> {
+	struct ivt_handler_list<std::integer_sequence<uint32_t, Slots...>, Handlers...> {
 		void (*const vectors[sizeof...(Slots)])();
 
 		constexpr ivt_handler_list()

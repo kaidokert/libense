@@ -2,17 +2,10 @@
 #define INCLUDE_MPL_LIST__HPP_092B77D39F5C1127
 
 #include <type_traits>
+#include <utility>
 
 namespace ense {
 namespace mpl {
-
-
-template<typename... Items>
-struct list {
-	typedef list type;
-};
-
-
 
 namespace detail {
 
@@ -22,7 +15,7 @@ namespace detail {
 
 	template<typename T, T Only, T... List>
 	struct make_range<T, Only, Only, List...> {
-		typedef list<std::integral_constant<T, List>..., std::integral_constant<T, Only>> type;
+		typedef std::integer_sequence<T, List..., Only> type;
 	};
 
 }

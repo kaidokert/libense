@@ -645,17 +645,17 @@ inline void change_one(Clocks&... clocks)
 	ignore((change_in_reg<Set, typename Peripheral::rcc_info>(clocks), 0)...);
 }
 
-template<bool Set, typename... Clocks, typename... Peripherals>
-inline void change_many_flights(mpl::list<Peripherals...>, Clocks... clocks)
+template<bool Set, typename... Peripherals, typename... Clocks>
+inline void change_many_flights(Clocks... clocks)
 {
 	ignore((change_one<Set, Peripherals>(clocks...), 0)...);
 	ignore((clocks.commit(), 0)...);
 }
 
-template<bool Set, typename... Clocks, typename... Peripherals>
-inline void change_many(mpl::list<Peripherals...> peripherals, Clocks&... clocks)
+template<bool Set, typename... Peripherals, typename... Clocks>
+inline void change_many(Clocks&... clocks)
 {
-	change_many_flights<Set>(peripherals, clocks.begin()...);
+	change_many_flights<Set, Peripherals...>(clocks.begin()...);
 }
 
 }
@@ -663,8 +663,7 @@ inline void change_many(mpl::list<Peripherals...> peripherals, Clocks&... clocks
 template<bool Enable = true, typename... Peripherals>
 inline void enable(const Peripherals&...)
 {
-	detail::change_many<Enable>(
-		mpl::list<Peripherals...>(),
+	detail::change_many<Enable, Peripherals...>(
 		ahb1_enable,
 		ahb2_enable,
 		ahb3_enable,
@@ -675,8 +674,7 @@ inline void enable(const Peripherals&...)
 template<bool Enable = true, typename... Peripherals>
 inline void lp_enable(const Peripherals&...)
 {
-	detail::change_many<Enable>(
-		mpl::list<Peripherals...>(),
+	detail::change_many<Enable, Peripherals...>(
 		ahb1_lp_enable,
 		ahb2_lp_enable,
 		ahb3_lp_enable,
@@ -687,8 +685,7 @@ inline void lp_enable(const Peripherals&...)
 template<typename... Peripherals>
 inline void reset(const Peripherals&...)
 {
-	detail::change_many<true>(
-		mpl::list<Peripherals...>(),
+	detail::change_many<true, Peripherals...>(
 		ahb1_reset,
 		ahb2_reset,
 		ahb3_reset,
