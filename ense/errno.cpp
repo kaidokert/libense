@@ -2,10 +2,6 @@
 
 extern "C" {
 
-int* __errno_location()
-{
-	static int val;
-	return &val;
-}
+int errno;
 
 }

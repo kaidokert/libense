@@ -1,0 +1,10 @@
+#ifndef INCLUDE_ERRNO__H_2BD8304024E90E5A
+#define INCLUDE_ERRNO__H_2BD8304024E90E5A
+
+extern "C" {
+
+extern int errno;
+
+}
+
+#endif /* INCLUDE_ERRNO__H_2BD8304024E90E5A */

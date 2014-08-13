@@ -20,47 +20,15 @@ inline int fesetenv(const fenv_t *env)
 	return 0;
 }
 
-inline int feclearexcept(int e)
-{
-	fenv_t env;
-	fegetenv(&env);
-	env.__cw &= ~(e & FE_ALL_EXCEPT);
-	return fesetenv(&env);
-}
-
-inline int feraiseexcept(int e)
-{
-	fenv_t env;
-	fegetenv(&env);
-	env.__cw |= e & FE_ALL_EXCEPT;
-	return fesetenv(&env);
-}
-
-inline int fetestexcept(int e)
-{
-	fenv_t env;
-	fegetenv(&env);
-	return env.__cw & e & FE_ALL_EXCEPT;
-}
-
-inline int fegetround(void)
-{
-	fenv_t env;
-	fegetenv(&env);
-	return env.__cw & (FE_TONEAREST | FE_DOWNWARD | FE_UPWARD | FE_TOWARDZERO);
-}
-
-inline int fesetround(int r)
-{
-	fenv_t env;
-	fegetenv(&env);
-	env.__cw &= ~(FE_TONEAREST | FE_DOWNWARD | FE_UPWARD | FE_TOWARDZERO);
-	env.__cw |= r & (FE_TONEAREST | FE_DOWNWARD | FE_UPWARD | FE_TOWARDZERO);
-	return fesetenv(&env);
-}
-
+int feclearexcept(int);
 int fegetexceptflag(fexcept_t *, int);
+int feraiseexcept(int);
 int fesetexceptflag(const fexcept_t *, int);
+int fetestexcept(int);
+
+int fegetround(void);
+int fesetround(int);
+
 int feholdexcept(fenv_t *);
 int feupdateenv(const fenv_t *);
 
