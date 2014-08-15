@@ -1,5 +1,6 @@
 #include <memalloc.hpp>
 
+#include <cassert>
 #include <cstddef>
 #include <cstring>
 #include <type_traits>
@@ -243,6 +244,11 @@ void MemallocRegion::deallocate(void* data)
 	free = block;
 }
 
+ense::MemallocContext* resolve(void* block)
+{
+	return BlockHeader::before(block)->owner;
+}
+
 }
 
 namespace ense {
@@ -280,9 +286,101 @@ void MemallocContext::free(void* block)
 		reinterpret_cast<MemallocRegion*>(_start)->deallocate(block);
 }
 
-MemallocContext* MemallocContext::resolve(void* block)
+
+
+template<>
+void* memalloc::allocate(uint32_t size, MemallocFlags wanted)
 {
-	return BlockHeader::before(block)->owner;
+	return allocateAny(size, wanted);
 }
 
+template<>
+[[gnu::noinline]]
+void memalloc::free(void* block)
+{
+	if (block)
+		resolve(block)->free(block);
+}
+
+template<>
+void* memalloc::reallocate(void* block, uint32_t size, MemallocFlags wanted)
+{
+	if (!block)
+		return allocate(size, wanted);
+
+	if (!size) {
+		free(block);
+		return nullptr;
+	}
+
+	if (auto result = resolve(block)->resize(block, size))
+		return result;
+
+	auto result = allocate(size, wanted);
+	if (!result)
+		return nullptr;
+
+	memcpy(result, block, size);
+	free(block);
+	return result;
+}
+
+}
+
+
+
+[[noreturn]]
+static void throw_bad_alloc()
+{
+#if __has_feature(cxx_exceptions)
+	throw std::bad_alloc();
+#else
+	assert(0 && "bad_alloc");
+#endif
+}
+
+
+void* operator new(size_t size, ense::MemallocFlags flags, const std::nothrow_t&) noexcept
+{
+	return ense::memalloc::allocate(size, flags);
+}
+
+void* operator new(size_t size, ense::MemallocFlags flags)
+{
+	if (void* result = ense::memalloc::allocate(size, flags))
+		return result;
+
+	throw_bad_alloc();
+}
+
+void* operator new[](size_t size, ense::MemallocFlags flags, const std::nothrow_t&) noexcept
+{
+	return operator new(size, flags, std::nothrow);
+}
+
+void* operator new[](size_t size, ense::MemallocFlags flags)
+{
+	return operator new(size, flags);
+}
+
+
+
+void operator delete(void* block, ense::MemallocFlags, const std::nothrow_t&) noexcept
+{
+	ense::memalloc::free(block);
+}
+
+void operator delete(void* block, ense::MemallocFlags) noexcept
+{
+	ense::memalloc::free(block);
+}
+
+void operator delete[](void* block, ense::MemallocFlags, const std::nothrow_t&) noexcept
+{
+	ense::memalloc::free(block);
+}
+
+void operator delete[](void* block, ense::MemallocFlags) noexcept
+{
+	ense::memalloc::free(block);
 }

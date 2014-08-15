@@ -26,8 +26,6 @@ class MemallocContext {
 		void* alloc(uint32_t size);
 		void* resize(void* block, uint32_t newSize);
 		void free(void* block);
-
-		static MemallocContext* resolve(void* block);
 };
 
 
@@ -72,41 +70,17 @@ struct MemallocInstances<MemallocInstance<Ids, Flags>...> {
 				: nullptr;
 		}
 
-		MemallocInstances() = default;
-
-	public:
-		static void* allocate(uint32_t size, MemallocFlags wanted = MemallocFlags(0))
+		static void* allocateAny(uint32_t size, MemallocFlags wanted)
 		{
 			return alloc(size, wanted, MemallocInstance<Ids, Flags>()...);
 		}
 
-		static void* reallocate(void* block, uint32_t size,
-				MemallocFlags wanted = MemallocFlags(0))
-		{
-			if (!block)
-				return allocate(size, wanted);
+		MemallocInstances() = default;
 
-			if (!size) {
-				free(block);
-				return nullptr;
-			}
-
-			if (auto result = MemallocContext::resolve(block)->resize(block, size))
-				return result;
-
-			auto result = allocate(size, wanted);
-			if (!result)
-				return nullptr;
-
-			memcpy(result, block, size);
-			free(block);
-			return result;
-		}
-
-		static void free(void* block)
-		{
-			MemallocContext::resolve(block)->free(block);
-		}
+	public:
+		static void* allocate(uint32_t size, MemallocFlags wanted = MemallocFlags(0));
+		static void* reallocate(void* block, uint32_t size, MemallocFlags wanted = MemallocFlags(0));
+		static void free(void* block);
 
 		static constexpr unsigned size = sizeof...(Ids);
 
@@ -130,65 +104,14 @@ struct MemallocInstances<MemallocInstance<Ids, Flags>...> {
 
 #include <hw/__memalloc.hpp>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wnew-returns-null"
+void* operator new(size_t size, ense::MemallocFlags flags, const std::nothrow_t&) noexcept;
+void* operator new(size_t size, ense::MemallocFlags flags);
+void* operator new[](size_t size, ense::MemallocFlags flags, const std::nothrow_t&) noexcept;
+void* operator new[](size_t size, ense::MemallocFlags flags);
 
-inline void* operator new(size_t size, ense::MemallocFlags flags, const std::nothrow_t&) noexcept
-{
-	return ense::memalloc::allocate(size, flags);
-}
-
-inline void operator delete(void* block, ense::MemallocFlags, const std::nothrow_t&) noexcept
-{
-	ense::memalloc::free(block);
-}
-
-inline void* operator new(size_t size, ense::MemallocFlags flags)
-{
-	if (void* result = ense::memalloc::allocate(size, flags))
-		return result;
-
-#if __has_feature(cxx_exceptions)
-	throw std::bad_alloc();
-#else
-	return nullptr;
-#endif
-}
-
-inline void operator delete(void* block, ense::MemallocFlags) noexcept
-{
-	ense::memalloc::free(block);
-}
-
-
-
-inline void* operator new[](size_t size, ense::MemallocFlags flags, const std::nothrow_t&) noexcept
-{
-	return ense::memalloc::allocate(size, flags);
-}
-
-inline void operator delete[](void* block, ense::MemallocFlags, const std::nothrow_t&) noexcept
-{
-	ense::memalloc::free(block);
-}
-
-inline void* operator new[](size_t size, ense::MemallocFlags flags)
-{
-	if (void* result = ense::memalloc::allocate(size, flags))
-		return result;
-
-#if __has_feature(cxx_exceptions)
-	throw std::bad_alloc();
-#else
-	return nullptr;
-#endif
-}
-
-inline void operator delete[](void* block, ense::MemallocFlags) noexcept
-{
-	ense::memalloc::free(block);
-}
-
-#pragma clang diagnostic pop
+void operator delete(void* block, ense::MemallocFlags, const std::nothrow_t&) noexcept;
+void operator delete(void* block, ense::MemallocFlags) noexcept;
+void operator delete[](void* block, ense::MemallocFlags, const std::nothrow_t&) noexcept;
+void operator delete[](void* block, ense::MemallocFlags) noexcept;
 
 #endif /* INCLUDE_MEMALLOC__HPP_A5BBDC0BBB2AA0F8 */
