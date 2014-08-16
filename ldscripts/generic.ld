@@ -1,9 +1,11 @@
 SECTIONS
 {
-	.text : {
+	.ivt : {
 		LONG(ABSOLUTE(..stack));
 		KEEP(*(..isr_vectors))
+	} >R_TEXT
 
+	.text : {
 		KEEP(*(..init.head))
 		KEEP(*(.init));
 		KEEP(*(..init.tail))
@@ -14,7 +16,11 @@ SECTIONS
 		PROVIDE(_text_begin = .);
 		*(.text .text.*)
 		PROVIDE(_text_end = .);
-	} >R_TEXT AT>R_TEXT
+	} >R_TEXT
+
+	.ARM.exidx : {
+		*(.ARM.exidx .ARM.exidx.*)
+	} >R_TEXT
 
 	.rodata : {
 		_ctors_array = .;
@@ -38,5 +44,5 @@ SECTIONS
 		PROVIDE(_bss_end = .);
 	} >R_DATA
 }
-INCLUDE "ldscripts/debug.ld"
-INCLUDE "ldscripts/scs.ld"
+#include <debug.ld>
+#include <scs.ld>

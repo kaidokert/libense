@@ -15,11 +15,11 @@ CPPFLAGS += -I include
 CPPFLAGS += -I platform/$(PART_FAMILY)$(PART_SERIES) -I platform/$(PART_FAMILY)
 CPPFLAGS += -D_XOPEN_SOURCE
 
-CCFLAGS_RELEASE := -O2 -emit-llvm
+CCFLAGS_RELEASE := -O2 -g
 CCFLAGS_DEBUG := -O2 -g
 
-LDFLAGS_RELEASE := -plugin /usr/lib/LLVMgold.so -plugin-opt "mcpu=$(CPU)"
-LDFLAGS_DEBUG :=
+#LDFLAGS_RELEASE := --plugin /home/dhivael/local/lib/LLVMgold.so --plugin-opt "mcpu=$(CPU)"
+#LDFLAGS_DEBUG :=
 
 # libgcc hast -fshort-enums, and it modifies ABI
 ABI_CCFLAGS := -mcpu=$(CPU) -mthumb -mfpu=$(FPU) -mfloat-abi=$(FLOAT_ABI) -fshort-enums
@@ -33,7 +33,7 @@ CFLAGS += $(CCFLAGS) -std=c99
 CXXFLAGS += $(CCFLAGS) -std=c++1y -fno-exceptions
 ASFLAGS := -mcpu=$(CPU) -mthumb -mfloat-abi=$(FLOAT_ABI) -mfpu=$(FPU) -meabi=5
 
-LDFLAGS += -nostdlib -T ldscripts/stm32f4/f4.ld -Wl,--gc-sections
+LDFLAGS += -nostdlib --gc-sections
 
 # default values for internal variables
 CCPREFIX := $(if $(TARGET),$(TARGET)-,)
@@ -41,7 +41,7 @@ AS := $(CCPREFIX)as
 CC := clang -target $(TARGET) -integrated-as
 CXX := clang++ -target $(TARGET) -integrated-as
 CPP := $(CXX) -E
-LD := $(CXX)
+LD := $(CCPREFIX)ld
 SED := sed
 FIND := find
 OBJCOPY := $(CCPREFIX)objcopy
@@ -73,6 +73,7 @@ endef
 
 TARGET_NAME := $(if $(RELEASE),release,debug)
 TARGET_NAME_FILE = $(target-objdir)/.target
+TARGET_LDSCRIPT = $(target-objdir)/main.ld
 
 LIBGCC_DIR := $(dir $(shell $(CCPREFIX)gcc $(ABI_CCFLAGS) -print-libgcc-file-name))
 
@@ -98,11 +99,13 @@ endef
 ifneq ($(origin RELEASE),undefined)
   CCFLAGS += $(CCFLAGS_RELEASE)
   LDFLAGS += $(LDFLAGS_RELEASE)
+  ARFLAGS := $(ARFLAGS_RELEASE)
   target-objdir := $(OBJDIR)/release
   target-bindir := $(BINDIR)/release
 else
   CCFLAGS += $(CCFLAGS_DEBUG)
   LDFLAGS += $(LDFLAGS_DEBUG)
+  ARFLAGS := $(ARFLAGS_DEBUG)
   target-objdir := $(OBJDIR)/debug
   target-bindir := $(BINDIR)/debug
 endif
@@ -170,14 +173,15 @@ ifneq (,$(LIBRARIES))
   CCFLAGS += `pkg-config --cflags $(LIBRARIES)`
   LDFLAGS += `pkg-config --libs $(LIBRARIES)`
 endif
-LDFLAGS += -Wl,--start-group $(PARTICLE_LIBRARIES) -Wl,--end-group -lgcc
+LDFLAGS += --start-group $(PARTICLE_LIBRARIES) --end-group -lgcc
+LDFLAGS += -T $(target-objdir)/main.ld
 
 
 $(BINDIR)/%.bin: $(BINDIR)/%
 	@echo "[OBJCPY]" $@
 	$V$(OBJCOPY) -O binary $< $@
 
-$(target-bindir)/%: $(target-objdir)/%.o $(patsubst %,$(target-objdir)/%,$(PARTICLE_LIBRARY_NAMES)) $(TARGET_NAME_FILE) | $(target-bindir)
+$(target-bindir)/%: $(target-objdir)/%.o $(patsubst %,$(target-objdir)/%,$(PARTICLE_LIBRARY_NAMES)) $(TARGET_NAME_FILE) $(TARGET_LDSCRIPT) | $(target-bindir)
 	@echo "[LD]	" $@
 	$V$(LD) -o $@ $< $(LDFLAGS)
 
@@ -216,6 +220,12 @@ $(DIRS):
 $(PARTICLE_MAKEFILES): Makefile
 	@echo "[GEN]	" $@
 	$(file >$@,$(call generate_subdir_makefile,$@))
+
+-include $(TARGET_LDSCRIPT).d
+$(TARGET_LDSCRIPT): ldscripts/$(PART_FAMILY)/$(PART_FAMILY)$(PART_SERIES).ld Makefile | $(DIRS)
+	@echo "[GENLD]	" $<
+	$V$(CPP) -x c -nostdinc -I ldscripts -P -o $@ $<
+	$(call generate_depfile,$<,$@,-x c -nostdinc -I ldscripts)
 
 
 
@@ -256,5 +266,5 @@ DEP_SRC += $$($(call submk_name,$1)_SRC)
 
 $$(target-objdir)/$(call sublib_name,$1): $$($(call submk_name,$1)_OBJ)
 	@echo "[AR]	" $$@
-	$$V$$(AR) -rcs $$@ $$^
+	$$V$$(AR) $$(ARFLAGS) -rcs $$@ $$^
 endef

@@ -1,6 +1,6 @@
 OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
 OUTPUT_ARCH(arm)
-ENTRY(_start)
+ENTRY(_init_head)
 
 
 MEMORY
@@ -10,16 +10,16 @@ MEMORY
 	CCM   (rwx) : ORIGIN = 0x10000000, LENGTH = 0x00010000
 }
 
-REGION_ALIAS("R_TEXT", RAM)
-REGION_ALIAS("R_DATA", RAM)
+#define R_TEXT RAM
+#define R_DATA RAM
 
-INCLUDE "ldscripts/generic.ld"
+#include <generic.ld>
 SECTIONS
 {
 	..stack = ORIGIN(CCM) + LENGTH(CCM);
 	..stack_end = ..stack - 0x200;
 
-	.text : {
+	.rodata : {
 		. = ALIGN(4);
 		_memalloc_regions = .;
 		..region.RAM.begin = ABSOLUTE(ALIGN(ADDR(.bss) + SIZEOF(.bss), 4));
@@ -30,7 +30,7 @@ SECTIONS
 		..region.CCM.end = ABSOLUTE(..stack_end);
 			LONG(ABSOLUTE(..region.CCM.begin));
 			LONG(ABSOLUTE(..region.CCM.end - ..region.CCM.begin));
-	} >R_TEXT AT>R_TEXT
+	} >R_TEXT
 
 	.ccmdata : {
 		PROVIDE(_ccmdata_begin = .);
@@ -40,9 +40,9 @@ SECTIONS
 	_ccmdata_content_end = _ccmdata_content_begin + SIZEOF(.ccmdata);
 
 }
-INCLUDE "ldscripts/stm32f4/rcc.ld"
-INCLUDE "ldscripts/stm32f4/gpio.ld"
-INCLUDE "ldscripts/stm32f4/syscfg.ld"
-INCLUDE "ldscripts/stm32f4/usart.ld"
-INCLUDE "ldscripts/stm32f4/dma.ld"
-INCLUDE "ldscripts/stm32f4/exti.ld"
+#include "rcc.ld"
+#include "gpio.ld"
+#include "syscfg.ld"
+#include "usart.ld"
+#include "dma.ld"
+#include "exti.ld"
