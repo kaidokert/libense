@@ -11,21 +11,29 @@ class MemallocContext {
 	private:
 		friend struct MemallocInit;
 
-		void* _start;
+		char* _start;
 		uint32_t _size;
 
 		void init();
 
 	public:
 		MemallocContext() = default;
-		MemallocContext(void* start, uint32_t size);
+		MemallocContext(char* start, uint32_t size);
 
-		const void* start() const { return _start; }
+		const char* start() const { return _start; }
 		uint32_t size() const { return _size; }
 
 		void* alloc(uint32_t size);
 		void* resize(void* block, uint32_t newSize);
 		void free(void* block);
+
+		bool contains(const void* ptr) const
+		{
+			uintptr_t ustart = reinterpret_cast<uintptr_t>(_start);
+			uintptr_t uptr = reinterpret_cast<uintptr_t>(ptr);
+
+			return uptr >= ustart && uptr < ustart + _size;
+		}
 };
 
 
@@ -53,8 +61,8 @@ struct MemallocInstances;
 template<unsigned... Ids, MemallocFlags... Flags>
 struct MemallocInstances<MemallocInstance<Ids, Flags>...> {
 	private:
-		template<typename Instance, typename... Instances>
-		static void* alloc(uint32_t size, MemallocFlags wanted, Instance ctx, Instances... rest)
+		template<typename Ctx, typename... Rest>
+		static void* alloc(uint32_t size, MemallocFlags wanted, Ctx ctx, Rest... rest)
 		{
 			void* result = alloc(size, wanted, ctx);
 			return result
@@ -62,17 +70,36 @@ struct MemallocInstances<MemallocInstance<Ids, Flags>...> {
 				: alloc(size, wanted, rest...);
 		}
 
-		template<typename Instance>
-		static void* alloc(uint32_t size, MemallocFlags wanted, Instance ctx)
+		template<typename Ctx>
+		static void* alloc(uint32_t size, MemallocFlags wanted, Ctx)
 		{
-			return (ctx.flags & wanted) == wanted
-				? region(ctx.id).alloc(size)
+			return (Ctx::flags & wanted) == wanted
+				? region(Ctx::id).alloc(size)
 				: nullptr;
 		}
 
 		static void* allocateAny(uint32_t size, MemallocFlags wanted)
 		{
 			return alloc(size, wanted, MemallocInstance<Ids, Flags>()...);
+		}
+
+		static MemallocContext* resolveContext(void*)
+		{
+			return nullptr;
+		}
+
+		template<typename Ctx, typename... Rest>
+		static MemallocContext* resolveContext(void* block, Ctx, Rest... rest)
+		{
+			if (region(Ctx::id).contains(block))
+				return &region(Ctx::id);
+			else
+				return resolveContext(block, rest...);
+		}
+
+		static MemallocContext* resolve(void* block)
+		{
+			return resolveContext(block, MemallocInstance<Ids, Flags>()...);
 		}
 
 		MemallocInstances() = default;

@@ -31,10 +31,7 @@ uint32_t ptrDiff(const void* a, const void* b)
 
 
 struct BlockHeader {
-	union {
-		BlockHeader* next;
-		ense::MemallocContext* owner;
-	};
+	BlockHeader* next;
 	uint32_t size;
 
 	char* data()
@@ -91,7 +88,7 @@ class MemallocRegion {
 	public:
 		void init(uint32_t size);
 
-		void* allocate(uint32_t size, ense::MemallocContext* owner);
+		void* allocate(uint32_t size);
 		void* resize(void* data, uint32_t newSize);
 		void deallocate(void* data);
 };
@@ -133,7 +130,7 @@ void MemallocRegion::maybeSplitAllocated(BlockHeader* block, uint32_t size)
 	uint32_t oldBlockSize = ptrDiff(nextBlock, block->data());
 
 	block->size = oldBlockSize;
-	*nextBlock = { { free }, nextBlockSize };
+	*nextBlock = { free, nextBlockSize };
 	free = nextBlock;
 }
 
@@ -180,10 +177,10 @@ void MemallocRegion::init(uint32_t size)
 	char* regionEnd = reinterpret_cast<char*>(this) + size;
 	uint32_t usableSpace = ptrDiff(regionEnd, regionBegin);
 
-	*free = { { nullptr }, usableSpace };
+	*free = { nullptr, usableSpace };
 }
 
-void* MemallocRegion::allocate(uint32_t size, ense::MemallocContext* owner)
+void* MemallocRegion::allocate(uint32_t size)
 {
 	BlockHeader* result = takeBestBlock(size);
 
@@ -191,7 +188,6 @@ void* MemallocRegion::allocate(uint32_t size, ense::MemallocContext* owner)
 		return nullptr;
 
 	maybeSplitAllocated(result, size);
-	result->owner = owner;
 	return result->data();
 }
 
@@ -215,7 +211,6 @@ void* MemallocRegion::resize(void* data, uint32_t newSize)
 		block->size += sizeof(BlockHeader) + following->size;
 
 	if (preceding) {
-		preceding->owner = block->owner;
 		preceding->size += sizeof(BlockHeader) + block->size;
 		memmove(preceding->data(), block->data(), contentSize);
 		block = preceding;
@@ -244,11 +239,6 @@ void MemallocRegion::deallocate(void* data)
 	free = block;
 }
 
-ense::MemallocContext* resolve(void* block)
-{
-	return BlockHeader::before(block)->owner;
-}
-
 }
 
 namespace ense {
@@ -258,8 +248,8 @@ static_assert(std::is_trivially_constructible<MemallocContext>::value, "");
 static_assert(alignof(MemallocContext) == 4, "");
 static_assert(sizeof(MemallocContext) == 8, "");
 
-MemallocContext::MemallocContext(void* start, uint32_t size)
-	: _start(alignTo<MemallocRegion>(start)),
+MemallocContext::MemallocContext(char* start, uint32_t size)
+	: _start(reinterpret_cast<char*>(alignTo<MemallocRegion>(start))),
 	  _size(size - ptrDiff(_start, start))
 {
 	init();
@@ -272,7 +262,7 @@ void MemallocContext::init()
 
 void* MemallocContext::alloc(uint32_t size)
 {
-	return reinterpret_cast<MemallocRegion*>(_start)->allocate(size, this);
+	return reinterpret_cast<MemallocRegion*>(_start)->allocate(size);
 }
 
 void* MemallocContext::resize(void* block, uint32_t size)
@@ -282,8 +272,7 @@ void* MemallocContext::resize(void* block, uint32_t size)
 
 void MemallocContext::free(void* block)
 {
-	if (block)
-		reinterpret_cast<MemallocRegion*>(_start)->deallocate(block);
+	reinterpret_cast<MemallocRegion*>(_start)->deallocate(block);
 }
 
 
@@ -298,8 +287,8 @@ template<>
 [[gnu::noinline]]
 void memalloc::free(void* block)
 {
-	if (block)
-		resolve(block)->free(block);
+	if (auto* region = resolve(block))
+		region->free(block);
 }
 
 template<>
