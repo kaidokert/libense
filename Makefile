@@ -71,8 +71,6 @@ endef
 # here be internals
 ###
 
-TARGET_NAME := $(if $(RELEASE),release,debug)
-TARGET_NAME_FILE = $(target-objdir)/.target
 TARGET_LDSCRIPT = $(target-objdir)/main.ld
 
 LIBGCC_DIR := $(dir $(shell $(CCPREFIX)gcc $(ABI_CCFLAGS) -print-libgcc-file-name))
@@ -132,16 +130,6 @@ ifdef LIBRARIES
   endif
 endif
 
-ifneq ($(MAKECMDGOALS),clean)
-ifndef MAKE_RESTARTS
-$(shell \
-	mkdir -p $(target-objdir); \
-	if [ ! -f $(TARGET_NAME_FILE) ]; then echo $(TARGET_NAME) > $(TARGET_NAME_FILE); fi; \
-	if [ x`cat $(TARGET_NAME_FILE)` != x$(TARGET_NAME) ]; then echo $(TARGET_NAME) > $(TARGET_NAME_FILE); fi \
-)
-endif
-endif
-
 SRC := $(foreach ext,$(CODE_EXTS),$(wildcard *.$(ext)))
 
 DEP_SRC := $(SRC)
@@ -187,7 +175,7 @@ $(BINDIR)/%.bin: $(BINDIR)/%
 	@echo "[OBJCPY]" $@
 	$V$(OBJCOPY) -O binary $< $@
 
-$(target-bindir)/%: $(target-objdir)/%.o $(patsubst %,$(target-objdir)/%,$(PARTICLE_LIBRARY_NAMES)) $(TARGET_NAME_FILE) $(TARGET_LDSCRIPT) | $(target-bindir)
+$(target-bindir)/%: $(target-objdir)/%.o $(patsubst %,$(target-objdir)/%,$(PARTICLE_LIBRARY_NAMES)) $(TARGET_LDSCRIPT) | $(target-bindir)
 	@echo "[LD]	" $@
 	$V$(LD) -o $@ $< $(LDFLAGS)
 
