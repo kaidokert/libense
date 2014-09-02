@@ -162,6 +162,12 @@ release:
 	@$(MAKE) all RELEASE=
 
 -include $(PARTICLE_MAKEFILES)
+
+
+# result: cflags to also generate a dependency file for make
+# argument 1: output object file
+gendep_cflags = -MD -MP -MT "$(strip $1 $1.d)" -MF $1.d
+
 -include $(foreach ext,$(CODE_EXTS),$(patsubst %.$(ext),$(target-objdir)/%.o.d,$(filter %.$(ext),$(DEP_SRC))))
 
 PARTICLE_LIBRARY_NAMES := $(foreach lib,$(PARTICLES),$(call sublib_name,$(lib)))
@@ -201,13 +207,11 @@ distclean:
 
 $(target-objdir)/%.o: %.cpp Makefile | $(DIRS)
 	@echo "[CXX]	" $<
-	$V$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
-	$(call generate_depfile,$<,$@,$(CXXFLAGS) -x c++)
+	$V$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(call gendep_cflags, $@) -c -o $@ $<
 
 $(target-objdir)/%.o: %.c Makefile | $(DIRS)
 	@echo "[CC]	" $<
-	$V$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
-	$(call generate_depfile,$<,$@,$(CFLAGS) -x c)
+	$V$(CC) $(CPPFLAGS) $(CFLAGS) $(call gendep_cflags, $@) -c -o $@ $<
 
 $(target-objdir)/%.o: %.S Makefile | $(DIRS)
 	@echo "[AS]	" $<
@@ -224,19 +228,9 @@ $(PARTICLE_MAKEFILES): Makefile
 -include $(TARGET_LDSCRIPT).d
 $(TARGET_LDSCRIPT): ldscripts/$(PART_FAMILY)/$(PART_FAMILY)$(PART_SERIES).ld Makefile | $(DIRS)
 	@echo "[GENLD]	" $<
-	$V$(CPP) -x c -nostdinc -I ldscripts -P -o $@ $<
-	$(call generate_depfile,$<,$@,-x c -nostdinc -I ldscripts)
+	$V$(CPP) -x c -nostdinc -I ldscripts -P $(call gendep_cflags, $@) -o $@ $<
 
 
-
-# result: shell command to create a dependency file
-# argument 1: input source file
-# argument 2: output object file
-# argument 3: extra cpp flags
-define generate_depfile
-	$V$(CPP) -MM -MP -MT $2 $(CPPFLAGS) $3 $1 > $2.d \
-		&& $(SED) -e 's@^\(.*\)\.o:@\1.d \1.o:@' -i $2.d
-endef
 
 # result: shell commands to create a particle Makefile
 # argument 1: directory
