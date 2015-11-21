@@ -1,1 +1,3 @@
-CCFLAGS += -D __ENSE_SMALL_LIBC=0
+ifeq ($(origin CONFIG_LIBC_OPT_S),file)
+CCFLAGS += -Os
+endif

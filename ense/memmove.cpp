@@ -13,7 +13,7 @@ void* __aeabi_memmove(void* dest, const void* src, size_t n)
 	unsigned char* d = static_cast<unsigned char*>(dest) + n - 1;
 	const unsigned char* s = static_cast<const unsigned char*>(src) + n - 1;
 
-#if !__ENSE_SMALL_LIBC
+#ifndef CONFIG_LIBC_MEMfn_BYTEWISE
 	if (n >= 4) {
 		while (reinterpret_cast<uintptr_t>(d) % 4) {
 			*d-- = *s--;

@@ -1,0 +1,9 @@
+# ** CONFIG_LIBC_MEMfn_BYTEWISE **
+# if defined, run mem(set|move|cmp|cpy) in bytewise mode instead of wordsize.
+#CONFIG_LIBC_MEMfn_BYTEWISE :=
+
+# ** CONFIG_LIBC_OPT_S **
+# if defined, compile libc with -Os
+#CONFIG_LIBC_OPT_S :=
+
+# vim: set syn=make

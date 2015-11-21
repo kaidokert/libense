@@ -6,7 +6,7 @@ void* __aeabi_memset(void* dest, size_t n, int c)
 	unsigned char fill = c;
 	unsigned char* d = static_cast<unsigned char*>(dest);
 
-#if !__ENSE_SMALL_LIBC
+#ifndef CONFIG_LIBC_MEMfn_BYTEWISE
 	if (n >= 4) {
 		while (reinterpret_cast<uintptr_t>(d) % 4) {
 			*d++ = fill;

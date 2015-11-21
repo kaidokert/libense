@@ -6,7 +6,7 @@ int memcmp(const void* m1, const void* m2, size_t n)
 	const unsigned char* l = static_cast<const unsigned char*>(m1);
 	const unsigned char* r = static_cast<const unsigned char*>(m2);
 
-#if !__ENSE_SMALL_LIBC
+#ifndef CONFIG_LIBC_MEMfn_BYTEWISE
 	if (n >= 4) {
 		while (reinterpret_cast<uintptr_t>(l) % 4) {
 			int diff = *l++ - *r++;

@@ -1,5 +1,8 @@
 #include <string.h>
 #include <stdint.h>
+#include <stdlib.h>
+
+#include <memalloc.hpp>
 
 #include <hw/rcc.hpp>
 #include <hw/gpio.hpp>
@@ -90,14 +93,16 @@ void configure_interrupts()
 	ense::nvic.enable<ense::ExternalInterrupt::exti0, ense::ExternalInterrupt::usart3>();
 }
 
+}
 
-
+[[gnu::noinline]]
 void transmit(char c)
 {
 	while (!uart.tdr_empty());
 	uart.data(c);
 }
 
+[[gnu::noinline]]
 void transmit(const char* str)
 {
 	while (*str) {
@@ -105,6 +110,40 @@ void transmit(const char* str)
 		str++;
 	}
 }
+
+[[gnu::noinline]]
+void transmit(unsigned val)
+{
+	char buf[13];
+	unsigned c = 12;
+	buf[c--] = 0;
+
+	do {
+		buf[c--] = '0' + (val % 10);
+		val /= 10;
+	} while (val);
+
+	transmit(buf + c + 1);
+}
+
+[[gnu::noinline]]
+void transmitHex(unsigned val)
+{
+	char buf[13];
+	unsigned c = 12;
+	buf[c--] = 0;
+
+	do {
+		buf[c--] = "0123456789ABCDEF"[val % 16];
+		val /= 16;
+	} while (val);
+
+	buf[c--] = 'x';
+	buf[c--] = '0';
+	transmit(buf + c + 1);
+}
+
+namespace {
 
 void toggle()
 {
@@ -138,9 +177,6 @@ void dma_print_banner()
 
 	static char buffer[] = "snafu something something\r\n";
 
-	asm volatile ("nop");
-	asm volatile ("nop");
-	asm volatile ("nop");
 	namespace d = ense::platform::dma;
 	auto assoc = setup_stream(
 		d::buffer(buffer, buffer + sizeof(buffer)),
@@ -149,9 +185,6 @@ void dma_print_banner()
 		Priority::very_high,
 		FIFOThreshold::full
 	);
-	asm volatile ("nop");
-	asm volatile ("nop");
-	asm volatile ("nop");
 
 	assoc.stream().enabled(true);
 
@@ -169,27 +202,79 @@ void run_usart()
 	using namespace ense::platform::gpio;
 	using namespace ense::platform::usart;
 
+	struct Foo {
+		Foo* next;
+		char pad[1000];
+	};
+
+	static Foo* foo = nullptr;
+	static unsigned bar = 0;
+
 	for (;;) {
 		const unsigned val = ticks;
 
-		unsigned cbuf = val;
-		char buf[13];
-		unsigned c = 12;
-		buf[c--] = 0;
-		buf[c--] = '\r';
-		buf[c--] = '\n';
-
-		while (cbuf) {
-			buf[c--] = '0' + (cbuf % 10);
-			cbuf /= 10;
+		auto* x = new (ense::coreCoupled, std::nothrow) Foo{foo, {}};
+		if (x) {
+			foo = x;
+		} else {
+			transmit("list ");
+			for (auto* cur = foo; cur; cur = cur->next) {
+				transmit(" ");
+				transmitHex((unsigned) cur);
+			}
+			transmit("\r\n");
+			Foo** pNext = &foo;
+			Foo* cur = foo;
+			while (cur) {
+				if (bar++ % 7 == 0) {
+					transmit("freed "); transmitHex((unsigned) cur); transmit("\r\n");
+					auto* go = cur;
+					*pNext = cur->next;
+					cur = cur->next;
+					delete go;
+				} else {
+					pNext = &cur->next;
+					cur = cur->next;
+				}
+			}
 		}
 
-		transmit(buf + c + 1);
+		transmit(ticks);
+		transmit(" ");
+		transmitHex((unsigned) x);
+		transmit(" ");
+		transmitHex(bar);
+		transmit("\r\n");
 
 		while (ticks == val);
 	}
 }
 
+}
+
+#include <cassert>
+
+extern "C"
+void __assert_fail(const char* msg, const char* file, int line, const char* func)
+{
+	transmit("ASSERT FAILURE (");
+	transmit(func);
+	transmit(", ");
+	transmit(file);
+	transmit(":");
+	transmit((unsigned) line);
+	transmit(") ");
+	transmit(msg);
+	transmit("\r\n");
+
+	asm volatile ("cpsid i");
+	while (true)
+		asm volatile ("wfi");
+}
+
+extern "C" void __cxa_pure_virtual()
+{
+	__assert_fail("pure virtual called", "", 0, "");
 }
 
 void main()
@@ -227,9 +312,7 @@ static void echo()
 	char rdr = uart.data();
 
 	if (pos == sizeof(buf)) {
-		for (unsigned i = 1; i < sizeof(buf); i++)
-			buf[i - 1] = buf[i];
-
+		memmove(buf, buf + 1, sizeof(buf) - 1);
 		buf[sizeof(buf) - 1] = rdr;
 	} else {
 		buf[pos++] = rdr;
@@ -241,7 +324,10 @@ static void echo()
 }
 
 [[gnu::section("..isr_vectors"), gnu::used]]
-constexpr ense::IVT<
+int x = 42;
+
+[[gnu::section("..isr_vectors"), gnu::used]]
+ense::IVT<
 	ense::nmi_handler<lockup>,
 	ense::hard_fault_handler<lockup>,
 
@@ -252,4 +338,4 @@ constexpr ense::IVT<
 
 	ense::external_interrupt<ense::ExternalInterrupt::usart3, echo>,
 	ense::external_interrupt<ense::ExternalInterrupt::exti0, button>
-> ivt;
+> __ivt;

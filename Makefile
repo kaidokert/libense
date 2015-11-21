@@ -29,6 +29,7 @@ CCFLAGS += $(ABI_CCFLAGS)
 CCFLAGS += -ffreestanding -nostdlib -nostdlibinc
 CCFLAGS += -fno-stack-protector
 CCFLAGS += -ffunction-sections -fdata-sections
+CCFLAGS += -include .ense-config.h
 CFLAGS += $(CCFLAGS) -std=c99
 CXXFLAGS += $(CCFLAGS) -std=c++1y -fno-exceptions
 ASFLAGS := -mcpu=$(CPU) -mthumb -mfloat-abi=$(FLOAT_ABI) -mfpu=$(FPU) -meabi=5
@@ -70,6 +71,16 @@ endef
 ###
 # here be internals
 ###
+
+MAKE_DEPS := Makefile ense-config
+
+-include ense-config
+
+.ense-config.h: $(MAKE_DEPS)
+	printf "" > $@
+	$(foreach conf-var,\
+		$(filter CONFIG_%,$(.VARIABLES)),\
+		printf "#define $(conf-var) $($(conf-var))\n" >> $@)
 
 TARGET_LDSCRIPT = $(target-objdir)/main.ld
 
@@ -193,15 +204,15 @@ depclean:
 distclean:
 	-$(RM) -r $(BINDIR)
 
-$(target-objdir)/%.o: %.cpp Makefile | $(DIRS)
+$(target-objdir)/%.o: %.cpp $(MAKE_DEPS) | $(DIRS)
 	@echo "[CXX]	" $<
 	$V$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(call gendep_cflags, $@) -c -o $@ $<
 
-$(target-objdir)/%.o: %.c Makefile | $(DIRS)
+$(target-objdir)/%.o: %.c $(MAKE_DEPS) | $(DIRS)
 	@echo "[CC]	" $<
 	$V$(CC) $(CPPFLAGS) $(CFLAGS) $(call gendep_cflags, $@) -c -o $@ $<
 
-$(target-objdir)/%.o: %.S Makefile | $(DIRS)
+$(target-objdir)/%.o: %.S $(MAKE_DEPS) | $(DIRS)
 	@echo "[AS]	" $<
 	$V$(AS) $(ASFLAGS) -o $@ $<
 
@@ -209,12 +220,12 @@ $(target-objdir)/%.o: %.S Makefile | $(DIRS)
 $(DIRS):
 	@mkdir -p $@
 
-$(PARTICLE_MAKEFILES): Makefile
+$(PARTICLE_MAKEFILES): $(MAKE_DEPS)
 	@echo "[GEN]	" $@
 	$(file >$@,$(call generate_subdir_makefile,$@))
 
 -include $(TARGET_LDSCRIPT).d
-$(TARGET_LDSCRIPT): ldscripts/$(PART_FAMILY)/$(PART_FAMILY)$(PART_SERIES).ld Makefile | $(DIRS)
+$(TARGET_LDSCRIPT): ldscripts/$(PART_FAMILY)/$(PART_FAMILY)$(PART_SERIES).ld $(MAKE_DEPS) | $(DIRS)
 	@echo "[GENLD]	" $<
 	$V$(CPP) -x c -nostdinc -I ldscripts -P $(call gendep_cflags, $@) -o $@ $<
 
